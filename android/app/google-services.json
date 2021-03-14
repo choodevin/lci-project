@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "95427789270",
+    "project_id": "lci-project-temp",
+    "storage_bucket": "lci-project-temp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95427789270:android:276c9ccac9803ba41ba477",
+        "android_client_info": {
+          "package_name": "com.lci.lciproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "95427789270-ejjkcm4vs25fkf9te223r32vdchi7inb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMeX-9OLN8rpKHsoSD1AqvvdbBXWr4WZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "95427789270-ejjkcm4vs25fkf9te223r32vdchi7inb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "95427789270-ps7044r7sf7b8td769f5e7vqgek8ph2l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.lci.lciproject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
