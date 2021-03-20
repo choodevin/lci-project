@@ -62,7 +62,7 @@ class _RegisterState extends State<Register> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Create New Account',
@@ -71,7 +71,7 @@ class _RegisterState extends State<Register> {
                 Container(
                   margin: EdgeInsets.only(top: 40),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Padding(
                         padding: EdgeInsets.only(top: 20, bottom: 5),
@@ -218,7 +218,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Create New Account',
@@ -230,7 +230,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                     children: [
                       PrimaryCard(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
                               'Your Name',
@@ -277,7 +277,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                     height: 90,
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         Text(
                                           'Gender',
@@ -466,7 +466,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                             child: Container(
                               height: 220,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Text(
                                     'Date of Birth',
@@ -766,7 +766,7 @@ class _RegisterTCState extends State<RegisterTC> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Terms & Conditions',
@@ -868,7 +868,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Welcome, ' + user.name + '!',
@@ -883,7 +883,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                   children: [
                     PrimaryCard(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
                             'What brings you here?',
@@ -1110,7 +1110,7 @@ class _RegisterGroupingState extends State<RegisterGrouping> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Welcome, ' + user.name + '!',
@@ -1318,7 +1318,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Choose Your Plan',
@@ -1415,7 +1415,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                           gradient: LinearGradient(
                             begin: Alignment(-0.95, 1.0),
                             end: Alignment(0.93, -0.96),
@@ -1495,7 +1495,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                           gradient: LinearGradient(
                             begin: Alignment(0.91, -1.29),
                             end: Alignment(-0.6, 1.41),
@@ -1537,7 +1537,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                                 ),
                               ),
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(

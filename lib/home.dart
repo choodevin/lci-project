@@ -389,7 +389,7 @@ class HomeBase extends StatefulWidget {
 }
 
 class _HomeBaseState extends State<HomeBase> {
-  UserData userdata = UserData();
+  UserData userdata;
   int index = 0;
 
   _HomeBaseState({this.userdata});

@@ -274,30 +274,25 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Material(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(90)),
-          ),
-          elevation: 1,
-          color: color,
-          clipBehavior: Clip.antiAlias,
-          child: MaterialButton(
-            padding: EdgeInsets.only(top: 15, bottom: 15),
-            onPressed: onClickFunction,
-            child: Text(
-              text,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+    return Material(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(90)),
+      ),
+      elevation: 1,
+      color: color,
+      clipBehavior: Clip.antiAlias,
+      child: MaterialButton(
+        padding: EdgeInsets.only(top: 15, bottom: 15),
+        onPressed: onClickFunction,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
-      ],
+      ),
     );
   }
 }

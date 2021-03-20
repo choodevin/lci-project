@@ -19,16 +19,12 @@ class Login extends StatelessWidget {
             ),
             padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Welcome Back!',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
+                PageHeadings(
+                  text: 'Welcome Back!',
+                  metaText: 'Sign in to your account',
                 ),
-                Text('Sign in to your account',
-                    style: TextStyle(
-                      color: Color(0xFF878787),
-                    )),
                 LoginForm(),
               ],
             ),
@@ -74,7 +70,7 @@ class _LoginFormState extends State<LoginForm> {
     return Container(
       margin: EdgeInsets.only(top: 40),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: EdgeInsets.only(top: 20, bottom: 5),
@@ -145,7 +141,7 @@ class _LoginFormState extends State<LoginForm> {
                             password: _passwordController.text);
                     if (uc.user != null) {
                       Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => Home()));
+                          MaterialPageRoute(builder: (context) => GetUserData()));
                     }
                   } on FirebaseAuthException {
                     Scaffold.of(context).showSnackBar(
