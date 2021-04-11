@@ -333,6 +333,32 @@ class PrimaryCard extends StatelessWidget {
   }
 }
 
+class ClickablePrimaryCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final Color color;
+  final BorderSide borderSide;
+  final Function onClickFunction;
+
+  ClickablePrimaryCard({
+    this.child,
+    this.padding = const EdgeInsets.fromLTRB(20, 15, 20, 15),
+    this.color = const Color(0xFFFFFFFF),
+    this.borderSide = BorderSide.none,
+    this.onClickFunction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: GestureDetector(
+        onTap: onClickFunction,
+        child: PrimaryCard(padding: padding, child: child),
+      ),
+    );
+  }
+}
+
 class PageHeadings extends StatelessWidget {
   final String text;
   final String metaText;
@@ -475,6 +501,156 @@ class RoundedLinearProgress extends StatelessWidget {
           value: value,
           valueColor: AlwaysStoppedAnimation<Color>(color),
           backgroundColor: Color(0xFFC3C3C3),
+        ),
+      ),
+    );
+  }
+}
+
+class UnlockPremium extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(0, 0, 0, 0.4),
+            borderRadius: BorderRadius.all(Radius.circular(25)),
+          ),
+        ),
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            height: 60,
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                    width: 1, style: BorderStyle.solid, color: Colors.white),
+                bottom: BorderSide(
+                    width: 1, style: BorderStyle.solid, color: Colors.white),
+              ),
+              gradient: LinearGradient(
+                begin: Alignment(0.91, -1.29),
+                end: Alignment(-0.6, 1.41),
+                colors: [const Color(0xffe8da62), const Color(0xff9b705f)],
+                stops: [0.0, 1.0],
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/crown.svg',
+                  height: 24,
+                ),
+                Padding(padding: EdgeInsets.all(10)),
+                Text(
+                  'UNLOCK PREMIUM',
+                  style: TextStyle(
+                    fontSize: 22,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class GoalSelection extends StatefulWidget {
+  final String title;
+  final String description;
+  final Color color;
+  final bool value;
+  final String assetPath;
+  final Function(bool) callBack;
+
+  const GoalSelection(
+      {this.title,
+      this.description,
+      this.color,
+      this.value,
+      this.assetPath,
+      this.callBack});
+
+  _GoalSelectionState createState() =>
+      _GoalSelectionState(title, description, color, value, assetPath, callBack);
+}
+
+class _GoalSelectionState extends State<GoalSelection> {
+  final String title;
+  final String description;
+  final Color color;
+  final String assetPath;
+  Function(bool) callBack;
+  bool value;
+
+  _GoalSelectionState(
+      this.title, this.description, this.color, this.value, this.assetPath, this.callBack);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            value = !value;
+          });
+          callBack(value);
+        },
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Theme(
+                  child: Checkbox(
+                    checkColor: Colors.white,
+                    activeColor: color,
+                    value: value,
+                    onChanged: (v) {
+                      setState(() {
+                        value = v;
+                      });
+                      callBack(value);
+                    },
+                  ),
+                  data: ThemeData(
+                    unselectedWidgetColor: color,
+                  ),
+                ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(5)),
+                SvgPicture.asset(
+                  assetPath,
+                  color: color,
+                  height: 20,
+                  width: 20,
+                ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 50),
+              child: Text(
+                description,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 16,
+                ),
+              ),
+            )
+          ],
         ),
       ),
     );

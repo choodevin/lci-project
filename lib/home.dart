@@ -12,6 +12,7 @@ import 'package:spider_chart/spider_chart.dart';
 
 import 'campaign.dart';
 import 'entity/UserData.dart';
+import 'goal.dart';
 import 'login.dart';
 
 class TabletHome extends StatelessWidget {
@@ -52,6 +53,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   UserData userdata = UserData();
+
   var sevenThings = {
     'Wake up early': false,
     'Exercise': false,
@@ -91,7 +93,11 @@ class _HomeState extends State<Home> {
                     children: [
                       Stack(
                         children: [
-                          PrimaryCard(
+                          ClickablePrimaryCard(
+                            onClickFunction: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => WheelOfLife()));
+                            },
                             padding: EdgeInsets.fromLTRB(30, 25, 30, 30),
                             child: Column(
                               children: [
@@ -121,19 +127,6 @@ class _HomeState extends State<Home> {
                               ],
                             ),
                           ),
-                          Positioned.fill(
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25)),
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => WheelOfLife()));
-                                },
-                              ),
-                            ),
-                          ),
                           userdata.subscription != "Premium"
                               ? Positioned.fill(
                                   child: Container(
@@ -150,8 +143,12 @@ class _HomeState extends State<Home> {
                       Padding(padding: EdgeInsets.all(20)),
                       Stack(
                         children: [
-                          PrimaryCard(
+                          ClickablePrimaryCard(
                             padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
+                            onClickFunction: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => SevenThings()));
+                            },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
@@ -164,25 +161,16 @@ class _HomeState extends State<Home> {
                               ],
                             ),
                           ),
-                          Positioned.fill(
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25)),
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => SevenThings()));
-                                },
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       Padding(padding: EdgeInsets.all(20)),
                       Stack(
                         children: [
-                          PrimaryCard(
+                          ClickablePrimaryCard(
+                            onClickFunction: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => Goals()));
+                            },
                             padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
                             child: Column(
                               children: [
@@ -310,27 +298,9 @@ class _HomeState extends State<Home> {
                               ],
                             ),
                           ),
-                          Positioned.fill(
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25)),
-                                onTap: () {
-                                  print('in');
-                                },
-                              ),
-                            ),
-                          ),
                           userdata.subscription != "Premium"
                               ? Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Color.fromRGBO(0, 0, 0, 0.4),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(25)),
-                                    ),
-                                  ),
+                                  child: UnlockPremium(),
                                 )
                               : Container(),
                         ],

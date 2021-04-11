@@ -1595,7 +1595,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                     } on FirebaseAuthException catch (e) {
                       globalKey.currentState.showSnackBar(SnackBar(
                           content:
-                              Text('There was an error occured. ' + e.code)));
+                              Text('There was an error occurred. ' + e.code)));
                     } finally {
                       CollectionReference userData =
                           FirebaseFirestore.instance.collection('UserData');
