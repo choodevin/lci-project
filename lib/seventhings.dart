@@ -87,12 +87,12 @@ class _SevenThingsState extends State<SevenThings> {
                       ),
                       Padding(padding: EdgeInsets.all(7.5)),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           for (var i = 0; i < thisWeek.length; i++)
                             Container(
-                              height: 50,
-                              width: 50,
+                              height: 45,
+                              width: 45,
                               decoration: thisWeek.entries.elementAt(i).value ==
                                       now.day
                                   ? BoxDecoration(
@@ -327,10 +327,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          primarySevenThingsCheck[1] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: primarySevenThingsCheck[1],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
@@ -366,10 +366,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          primarySevenThingsCheck[2] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: primarySevenThingsCheck[2],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
@@ -418,10 +418,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          secondarySevenThingsCheck[0] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: secondarySevenThingsCheck[0],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
@@ -457,10 +457,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          secondarySevenThingsCheck[1] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: secondarySevenThingsCheck[1],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
@@ -496,10 +496,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          secondarySevenThingsCheck[2] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: secondarySevenThingsCheck[2],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
@@ -535,10 +535,10 @@ class _SevenThingsState extends State<SevenThings> {
                                     child: Checkbox(
                                       onChanged: (value) {
                                         setState(() {
-                                          primarySevenThingsCheck[0] = value;
+                                          secondarySevenThingsCheck[3] = value;
                                         });
                                       },
-                                      value: primarySevenThingsCheck[0],
+                                      value: secondarySevenThingsCheck[3],
                                       activeColor: Colors.white,
                                       checkColor: Colors.black,
                                     ),
