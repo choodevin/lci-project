@@ -10,8 +10,15 @@ class SevenThings extends StatefulWidget {
 }
 
 class _SevenThingsState extends State<SevenThings> {
-  List<bool> primarySevenThingsCheck = [false, false, false];
-  List<bool> secondarySevenThingsCheck = [false, false, false, false];
+  var sevenThings = {
+    'Wake up early': false,
+    'Exercise': false,
+    'Project': false,
+    'Make Healthy Food': false,
+    'Working': false,
+    'Play Games': false,
+    'Sleep': false,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -186,16 +193,8 @@ class _SevenThingsState extends State<SevenThings> {
                                 Expanded(
                                   child: PrimaryButton(
                                     textColor: Colors.white,
-                                    text: 'Add to Primary',
+                                    text: 'Add',
                                     color: Color(0xFFF48A1D),
-                                  ),
-                                ),
-                                Padding(padding: EdgeInsets.all(5)),
-                                Expanded(
-                                  child: PrimaryButton(
-                                    textColor: Colors.white,
-                                    text: 'Add to Secondary',
-                                    color: Color(0xFF6D330D),
                                   ),
                                 ),
                               ],
@@ -219,16 +218,8 @@ class _SevenThingsState extends State<SevenThings> {
                                 Expanded(
                                   child: PrimaryButton(
                                     textColor: Colors.white,
-                                    text: 'Add to Primary',
+                                    text: 'Add',
                                     color: Color(0xFFF48A1D),
-                                  ),
-                                ),
-                                Padding(padding: EdgeInsets.all(5)),
-                                Expanded(
-                                  child: PrimaryButton(
-                                    textColor: Colors.white,
-                                    text: 'Add to Secondary',
-                                    color: Color(0xFF6D330D),
                                   ),
                                 ),
                               ],
@@ -252,18 +243,10 @@ class _SevenThingsState extends State<SevenThings> {
                                 Expanded(
                                   child: PrimaryButton(
                                     textColor: Colors.white,
-                                    text: 'Add to Primary',
+                                    text: 'Add-',
                                     color: Color(0xFFF48A1D),
                                   ),
                                 ),
-                                Padding(padding: EdgeInsets.all(5)),
-                                Expanded(
-                                  child: PrimaryButton(
-                                    textColor: Colors.white,
-                                    text: 'Add to Secondary',
-                                    color: Color(0xFF6D330D),
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -271,301 +254,23 @@ class _SevenThingsState extends State<SevenThings> {
                       ),
                       Padding(padding: EdgeInsets.all(30)),
                       Text(
-                        '3 Primary Things',
+                        'Your 7 Things',
                         style: TextStyle(
                             fontWeight: FontWeight.w900, fontSize: 20),
                       ),
                       Padding(padding: EdgeInsets.all(10)),
                       PrimaryCard(
-                        color: Color(0xFFF48A1D),
                         child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          primarySevenThingsCheck[0] = value;
-                                        });
-                                      },
-                                      value: primarySevenThingsCheck[0],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Wake up early',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                            Padding(padding: EdgeInsets.all(10)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          primarySevenThingsCheck[1] = value;
-                                        });
-                                      },
-                                      value: primarySevenThingsCheck[1],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Exercise',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                            Padding(padding: EdgeInsets.all(10)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          primarySevenThingsCheck[2] = value;
-                                        });
-                                      },
-                                      value: primarySevenThingsCheck[2],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Working',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(padding: EdgeInsets.all(30)),
-                      Text(
-                        '4 Secondary Things',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w900, fontSize: 20),
-                      ),
-                      Padding(padding: EdgeInsets.all(10)),
-                      PrimaryCard(
-                        color: Color(0xFF6D330D),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          secondarySevenThingsCheck[0] = value;
-                                        });
-                                      },
-                                      value: secondarySevenThingsCheck[0],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Study',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                            Padding(padding: EdgeInsets.all(10)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          secondarySevenThingsCheck[1] = value;
-                                        });
-                                      },
-                                      value: secondarySevenThingsCheck[1],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Reading',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                            Padding(padding: EdgeInsets.all(10)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          secondarySevenThingsCheck[2] = value;
-                                        });
-                                      },
-                                      value: secondarySevenThingsCheck[2],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Practice Guitar',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                            Padding(padding: EdgeInsets.all(10)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    child: Checkbox(
-                                      onChanged: (value) {
-                                        setState(() {
-                                          secondarySevenThingsCheck[3] = value;
-                                        });
-                                      },
-                                      value: secondarySevenThingsCheck[3],
-                                      activeColor: Colors.white,
-                                      checkColor: Colors.black,
-                                    ),
-                                  ),
-                                  flex: 1,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Bring Ah Water for Walk',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  flex: 5,
-                                ),
-                                Expanded(
-                                  child: SvgPicture.asset(
-                                    'assets/menu.svg',
-                                    color: Colors.white,
-                                    height: 20,
-                                  ),
-                                  flex: 1,
-                                ),
-                              ],
-                            ),
-                          ],
+                          children: sevenThings.keys.map((key) {
+                            return CheckboxListTile(
+                              value: sevenThings[key],
+                              onChanged: (value) {
+                                setState(() {
+                                  sevenThings[key] = value;
+                                });
+                              },
+                            );
+                          }).toList(),
                         ),
                       ),
                     ],

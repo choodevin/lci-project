@@ -428,16 +428,18 @@ class TextWithIcon extends StatelessWidget {
 class SevenThingsList extends StatefulWidget {
   @required
   final Map<String, bool> data;
+  final Function callBack;
 
-  const SevenThingsList({this.data});
+  const SevenThingsList({this.data, this.callBack});
 
-  _SevenThingsList createState() => _SevenThingsList(data: data);
+  _SevenThingsList createState() => _SevenThingsList(callBack, data);
 }
 
 class _SevenThingsList extends State<SevenThingsList> {
   Map<String, bool> data;
+  Function callBack;
 
-  _SevenThingsList({this.data});
+  _SevenThingsList(this.callBack, this.data);
 
   @override
   Widget build(BuildContext context) {
@@ -450,22 +452,28 @@ class _SevenThingsList extends State<SevenThingsList> {
                   children: [
                     SizedBox(
                       height: 32,
-                      width: 36,
                       child: Checkbox(
                         value: data.entries.elementAt(i).value,
                         onChanged: (value) {
+                          callBack(i, value);
                           setState(() {
-                            data.update(data.entries.elementAt(i).key,
-                                (x) => x = value);
+                            data.update(
+                                data.entries.elementAt(i).key, (x) => value);
                           });
                         },
                       ),
                     ),
-                    Text(
-                      data.entries.elementAt(i).key,
-                      style: TextStyle(
-                        color: Color(0xFF878787),
-                        fontSize: 16,
+                    Padding(padding: EdgeInsets.all(5)),
+                    GestureDetector(
+                      onTap: () {
+                        callBack(i, !data.entries.elementAt(i).value);
+                      },
+                      child: Text(
+                        data.entries.elementAt(i).key,
+                        style: TextStyle(
+                          color: Color(0xFF878787),
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                   ],
@@ -578,8 +586,8 @@ class GoalSelection extends StatefulWidget {
       this.assetPath,
       this.callBack});
 
-  _GoalSelectionState createState() =>
-      _GoalSelectionState(title, description, color, value, assetPath, callBack);
+  _GoalSelectionState createState() => _GoalSelectionState(
+      title, description, color, value, assetPath, callBack);
 }
 
 class _GoalSelectionState extends State<GoalSelection> {
@@ -590,8 +598,8 @@ class _GoalSelectionState extends State<GoalSelection> {
   Function(bool) callBack;
   bool value;
 
-  _GoalSelectionState(
-      this.title, this.description, this.color, this.value, this.assetPath, this.callBack);
+  _GoalSelectionState(this.title, this.description, this.color, this.value,
+      this.assetPath, this.callBack);
 
   @override
   Widget build(BuildContext context) {
@@ -612,9 +620,9 @@ class _GoalSelectionState extends State<GoalSelection> {
                     checkColor: Colors.white,
                     activeColor: color,
                     value: value,
-                    onChanged: (v) {
+                    onChanged: (value) {
                       setState(() {
-                        value = v;
+                        this.value = value;
                       });
                       callBack(value);
                     },

@@ -156,8 +156,16 @@ class _HomeState extends State<Home> {
                                   assetPath: 'assets/tasks.svg',
                                   text: 'Today\'s 7 Things',
                                 ),
-                                Padding(padding: EdgeInsets.all(5)),
-                                SevenThingsList(data: sevenThings),
+                                Padding(padding: EdgeInsets.all(10)),
+                                SevenThingsList(
+                                  data: sevenThings,
+                                  callBack: (index, value) {
+                                    setState(() {
+                                      sevenThings.update(
+                                          sevenThings.entries.elementAt(index).key, (x) => value);
+                                    });
+                                  },
+                                ),
                               ],
                             ),
                           ),
