@@ -664,3 +664,55 @@ class _GoalSelectionState extends State<GoalSelection> {
     );
   }
 }
+
+class CustomStatusBar extends StatelessWidget {
+  final String text;
+
+  const CustomStatusBar({this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 65,
+      padding: EdgeInsets.only(left: 15, right: 20),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFEAEAEA),
+            width: 1
+          )
+        )
+      ),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Row(
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(100),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: SvgPicture.asset(
+                    'assets/back.svg',
+                    height: 22,
+                    width: 22,
+                  )),
+            ),
+            Padding(padding: EdgeInsets.all(5)),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 22,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

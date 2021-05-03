@@ -67,10 +67,6 @@ class _HomeState extends State<Home> {
   _HomeState(this.userdata);
 
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFFAFAFA),
-      statusBarBrightness: Brightness.dark,
-    ));
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -147,7 +143,7 @@ class _HomeState extends State<Home> {
                             padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
                             onClickFunction: () {
                               Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => SevenThings()));
+                                  builder: (context) => GetSevenThings()));
                             },
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
