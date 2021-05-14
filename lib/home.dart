@@ -173,7 +173,7 @@ class _HomeState extends State<Home> {
                           ClickablePrimaryCard(
                             onClickFunction: () {
                               Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => Goals()));
+                                  builder: (context) => Goals(userdata: userdata)));
                             },
                             padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
                             child: Column(
