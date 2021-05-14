@@ -5,26 +5,51 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:ntp/ntp.dart';
 
-class GetSevenThings extends StatelessWidget {
+class GetSevenThings extends StatefulWidget {
   final date;
 
   const GetSevenThings({this.date});
 
-  @override
-  Widget build(BuildContext context) {
-    var searchDate;
-    CollectionReference sevenThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
+  _GetSevenThingsState createState() => _GetSevenThingsState(date: date);
+}
 
+class _GetSevenThingsState extends State<GetSevenThings> {
+  final date;
+
+  DateTime searchDate;
+  DateTime toSearch;
+
+  _GetSevenThingsState({this.date});
+
+  Future<DateTime> getNetworkTime() async {
+    DateTime _myTime;
+    _myTime = await NTP.now();
+    return _myTime;
+  }
+
+  @override
+  void initState() {
+    super.initState();
     if (date == null || date == "") {
-      var temp = DateTime.now();
-      searchDate = DateTime(temp.year, temp.month, temp.day);
+      getNetworkTime().then((value) {
+        setState(() {
+          searchDate = value;
+          toSearch = DateTime(searchDate.year, searchDate.month, searchDate.day);
+        });
+      });
     } else {
       searchDate = date;
+      toSearch = DateTime(searchDate.year, searchDate.month, searchDate.day);
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    CollectionReference sevenThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
     return FutureBuilder<DocumentSnapshot>(
-      future: sevenThingsRef.doc(searchDate.toString()).get(),
+      future: sevenThingsRef.doc(toSearch.toString()).get(),
       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasError) {
           return SevenThings(date: searchDate);
@@ -64,6 +89,16 @@ class _SevenThingsState extends State<SevenThings> {
   var suggestions = ['Do exercise', 'Study', 'Finish homework', 'Wake up early'];
 
   var tempSevenThingsType;
+  var newSevenThings;
+
+  var editable = true;
+  var showEmpty = false;
+
+  var _newSevenThingsController = TextEditingController();
+  var _editSevenThingsController = TextEditingController();
+
+  final _editForm = GlobalKey<FormState>();
+
 
   @override
   Widget build(BuildContext context) {
@@ -71,37 +106,143 @@ class _SevenThingsState extends State<SevenThings> {
 
     Future<void> updateSevenThings() {
       var toChange = date;
-      return user
-          .doc(DateTime(toChange.year, toChange.month, toChange.day).toString())
-          .set(sevenThings)
-          .catchError((error) => _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('There was an error inserting the item, please try again.'))));
+      return user.doc(DateTime(toChange.year, toChange.month, toChange.day).toString()).set(sevenThings).catchError((error) =>
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('There was an error inserting the item, please try again.'),
+          )));
     }
 
     Future<void> sevenThingsTypeSelectionDialog() {
       return showDialog<void>(
-          context: context,
-          builder: (BuildContext c) {
-            return AlertDialog(
-              title: Text('Select a type'),
-              content: Text('Which type do you wan\'t this item to be assigned to ?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
+        context: context,
+        builder: (BuildContext c) {
+          return AlertDialog(
+            title: Text('Select a type'),
+            content: Text('Which type do you wan\'t this item to be assigned to ?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  tempSevenThingsType = "Primary";
+                  Navigator.of(context).pop();
+                },
+                child: Text('Primary'),
+              ),
+              TextButton(
+                onPressed: () {
+                  tempSevenThingsType = "Secondary";
+                  Navigator.of(context).pop();
+                },
+                child: Text('Secondary'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    Future<void> addSevenThingsDialog() {
+      return showDialog<void>(
+        context: context,
+        builder: (BuildContext c) {
+          return AlertDialog(
+            title: Text('Add Seven Things'),
+            content: TextField(
+              controller: _newSevenThingsController,
+              style: TextStyle(fontSize: 16),
+              maxLines: 1,
+              decoration: InputDecoration(
+                errorText: showEmpty ? 'Do not leave it blank' : null,
+                hintText: 'Enter something here',
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  if (_newSevenThingsController.text != "") {
                     tempSevenThingsType = "Primary";
                     Navigator.of(context).pop();
-                  },
-                  child: Text('Primary'),
-                ),
-                TextButton(
-                  onPressed: () {
+                  } else {
+                    setState(() {
+                      showEmpty = true;
+                    });
+                  }
+                },
+                child: Text('Primary'),
+              ),
+              TextButton(
+                onPressed: () {
+                  if (_newSevenThingsController.text != "") {
                     tempSevenThingsType = "Secondary";
                     Navigator.of(context).pop();
-                  },
-                  child: Text('Secondary'),
+                  } else {
+                    setState(() {
+                      showEmpty = true;
+                    });
+                  }
+                },
+                child: Text('Secondary'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    Future<void> editSevenThing(String current) {
+      return showDialog<void>(
+        context: context,
+        builder: (BuildContext c) {
+          return AlertDialog(
+            title: Text('Edit Seven Things'),
+            content: Form(
+              key: _editForm,
+              child: TextFormField(
+                controller: _editSevenThingsController..text = current,
+                style: TextStyle(fontSize: 16),
+                maxLines: 1,
+                decoration: InputDecoration(
+                  errorText: showEmpty ? 'Do not leave it blank' : null,
+                  hintText: 'Enter something here',
                 ),
-              ],
-            );
-          });
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Do not leave it blank';
+                  } else{
+                    if(current != value) {
+                      if(sevenThings[value] != null) {
+                        return 'Duplicate seven things entered';
+                      }
+                    }
+                  }
+                  return null;
+                },
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  if (_editForm.currentState.validate()) {
+                    var temp = sevenThings[current];
+                    setState(() {
+                      sevenThings.remove(current);
+                      sevenThings[_editSevenThingsController.text] = temp;
+                      updateSevenThings();
+                    });
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Text('Confirm'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+            ],
+          );
+        },
+      );
     }
 
     arrangeSevenThings() {
@@ -120,12 +261,16 @@ class _SevenThingsState extends State<SevenThings> {
       });
     }
 
-    arrangeSevenThings();
+    if (sevenThings != null) {
+      arrangeSevenThings();
+    }
 
     DateTime selectedDate = date;
+
     if (selectedDate == null) {
       selectedDate = DateTime.now();
     }
+
     Map<String, DateTime> getThisWeek() {
       DateTime firstDayOfWeek = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
       Map<String, DateTime> result = {
@@ -170,17 +315,26 @@ class _SevenThingsState extends State<SevenThings> {
               text: '7 Things',
             ),
             Container(
-              height: MediaQuery.of(context).size.height - 89,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height - 89,
               child: SingleChildScrollView(
                 child: Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
+                      padding: EdgeInsets.fromLTRB(25, 20, 30, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            selectedDate.year == DateTime.now().year && selectedDate.day == DateTime.now().day && selectedDate.month == DateTime.now().month
+                            selectedDate.year == DateTime
+                                .now()
+                                .year && selectedDate.day == DateTime
+                                .now()
+                                .day && selectedDate.month == DateTime
+                                .now()
+                                .month
                                 ? "TODAY"
                                 : DateFormat('dd MMMM yyyy').format(selectedDate).toString(),
                             textAlign: TextAlign.left,
@@ -216,41 +370,59 @@ class _SevenThingsState extends State<SevenThings> {
                                     Navigator.pushReplacement(
                                         context,
                                         PageRouteBuilder(
-                                          pageBuilder: (context, a1, a2) => GetSevenThings(date: thisWeek.entries.elementAt(i).value),
+                                          pageBuilder: (context, a1, a2) =>
+                                              GetSevenThings(date: thisWeek.entries
+                                                  .elementAt(i)
+                                                  .value),
                                           transitionDuration: Duration(seconds: 0),
                                         ));
                                   },
                                   child: Container(
                                     height: 45,
                                     width: 45,
-                                    decoration: thisWeek.entries.elementAt(i).value.day == selectedDate.day
+                                    decoration: thisWeek.entries
+                                        .elementAt(i)
+                                        .value
+                                        .day == selectedDate.day
                                         ? BoxDecoration(
-                                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                                            color: Color(0xFF170E9A),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color.fromRGBO(0, 0, 0, 0.15),
-                                                blurRadius: 8,
-                                                offset: Offset(0, 4),
-                                              ),
-                                            ],
-                                          )
+                                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                                      color: Color(0xFF170E9A),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color.fromRGBO(0, 0, 0, 0.15),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
+                                    )
                                         : BoxDecoration(),
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          thisWeek.entries.elementAt(i).key,
+                                          thisWeek.entries
+                                              .elementAt(i)
+                                              .key,
                                           style: TextStyle(
-                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                            color: thisWeek.entries
+                                                .elementAt(i)
+                                                .value
+                                                .day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                         Text(
-                                          thisWeek.entries.elementAt(i).value.day.toString(),
+                                          thisWeek.entries
+                                              .elementAt(i)
+                                              .value
+                                              .day
+                                              .toString(),
                                           style: TextStyle(
-                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                            color: thisWeek.entries
+                                                .elementAt(i)
+                                                .value
+                                                .day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -282,101 +454,168 @@ class _SevenThingsState extends State<SevenThings> {
                           ),
                           Padding(padding: EdgeInsets.all(20)),
                           PrimaryCard(
-                            padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
+                            padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
                             child: Column(
                               children: [
-                                TextWithIcon(
-                                  assetPath: 'assets/tasks.svg',
-                                  text: 'Your 7 Things List',
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextWithIcon(
+                                      assetPath: 'assets/tasks.svg',
+                                      text: 'Your 7 Things List',
+                                    ),
+                                    ClipOval(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () async {
+                                            await addSevenThingsDialog();
+                                            if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
+                                              var addClientComplete = false;
+                                              setState(
+                                                    () {
+                                                  if (sevenThings != null) {
+                                                    if (!sevenThings.containsKey(_newSevenThingsController.text) && sevenThings.length < 7) {
+                                                      if (sevenThings[suggestions] != null) {
+                                                        sevenThings[_newSevenThingsController.text]['status'] = false;
+                                                        sevenThings[_newSevenThingsController.text]['type'] = tempSevenThingsType;
+                                                      } else {
+                                                        sevenThings[_newSevenThingsController.text] = {"status": false, "type": tempSevenThingsType};
+                                                      }
+                                                      addClientComplete = true;
+                                                      suggestions.remove(_newSevenThingsController.text);
+                                                    } else {
+                                                      var message = "";
+                                                      if (sevenThings.length == 7) {
+                                                        message = "Your 7 things list is full, remove something and try again.";
+                                                      } else {
+                                                        message = 'Your 7 things list contains the same item.';
+                                                      }
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(message),
+                                                        ),
+                                                      );
+                                                    }
+                                                  } else {
+                                                    suggestions.remove(_newSevenThingsController.text);
+                                                    sevenThings = {
+                                                      _newSevenThingsController.text: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
+                                                    };
+                                                    addClientComplete = true;
+                                                  }
+                                                  if (addClientComplete) {
+                                                    updateSevenThings();
+                                                    tempSevenThingsType = null;
+                                                  }
+                                                },
+                                              );
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(10),
+                                            child: SvgPicture.asset(
+                                              'assets/plus.svg',
+                                              height: 18,
+                                              width: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
                                 ),
-                                Padding(padding: EdgeInsets.all(10)),
+                                Padding(padding: EdgeInsets.all(4)),
                                 sevenThings != null
                                     ? Column(
-                                        children: sevenThings.keys.map((key) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                                updateSevenThings();
-                                              });
-                                            },
-                                            child: Padding(
-                                              padding: EdgeInsets.only(top: 5, bottom: 5),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 20,
-                                                        width: 20,
-                                                        child: Checkbox(
-                                                          activeColor: Color(0xFFF48A1D),
-                                                          checkColor: Colors.white,
-                                                          value: sevenThings[key]['status'],
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              sevenThings[key]['status'] = value;
-                                                              progressPercent = getProgress();
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                      Padding(padding: EdgeInsets.all(7.5)),
-                                                      Text(
-                                                        key,
-                                                        style: TextStyle(fontSize: 17),
-                                                      ),
-                                                    ],
+                                  children: sevenThings.keys.map((key) {
+                                    return GestureDetector(
+                                      onLongPress: () {
+                                        editSevenThing(key);
+                                      },
+                                      onTap: () {
+                                        setState(() {
+                                          sevenThings[key]['status'] = !sevenThings[key]['status'];
+                                          updateSevenThings();
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding: EdgeInsets.only(top: 5, bottom: 5),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: Checkbox(
+                                                    activeColor: Color(0xFFF48A1D),
+                                                    checkColor: Colors.white,
+                                                    value: sevenThings[key]['status'],
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        sevenThings[key]['status'] = value;
+                                                        progressPercent = getProgress();
+                                                      });
+                                                    },
                                                   ),
-                                                  ClipOval(
-                                                    child: Material(
-                                                      color: Colors.transparent,
-                                                      child: InkWell(
-                                                        child: Padding(
-                                                          padding: EdgeInsets.all(7.5),
-                                                          child: SizedBox(
-                                                            width: 16,
-                                                            height: 16,
-                                                            child: SvgPicture.asset(
-                                                              'assets/close.svg',
-                                                              color: Color(0xFF878787),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        onTap: () {
-                                                          setState(() {
-                                                            sevenThings.remove(key);
-                                                            updateSevenThings();
-                                                          });
-                                                        },
+                                                ),
+                                                Padding(padding: EdgeInsets.all(7.5)),
+                                                Text(
+                                                  key,
+                                                  style: TextStyle(fontSize: 17),
+                                                ),
+                                              ],
+                                            ),
+                                            ClipOval(
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  child: Padding(
+                                                    padding: EdgeInsets.all(7.5),
+                                                    child: SizedBox(
+                                                      width: 16,
+                                                      height: 16,
+                                                      child: SvgPicture.asset(
+                                                        'assets/close.svg',
+                                                        color: Color(0xFF878787),
                                                       ),
                                                     ),
                                                   ),
-                                                ],
+                                                  onTap: () {
+                                                    setState(() {
+                                                      sevenThings.remove(key);
+                                                      updateSevenThings();
+                                                    });
+                                                  },
+                                                ),
                                               ),
                                             ),
-                                          );
-                                        }).toList(),
-                                      )
-                                    : Column(
-                                        children: [
-                                          Text('no 7 things'),
-                                        ],
+                                          ],
+                                        ),
                                       ),
+                                    );
+                                  }).toList(),
+                                )
+                                    : Column(
+                                  children: [
+                                    Text('no 7 things'),
+                                  ],
+                                ),
                                 Padding(padding: EdgeInsets.all(5)),
                                 sevenThings != null
                                     ? Text(
-                                        'You have ' + sevenThings.length.toString() + '/7 items in the list.',
-                                        style: TextStyle(color: Color(0xFF878787), fontSize: 14),
-                                      )
+                                  'You have ' + sevenThings.length.toString() + '/7 items in the list.',
+                                  style: TextStyle(color: Color(0xFF878787), fontSize: 14),
+                                )
                                     : SizedBox.shrink(),
                               ],
                             ),
                           ),
                           Padding(padding: EdgeInsets.all(20)),
                           PrimaryCard(
-                            padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
+                            padding: EdgeInsets.all(24),
                             child: Column(
                               children: [
                                 TextWithIcon(
@@ -414,42 +653,44 @@ class _SevenThingsState extends State<SevenThings> {
                                                   var addClientComplete = false;
                                                   await sevenThingsTypeSelectionDialog();
                                                   if (tempSevenThingsType != null) {
-                                                    setState(() {
-                                                      if (sevenThings != null) {
-                                                        if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
-                                                          if (sevenThings[suggestions] != null) {
-                                                            sevenThings[suggestion]['status'] = false;
-                                                            sevenThings[suggestion]['type'] = tempSevenThingsType;
+                                                    setState(
+                                                          () {
+                                                        if (sevenThings != null) {
+                                                          if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
+                                                            if (sevenThings[suggestions] != null) {
+                                                              sevenThings[suggestion]['status'] = false;
+                                                              sevenThings[suggestion]['type'] = tempSevenThingsType;
+                                                            } else {
+                                                              sevenThings[suggestion] = {"status": false, "type": tempSevenThingsType};
+                                                            }
+                                                            addClientComplete = true;
+                                                            suggestions.remove(suggestion);
                                                           } else {
-                                                            sevenThings[suggestion] = {"status": false, "type": tempSevenThingsType};
+                                                            var message = "";
+                                                            if (sevenThings.length == 7) {
+                                                              message = "Your 7 things list is full, remove something and try again.";
+                                                            } else {
+                                                              message = 'Your 7 things list contains the same item.';
+                                                            }
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(message),
+                                                              ),
+                                                            );
                                                           }
-                                                          addClientComplete = true;
-                                                          suggestions.remove(suggestion);
                                                         } else {
-                                                          var message = "";
-                                                          if (sevenThings.length == 7) {
-                                                            message = "Your 7 things list is full, remove something and try again.";
-                                                          } else {
-                                                            message = 'Your 7 things list contains the same item.';
-                                                          }
-                                                          _scaffoldKey.currentState.showSnackBar(
-                                                            SnackBar(
-                                                              content: Text(message),
-                                                            ),
-                                                          );
+                                                          suggestions.remove(suggestion);
+                                                          sevenThings = {
+                                                            suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
+                                                          };
+                                                          addClientComplete = true;
                                                         }
-                                                      } else {
-                                                        suggestions.remove(suggestion);
-                                                        sevenThings = {
-                                                          suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                                        };
-                                                        addClientComplete = true;
-                                                      }
-                                                      if (addClientComplete) {
-                                                        updateSevenThings();
-                                                        tempSevenThingsType = null;
-                                                      }
-                                                    });
+                                                        if (addClientComplete) {
+                                                          updateSevenThings();
+                                                          tempSevenThingsType = null;
+                                                        }
+                                                      },
+                                                    );
                                                   }
                                                 },
                                               ),

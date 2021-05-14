@@ -711,7 +711,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                   textColor: Colors.white,
                   onClickFunction: () {
                     if (_nameController.text.isEmpty) {
-                      globalKey.currentState.showSnackBar(SnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('Please fill in your name'),
                       ));
                       return;
