@@ -425,64 +425,6 @@ class TextWithIcon extends StatelessWidget {
   }
 }
 
-class SevenThingsList extends StatefulWidget {
-  @required
-  final Map<String, bool> data;
-  final Function callBack;
-
-  const SevenThingsList({this.data, this.callBack});
-
-  _SevenThingsList createState() => _SevenThingsList(callBack, data);
-}
-
-class _SevenThingsList extends State<SevenThingsList> {
-  Map<String, bool> data;
-  Function callBack;
-
-  _SevenThingsList(this.callBack, this.data);
-
-  @override
-  Widget build(BuildContext context) {
-    return data == null
-        ? CircularProgressIndicator()
-        : Column(
-            children: [
-              for (var i = 0; i < data.length; i++)
-                Row(
-                  children: [
-                    SizedBox(
-                      height: 32,
-                      child: Checkbox(
-                        value: data.entries.elementAt(i).value,
-                        onChanged: (value) {
-                          callBack(i, value);
-                          setState(() {
-                            data.update(
-                                data.entries.elementAt(i).key, (x) => value);
-                          });
-                        },
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(5)),
-                    GestureDetector(
-                      onTap: () {
-                        callBack(i, !data.entries.elementAt(i).value);
-                      },
-                      child: Text(
-                        data.entries.elementAt(i).key,
-                        style: TextStyle(
-                          color: Color(0xFF878787),
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          );
-  }
-}
-
 class RoundedLinearProgress extends StatelessWidget {
   final double value;
   final Color color;
@@ -497,8 +439,8 @@ class RoundedLinearProgress extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             blurRadius: 5,
-            color: Color.fromRGBO(0, 0, 0, 0.15),
-            offset: Offset(0, 5),
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -508,7 +450,7 @@ class RoundedLinearProgress extends StatelessWidget {
         child: LinearProgressIndicator(
           value: value,
           valueColor: AlwaysStoppedAnimation<Color>(color),
-          backgroundColor: Color(0xFFC3C3C3),
+          backgroundColor: Color(0xFFCDCDCD),
         ),
       ),
     );

@@ -99,15 +99,13 @@ class _SevenThingsState extends State<SevenThings> {
 
   final _editForm = GlobalKey<FormState>();
 
-
   @override
   Widget build(BuildContext context) {
     CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
 
     Future<void> updateSevenThings() {
       var toChange = date;
-      return user.doc(DateTime(toChange.year, toChange.month, toChange.day).toString()).set(sevenThings).catchError((error) =>
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      return user.doc(DateTime(toChange.year, toChange.month, toChange.day).toString()).set(sevenThings).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('There was an error inserting the item, please try again.'),
           )));
     }
@@ -207,9 +205,9 @@ class _SevenThingsState extends State<SevenThings> {
                 validator: (value) {
                   if (value.isEmpty) {
                     return 'Do not leave it blank';
-                  } else{
-                    if(current != value) {
-                      if(sevenThings[value] != null) {
+                  } else {
+                    if (current != value) {
+                      if (sevenThings[value] != null) {
                         return 'Duplicate seven things entered';
                       }
                     }
@@ -315,10 +313,7 @@ class _SevenThingsState extends State<SevenThings> {
               text: '7 Things',
             ),
             Container(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height - 89,
+              height: MediaQuery.of(context).size.height - 89,
               child: SingleChildScrollView(
                 child: Column(
                   children: [
@@ -328,13 +323,7 @@ class _SevenThingsState extends State<SevenThings> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            selectedDate.year == DateTime
-                                .now()
-                                .year && selectedDate.day == DateTime
-                                .now()
-                                .day && selectedDate.month == DateTime
-                                .now()
-                                .month
+                            selectedDate.year == DateTime.now().year && selectedDate.day == DateTime.now().day && selectedDate.month == DateTime.now().month
                                 ? "TODAY"
                                 : DateFormat('dd MMMM yyyy').format(selectedDate).toString(),
                             textAlign: TextAlign.left,
@@ -370,59 +359,41 @@ class _SevenThingsState extends State<SevenThings> {
                                     Navigator.pushReplacement(
                                         context,
                                         PageRouteBuilder(
-                                          pageBuilder: (context, a1, a2) =>
-                                              GetSevenThings(date: thisWeek.entries
-                                                  .elementAt(i)
-                                                  .value),
+                                          pageBuilder: (context, a1, a2) => GetSevenThings(date: thisWeek.entries.elementAt(i).value),
                                           transitionDuration: Duration(seconds: 0),
                                         ));
                                   },
                                   child: Container(
                                     height: 45,
                                     width: 45,
-                                    decoration: thisWeek.entries
-                                        .elementAt(i)
-                                        .value
-                                        .day == selectedDate.day
+                                    decoration: thisWeek.entries.elementAt(i).value.day == selectedDate.day
                                         ? BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                                      color: Color(0xFF170E9A),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color.fromRGBO(0, 0, 0, 0.15),
-                                          blurRadius: 8,
-                                          offset: Offset(0, 4),
-                                        ),
-                                      ],
-                                    )
+                                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                                            color: Color(0xFF170E9A),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Color.fromRGBO(0, 0, 0, 0.15),
+                                                blurRadius: 8,
+                                                offset: Offset(0, 4),
+                                              ),
+                                            ],
+                                          )
                                         : BoxDecoration(),
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          thisWeek.entries
-                                              .elementAt(i)
-                                              .key,
+                                          thisWeek.entries.elementAt(i).key,
                                           style: TextStyle(
-                                            color: thisWeek.entries
-                                                .elementAt(i)
-                                                .value
-                                                .day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                         Text(
-                                          thisWeek.entries
-                                              .elementAt(i)
-                                              .value
-                                              .day
-                                              .toString(),
+                                          thisWeek.entries.elementAt(i).value.day.toString(),
                                           style: TextStyle(
-                                            color: thisWeek.entries
-                                                .elementAt(i)
-                                                .value
-                                                .day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -473,7 +444,7 @@ class _SevenThingsState extends State<SevenThings> {
                                             if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
                                               var addClientComplete = false;
                                               setState(
-                                                    () {
+                                                () {
                                                   if (sevenThings != null) {
                                                     if (!sevenThings.containsKey(_newSevenThingsController.text) && sevenThings.length < 7) {
                                                       if (sevenThings[suggestions] != null) {
@@ -526,89 +497,89 @@ class _SevenThingsState extends State<SevenThings> {
                                   ],
                                 ),
                                 Padding(padding: EdgeInsets.all(4)),
-                                sevenThings != null
+                                sevenThings != null && sevenThings.length > 0
                                     ? Column(
-                                  children: sevenThings.keys.map((key) {
-                                    return GestureDetector(
-                                      onLongPress: () {
-                                        editSevenThing(key);
-                                      },
-                                      onTap: () {
-                                        setState(() {
-                                          sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                          updateSevenThings();
-                                        });
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsets.only(top: 5, bottom: 5),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child: Checkbox(
-                                                    activeColor: Color(0xFFF48A1D),
-                                                    checkColor: Colors.white,
-                                                    value: sevenThings[key]['status'],
-                                                    onChanged: (value) {
-                                                      setState(() {
-                                                        sevenThings[key]['status'] = value;
-                                                        progressPercent = getProgress();
-                                                      });
-                                                    },
+                                        children: sevenThings.keys.map((key) {
+                                          return GestureDetector(
+                                            onLongPress: () {
+                                              editSevenThing(key);
+                                            },
+                                            onTap: () {
+                                              setState(() {
+                                                sevenThings[key]['status'] = !sevenThings[key]['status'];
+                                                updateSevenThings();
+                                              });
+                                            },
+                                            child: Padding(
+                                              padding: EdgeInsets.only(top: 5, bottom: 5),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 20,
+                                                        width: 20,
+                                                        child: Checkbox(
+                                                          activeColor: Color(0xFFF48A1D),
+                                                          checkColor: Colors.white,
+                                                          value: sevenThings[key]['status'],
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              sevenThings[key]['status'] = value;
+                                                              progressPercent = getProgress();
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                      Padding(padding: EdgeInsets.all(7.5)),
+                                                      Text(
+                                                        key,
+                                                        style: TextStyle(fontSize: 17),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                                Padding(padding: EdgeInsets.all(7.5)),
-                                                Text(
-                                                  key,
-                                                  style: TextStyle(fontSize: 17),
-                                                ),
-                                              ],
-                                            ),
-                                            ClipOval(
-                                              child: Material(
-                                                color: Colors.transparent,
-                                                child: InkWell(
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(7.5),
-                                                    child: SizedBox(
-                                                      width: 16,
-                                                      height: 16,
-                                                      child: SvgPicture.asset(
-                                                        'assets/close.svg',
-                                                        color: Color(0xFF878787),
+                                                  ClipOval(
+                                                    child: Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        child: Padding(
+                                                          padding: EdgeInsets.all(7.5),
+                                                          child: SizedBox(
+                                                            width: 16,
+                                                            height: 16,
+                                                            child: SvgPicture.asset(
+                                                              'assets/close.svg',
+                                                              color: Color(0xFF878787),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        onTap: () {
+                                                          setState(() {
+                                                            sevenThings.remove(key);
+                                                            updateSevenThings();
+                                                          });
+                                                        },
                                                       ),
                                                     ),
                                                   ),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      sevenThings.remove(key);
-                                                      updateSevenThings();
-                                                    });
-                                                  },
-                                                ),
+                                                ],
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                )
+                                          );
+                                        }).toList(),
+                                      )
                                     : Column(
-                                  children: [
-                                    Text('no 7 things'),
-                                  ],
-                                ),
+                                        children: [
+                                          Text('no 7 things'),
+                                        ],
+                                      ),
                                 Padding(padding: EdgeInsets.all(5)),
                                 sevenThings != null
                                     ? Text(
-                                  'You have ' + sevenThings.length.toString() + '/7 items in the list.',
-                                  style: TextStyle(color: Color(0xFF878787), fontSize: 14),
-                                )
+                                        'You have ' + sevenThings.length.toString() + '/7 items in the list.',
+                                        style: TextStyle(color: Color(0xFF878787), fontSize: 14),
+                                      )
                                     : SizedBox.shrink(),
                               ],
                             ),
@@ -654,7 +625,7 @@ class _SevenThingsState extends State<SevenThings> {
                                                   await sevenThingsTypeSelectionDialog();
                                                   if (tempSevenThingsType != null) {
                                                     setState(
-                                                          () {
+                                                      () {
                                                         if (sevenThings != null) {
                                                           if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
                                                             if (sevenThings[suggestions] != null) {

@@ -401,7 +401,7 @@ class _LciTestFormState extends State<LciTestForm> {
                             CollectionReference ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
                             await ref.doc(DateTime(dateNow.year, dateNow.month, dateNow.day).toString()).set(score).then((value) {
                               Navigator.of(context).popUntil((route) => route.isFirst);
-                              Navigator.of(context).pushReplacement(MaterialPageRoute(
+                              Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => LciResult(
                                         score: score,
                                       )));
@@ -534,10 +534,9 @@ class LciResult extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LCIScore scoreObj = LCIScore();
-    scoreObj.score = score;
-    var dividedScore = scoreObj.dividedScore();
+    LCIScore scoreObj = LCIScore(score);
     var subScore = scoreObj.subScore();
+    var colors = scoreObj.colors();
 
     return Scaffold(
       body: SafeArea(
@@ -555,20 +554,19 @@ class LciResult extends StatelessWidget {
                   height: 300,
                   child: SpiderChart(
                     data: [
-                      subScore['Finance'],
-                      subScore['Career or Study'],
-                      subScore['Self-Development'],
                       subScore['Spiritual Life'],
-                      subScore['Family'],
                       subScore['Romance Relationship'],
+                      subScore['Family'],
                       subScore['Social Life'],
                       subScore['Health & Fitness'],
                       subScore['Hobby & Leisure'],
-                      subScore['Physical Environment']
+                      subScore['Physical Environment'],
+                      subScore['Self-Development'],
+                      subScore['Career or Study'],
+                      subScore['Finance']
                     ],
                     maxValue: 10,
                     colors: [
-                      Color(0xFF8C8B8B),
                       Color(0xFF7C0E6F),
                       Color(0xFF6EC8F4),
                       Color(0xFFC4CF54),
@@ -578,8 +576,39 @@ class LciResult extends StatelessWidget {
                       Color(0xFFFFE800),
                       Color(0xFF00862F),
                       Color(0xFFD9000D),
+                      Color(0xFF8C8B8B),
                     ],
                   ),
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                Text(
+                  'Your top 3 focused fields',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                Column(
+                  children: subScore.keys.map((e) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 40),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            e,
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                          ),
+                          Padding(padding: EdgeInsets.all(5)),
+                          RoundedLinearProgress(
+                            color: colors[e],
+                            value: subScore[e] / 10,
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),

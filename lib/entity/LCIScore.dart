@@ -1,7 +1,11 @@
+import 'dart:ui';
+
 class LCIScore {
   Map<String, dynamic> score;
 
-  LCIScore({this.score});
+  LCIScore(score) {
+    this.score = score;
+  }
 
   Map<String, double> dividedScore() {
     Map<String, double> result = {};
@@ -67,6 +71,8 @@ class LCIScore {
 
   Map<String, double> subScore() {
     Map<String, double> result = {};
+    Map<String, double> sorted = {};
+    List<double> sortVal = [];
 
     score.forEach((key, value) {
       result[key] = 0;
@@ -74,7 +80,35 @@ class LCIScore {
         result[key] += value;
       });
       result[key] = result[key] / 5;
+      sortVal.add(result[key]);
     });
+
+    sortVal.sort((b, a) => a.compareTo(b));
+
+    sortVal.forEach((x) {
+      result.forEach((key, value) {
+        if (value == x) {
+          sorted[key] = x;
+        }
+      });
+    });
+
+    return sorted;
+  }
+
+  Map<String, Color> colors() {
+    Map<String, Color> result = {
+      "Spiritual Life": Color(0xFF7C0E6F),
+      "Romance Relationship": Color(0xFF6EC8F4),
+      "Family": Color(0xFFC4CF54),
+      "Social Life": Color(0xFFE671A8),
+      "Health & Fitness": Color(0xFF003989),
+      "Hobby & Leisure": Color(0xFFF27C00),
+      "Physical Environment": Color(0xFFFFE800),
+      "Self-Development": Color(0xFF00862F),
+      "Career or Study": Color(0xFFD9000D),
+      "Finance": Color(0xFF8C8B8B),
+    };
 
     return result;
   }
