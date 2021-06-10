@@ -307,381 +307,366 @@ class _SevenThingsState extends State<SevenThings> {
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(
-        child: Column(
-          children: [
-            CustomStatusBar(
-              text: '7 Things',
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            Container(
-              height: MediaQuery.of(context).size.height - 89,
-              child: SingleChildScrollView(
-                child: Column(
+            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PageHeadings(
+                  text: 'Your 7 Things',
+                ),
+                Text(
+                  selectedDate.year == DateTime.now().year && selectedDate.day == DateTime.now().day && selectedDate.month == DateTime.now().month
+                      ? "TODAY"
+                      : DateFormat('dd MMMM yyyy').format(selectedDate).toString(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Color(0xFF878787),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(7.5)),
+                GestureDetector(
+                  onTap: () {
+                    showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2010),
+                      lastDate: DateTime(2050),
+                      confirmText: 'Confirm',
+                    ).then((date) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetSevenThings(date: date))));
+                  },
+                  child: TextWithIcon(
+                    assetPath: 'assets/calendar.svg',
+                    text: thisMonth,
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(10)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
-                      padding: EdgeInsets.fromLTRB(25, 20, 30, 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            selectedDate.year == DateTime.now().year && selectedDate.day == DateTime.now().day && selectedDate.month == DateTime.now().month
-                                ? "TODAY"
-                                : DateFormat('dd MMMM yyyy').format(selectedDate).toString(),
-                            textAlign: TextAlign.left,
-                            style: TextStyle(
-                              color: Color(0xFF878787),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18,
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(7.5)),
-                          GestureDetector(
-                            onTap: () {
-                              showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2010),
-                                lastDate: DateTime(2050),
-                                confirmText: 'Confirm',
-                              ).then((date) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetSevenThings(date: date))));
-                            },
-                            child: TextWithIcon(
-                              assetPath: 'assets/calendar.svg',
-                              text: thisMonth,
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(10)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    for (var i = 0; i < thisWeek.length; i++)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, a1, a2) => GetSevenThings(date: thisWeek.entries.elementAt(i).value),
+                                transitionDuration: Duration(seconds: 0),
+                              ));
+                        },
+                        child: Container(
+                          height: 45,
+                          width: 45,
+                          decoration: thisWeek.entries.elementAt(i).value.day == selectedDate.day
+                              ? BoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                                  color: Color(0xFF170E9A),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color.fromRGBO(0, 0, 0, 0.15),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                )
+                              : BoxDecoration(),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              for (var i = 0; i < thisWeek.length; i++)
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushReplacement(
-                                        context,
-                                        PageRouteBuilder(
-                                          pageBuilder: (context, a1, a2) => GetSevenThings(date: thisWeek.entries.elementAt(i).value),
-                                          transitionDuration: Duration(seconds: 0),
-                                        ));
-                                  },
-                                  child: Container(
-                                    height: 45,
-                                    width: 45,
-                                    decoration: thisWeek.entries.elementAt(i).value.day == selectedDate.day
-                                        ? BoxDecoration(
-                                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                                            color: Color(0xFF170E9A),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Color.fromRGBO(0, 0, 0, 0.15),
-                                                blurRadius: 8,
-                                                offset: Offset(0, 4),
+                              Text(
+                                thisWeek.entries.elementAt(i).key,
+                                style: TextStyle(
+                                  color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                thisWeek.entries.elementAt(i).value.day.toString(),
+                                style: TextStyle(
+                                  color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(padding: EdgeInsets.all(15)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '7 Things Progress',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                    ),
+                    Text(
+                      (progressPercent * 100).toStringAsFixed(2) + '%',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                    ),
+                  ],
+                ),
+                Padding(padding: EdgeInsets.all(5)),
+                RoundedLinearProgress(
+                  value: progressPercent,
+                  color: Color(0xFF170E9A),
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                PrimaryCard(
+                  padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextWithIcon(
+                            assetPath: 'assets/tasks.svg',
+                            text: 'Your 7 Things List',
+                          ),
+                          ClipOval(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () async {
+                                  await addSevenThingsDialog();
+                                  if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
+                                    var addClientComplete = false;
+                                    setState(
+                                      () {
+                                        if (sevenThings != null) {
+                                          if (!sevenThings.containsKey(_newSevenThingsController.text) && sevenThings.length < 7) {
+                                            if (sevenThings[suggestions] != null) {
+                                              sevenThings[_newSevenThingsController.text]['status'] = false;
+                                              sevenThings[_newSevenThingsController.text]['type'] = tempSevenThingsType;
+                                            } else {
+                                              sevenThings[_newSevenThingsController.text] = {"status": false, "type": tempSevenThingsType};
+                                            }
+                                            addClientComplete = true;
+                                            suggestions.remove(_newSevenThingsController.text);
+                                          } else {
+                                            var message = "";
+                                            if (sevenThings.length == 7) {
+                                              message = "Your 7 things list is full, remove something and try again.";
+                                            } else {
+                                              message = 'Your 7 things list contains the same item.';
+                                            }
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(message),
                                               ),
-                                            ],
-                                          )
-                                        : BoxDecoration(),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                            );
+                                          }
+                                        } else {
+                                          suggestions.remove(_newSevenThingsController.text);
+                                          sevenThings = {
+                                            _newSevenThingsController.text: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
+                                          };
+                                          addClientComplete = true;
+                                        }
+                                        if (addClientComplete) {
+                                          updateSevenThings();
+                                          tempSevenThingsType = null;
+                                        }
+                                      },
+                                    );
+                                  }
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: SvgPicture.asset(
+                                    'assets/plus.svg',
+                                    height: 18,
+                                    width: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                      Padding(padding: EdgeInsets.all(4)),
+                      sevenThings != null && sevenThings.length > 0
+                          ? Column(
+                              children: sevenThings.keys.map((key) {
+                                return GestureDetector(
+                                  onLongPress: () {
+                                    editSevenThing(key);
+                                  },
+                                  onTap: () {
+                                    setState(() {
+                                      sevenThings[key]['status'] = !sevenThings[key]['status'];
+                                      updateSevenThings();
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.only(top: 5, bottom: 5),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          thisWeek.entries.elementAt(i).key,
-                                          style: TextStyle(
-                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: Checkbox(
+                                                activeColor: Color(0xFFF48A1D),
+                                                checkColor: Colors.white,
+                                                value: sevenThings[key]['status'],
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    sevenThings[key]['status'] = value;
+                                                    progressPercent = getProgress();
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                            Padding(padding: EdgeInsets.all(7.5)),
+                                            Text(
+                                              key,
+                                              style: TextStyle(fontSize: 17),
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          thisWeek.entries.elementAt(i).value.day.toString(),
-                                          style: TextStyle(
-                                            color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
+                                        ClipOval(
+                                          child: Material(
+                                            color: Colors.transparent,
+                                            child: InkWell(
+                                              child: Padding(
+                                                padding: EdgeInsets.all(7.5),
+                                                child: SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child: SvgPicture.asset(
+                                                    'assets/close.svg',
+                                                    color: Color(0xFF878787),
+                                                  ),
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                setState(() {
+                                                  sevenThings.remove(key);
+                                                  updateSevenThings();
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.all(15)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '7 Things Progress',
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-                              ),
-                              Text(
-                                (progressPercent * 100).toStringAsFixed(2) + '%',
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-                              ),
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.all(5)),
-                          RoundedLinearProgress(
-                            value: progressPercent,
-                            color: Color(0xFF170E9A),
-                          ),
-                          Padding(padding: EdgeInsets.all(20)),
-                          PrimaryCard(
-                            padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
-                            child: Column(
+                                );
+                              }).toList(),
+                            )
+                          : Text(
+                              'You have ' + ( sevenThings == null ? '0' : sevenThings.length.toString()) + '/7 items in the list.',
+                              style: TextStyle(color: Color(0xFF878787), fontSize: 14),
+                            ),
+                      Padding(padding: EdgeInsets.all(5)),
+                    ],
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                PrimaryCard(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      TextWithIcon(
+                        assetPath: 'assets/lightbulb.svg',
+                        text: '7 Things Suggestions',
+                      ),
+                      Padding(padding: EdgeInsets.all(10)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (var suggestion in suggestions)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    TextWithIcon(
-                                      assetPath: 'assets/tasks.svg',
-                                      text: 'Your 7 Things List',
-                                    ),
-                                    ClipOval(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: () async {
-                                            await addSevenThingsDialog();
-                                            if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
-                                              var addClientComplete = false;
-                                              setState(
-                                                () {
-                                                  if (sevenThings != null) {
-                                                    if (!sevenThings.containsKey(_newSevenThingsController.text) && sevenThings.length < 7) {
-                                                      if (sevenThings[suggestions] != null) {
-                                                        sevenThings[_newSevenThingsController.text]['status'] = false;
-                                                        sevenThings[_newSevenThingsController.text]['type'] = tempSevenThingsType;
-                                                      } else {
-                                                        sevenThings[_newSevenThingsController.text] = {"status": false, "type": tempSevenThingsType};
-                                                      }
-                                                      addClientComplete = true;
-                                                      suggestions.remove(_newSevenThingsController.text);
-                                                    } else {
-                                                      var message = "";
-                                                      if (sevenThings.length == 7) {
-                                                        message = "Your 7 things list is full, remove something and try again.";
-                                                      } else {
-                                                        message = 'Your 7 things list contains the same item.';
-                                                      }
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(message),
-                                                        ),
-                                                      );
-                                                    }
-                                                  } else {
-                                                    suggestions.remove(_newSevenThingsController.text);
-                                                    sevenThings = {
-                                                      _newSevenThingsController.text: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                                    };
-                                                    addClientComplete = true;
-                                                  }
-                                                  if (addClientComplete) {
-                                                    updateSevenThings();
-                                                    tempSevenThingsType = null;
-                                                  }
-                                                },
-                                              );
-                                            }
-                                          },
-                                          child: Padding(
-                                            padding: EdgeInsets.all(10),
-                                            child: SvgPicture.asset(
-                                              'assets/plus.svg',
-                                              height: 18,
-                                              width: 18,
-                                            ),
+                                Text(
+                                  suggestion.toString(),
+                                  style: TextStyle(fontSize: 17),
+                                ),
+                                ClipOval(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: SvgPicture.asset(
+                                            'assets/plus.svg',
+                                            color: Color(0xFF878787),
                                           ),
                                         ),
                                       ),
-                                    )
-                                  ],
-                                ),
-                                Padding(padding: EdgeInsets.all(4)),
-                                sevenThings != null && sevenThings.length > 0
-                                    ? Column(
-                                        children: sevenThings.keys.map((key) {
-                                          return GestureDetector(
-                                            onLongPress: () {
-                                              editSevenThing(key);
-                                            },
-                                            onTap: () {
-                                              setState(() {
-                                                sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                                updateSevenThings();
-                                              });
-                                            },
-                                            child: Padding(
-                                              padding: EdgeInsets.only(top: 5, bottom: 5),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 20,
-                                                        width: 20,
-                                                        child: Checkbox(
-                                                          activeColor: Color(0xFFF48A1D),
-                                                          checkColor: Colors.white,
-                                                          value: sevenThings[key]['status'],
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              sevenThings[key]['status'] = value;
-                                                              progressPercent = getProgress();
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                      Padding(padding: EdgeInsets.all(7.5)),
-                                                      Text(
-                                                        key,
-                                                        style: TextStyle(fontSize: 17),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  ClipOval(
-                                                    child: Material(
-                                                      color: Colors.transparent,
-                                                      child: InkWell(
-                                                        child: Padding(
-                                                          padding: EdgeInsets.all(7.5),
-                                                          child: SizedBox(
-                                                            width: 16,
-                                                            height: 16,
-                                                            child: SvgPicture.asset(
-                                                              'assets/close.svg',
-                                                              color: Color(0xFF878787),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        onTap: () {
-                                                          setState(() {
-                                                            sevenThings.remove(key);
-                                                            updateSevenThings();
-                                                          });
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      )
-                                    : Column(
-                                        children: [
-                                          Text('no 7 things'),
-                                        ],
-                                      ),
-                                Padding(padding: EdgeInsets.all(5)),
-                                sevenThings != null
-                                    ? Text(
-                                        'You have ' + sevenThings.length.toString() + '/7 items in the list.',
-                                        style: TextStyle(color: Color(0xFF878787), fontSize: 14),
-                                      )
-                                    : SizedBox.shrink(),
-                              ],
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(20)),
-                          PrimaryCard(
-                            padding: EdgeInsets.all(24),
-                            child: Column(
-                              children: [
-                                TextWithIcon(
-                                  assetPath: 'assets/lightbulb.svg',
-                                  text: '7 Things Suggestions',
-                                ),
-                                Padding(padding: EdgeInsets.all(10)),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (var suggestion in suggestions)
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            suggestion.toString(),
-                                            style: TextStyle(fontSize: 17),
-                                          ),
-                                          ClipOval(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(10),
-                                                  child: SizedBox(
-                                                    width: 16,
-                                                    height: 16,
-                                                    child: SvgPicture.asset(
-                                                      'assets/plus.svg',
-                                                      color: Color(0xFF878787),
-                                                    ),
-                                                  ),
-                                                ),
-                                                onTap: () async {
-                                                  var addClientComplete = false;
-                                                  await sevenThingsTypeSelectionDialog();
-                                                  if (tempSevenThingsType != null) {
-                                                    setState(
-                                                      () {
-                                                        if (sevenThings != null) {
-                                                          if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
-                                                            if (sevenThings[suggestions] != null) {
-                                                              sevenThings[suggestion]['status'] = false;
-                                                              sevenThings[suggestion]['type'] = tempSevenThingsType;
-                                                            } else {
-                                                              sevenThings[suggestion] = {"status": false, "type": tempSevenThingsType};
-                                                            }
-                                                            addClientComplete = true;
-                                                            suggestions.remove(suggestion);
-                                                          } else {
-                                                            var message = "";
-                                                            if (sevenThings.length == 7) {
-                                                              message = "Your 7 things list is full, remove something and try again.";
-                                                            } else {
-                                                              message = 'Your 7 things list contains the same item.';
-                                                            }
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text(message),
-                                                              ),
-                                                            );
-                                                          }
-                                                        } else {
-                                                          suggestions.remove(suggestion);
-                                                          sevenThings = {
-                                                            suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                                          };
-                                                          addClientComplete = true;
-                                                        }
-                                                        if (addClientComplete) {
-                                                          updateSevenThings();
-                                                          tempSevenThingsType = null;
-                                                        }
-                                                      },
-                                                    );
+                                      onTap: () async {
+                                        var addClientComplete = false;
+                                        await sevenThingsTypeSelectionDialog();
+                                        if (tempSevenThingsType != null) {
+                                          setState(
+                                            () {
+                                              if (sevenThings != null) {
+                                                if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
+                                                  if (sevenThings[suggestions] != null) {
+                                                    sevenThings[suggestion]['status'] = false;
+                                                    sevenThings[suggestion]['type'] = tempSevenThingsType;
+                                                  } else {
+                                                    sevenThings[suggestion] = {"status": false, "type": tempSevenThingsType};
                                                   }
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                  ],
+                                                  addClientComplete = true;
+                                                  suggestions.remove(suggestion);
+                                                } else {
+                                                  var message = "";
+                                                  if (sevenThings.length == 7) {
+                                                    message = "Your 7 things list is full, remove something and try again.";
+                                                  } else {
+                                                    message = 'Your 7 things list contains the same item.';
+                                                  }
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(message),
+                                                    ),
+                                                  );
+                                                }
+                                              } else {
+                                                suggestions.remove(suggestion);
+                                                sevenThings = {
+                                                  suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
+                                                };
+                                                addClientComplete = true;
+                                              }
+                                              if (addClientComplete) {
+                                                updateSevenThings();
+                                                tempSevenThingsType = null;
+                                              }
+                                            },
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

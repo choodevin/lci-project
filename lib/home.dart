@@ -86,7 +86,10 @@ class _HomeState extends State<Home> {
   }
 
   Widget build(BuildContext context) {
-    var subScore = wheeldata.subScore();
+    var subScore;
+    if (wheeldata != null) {
+      subScore = wheeldata.subScore();
+    }
 
     arrangeSevenThings() {
       Map<String, dynamic> primary = {};
@@ -117,9 +120,6 @@ class _HomeState extends State<Home> {
         child: SafeArea(
           child: SingleChildScrollView(
             child: Container(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-              ),
               padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
               child: Column(
                 children: [
@@ -131,64 +131,66 @@ class _HomeState extends State<Home> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Stack(
-                          children: [
-                            ClickablePrimaryCard(
-                              onClickFunction: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadWheelOfLife()));
-                              },
-                              padding: EdgeInsets.fromLTRB(30, 25, 30, 30),
-                              child: Column(
+                        wheeldata != null
+                            ? Stack(
                                 children: [
-                                  TextWithIcon(
-                                    assetPath: 'assets/wheel_of_life.svg',
-                                    text: 'Wheel of Life',
-                                  ),
-                                  Padding(padding: EdgeInsets.all(15)),
-                                  Center(
-                                    child: SpiderChart(
-                                      data: [
-                                        subScore['Spiritual Life'],
-                                        subScore['Romance Relationship'],
-                                        subScore['Family'],
-                                        subScore['Social Life'],
-                                        subScore['Health & Fitness'],
-                                        subScore['Hobby & Leisure'],
-                                        subScore['Physical Environment'],
-                                        subScore['Self-Development'],
-                                        subScore['Career or Study'],
-                                        subScore['Finance']
-                                      ],
-                                      maxValue: 10,
-                                      colors: [
-                                        Color(0xFF7C0E6F),
-                                        Color(0xFF6EC8F4),
-                                        Color(0xFFC4CF54),
-                                        Color(0xFFE671A8),
-                                        Color(0xFF003989),
-                                        Color(0xFFF27C00),
-                                        Color(0xFFFFE800),
-                                        Color(0xFF00862F),
-                                        Color(0xFFD9000D),
-                                        Color(0xFF8C8B8B),
+                                  ClickablePrimaryCard(
+                                    onClickFunction: () {
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadWheelOfLife()));
+                                    },
+                                    padding: EdgeInsets.fromLTRB(30, 25, 30, 30),
+                                    child: Column(
+                                      children: [
+                                        TextWithIcon(
+                                          assetPath: 'assets/wheel_of_life.svg',
+                                          text: 'Wheel of Life',
+                                        ),
+                                        Padding(padding: EdgeInsets.all(15)),
+                                        Center(
+                                          child: SpiderChart(
+                                            data: [
+                                              subScore['Spiritual Life'],
+                                              subScore['Romance Relationship'],
+                                              subScore['Family'],
+                                              subScore['Social Life'],
+                                              subScore['Health & Fitness'],
+                                              subScore['Hobby & Leisure'],
+                                              subScore['Physical Environment'],
+                                              subScore['Self-Development'],
+                                              subScore['Career or Study'],
+                                              subScore['Finance']
+                                            ],
+                                            maxValue: 10,
+                                            colors: [
+                                              Color(0xFF7C0E6F),
+                                              Color(0xFF6EC8F4),
+                                              Color(0xFFC4CF54),
+                                              Color(0xFFE671A8),
+                                              Color(0xFF003989),
+                                              Color(0xFFF27C00),
+                                              Color(0xFFFFE800),
+                                              Color(0xFF00862F),
+                                              Color(0xFFD9000D),
+                                              Color(0xFF8C8B8B),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
+                                  userdata.subscription != "Premium"
+                                      ? Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Color.fromRGBO(0, 0, 0, 0.4),
+                                              borderRadius: BorderRadius.all(Radius.circular(25)),
+                                            ),
+                                          ),
+                                        )
+                                      : Container(),
                                 ],
-                              ),
-                            ),
-                            userdata.subscription != "Premium"
-                                ? Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Color.fromRGBO(0, 0, 0, 0.4),
-                                        borderRadius: BorderRadius.all(Radius.circular(25)),
-                                      ),
-                                    ),
-                                  )
-                                : Container(),
-                          ],
-                        ),
+                              )
+                            : PrimaryCard(),
                         Padding(padding: EdgeInsets.all(20)),
                         Stack(
                           children: [
@@ -249,7 +251,7 @@ class _HomeState extends State<Home> {
                                             );
                                           }).toList(),
                                         )
-                                      : Text('no 7 things'),
+                                      : Text('No 7 Things assigned today.'),
                                 ],
                               ),
                             ),
@@ -260,7 +262,7 @@ class _HomeState extends State<Home> {
                           children: [
                             ClickablePrimaryCard(
                               onClickFunction: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(userdata: userdata)));
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadGoals(userdata: userdata)));
                               },
                               padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
                               child: Column(
@@ -437,8 +439,12 @@ class _GetUserDataState extends State<GetUserData> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           var userdata = UserData();
-          var wheeldata = LCIScore(snapshot.data[2].docs.last.data());
-          var seventhings = snapshot.data[1].data();
+          var wheeldata;
+          var seventhings;
+          if (snapshot.data[2].docs.length != 0) {
+            wheeldata = LCIScore(snapshot.data[2].docs.last.data());
+          }
+          seventhings = snapshot.data[1].data();
           userdata.name = snapshot.data[0].get('name');
           userdata.gender = snapshot.data[0].get('gender');
           userdata.country = snapshot.data[0].get('country');

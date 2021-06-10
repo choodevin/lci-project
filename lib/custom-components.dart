@@ -11,52 +11,52 @@ class InputBox extends StatelessWidget {
   final FocusNode focusNodeNext;
   final TextEditingController controller;
   final TextInputType keyboardType;
+  final int minLines;
+  final int maxLines;
 
   const InputBox({
     this.focusNode,
     this.focusNodeNext,
     this.controller,
     this.keyboardType,
+    this.minLines = 1,
+    this.maxLines = 10,
   });
 
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(90)),
+        borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
         border: Border.all(color: Colors.transparent),
         boxShadow: [
-          BoxShadow(
-              color:
-                  (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent),
-              blurRadius: (focusNode.hasFocus ? 3 : 0)),
+          BoxShadow(color: (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent), blurRadius: (focusNode.hasFocus ? 3 : 0)),
         ],
       ),
       child: TextField(
+        minLines: minLines,
+        maxLines: maxLines,
         obscureText: false,
         focusNode: focusNode,
         controller: controller,
-        onEditingComplete: () => (focusNodeNext != null
-            ? FocusScope.of(context).requestFocus(focusNodeNext)
-            : FocusScope.of(context).unfocus()),
+        onEditingComplete: () => (focusNodeNext != null ? FocusScope.of(context).requestFocus(focusNodeNext) : FocusScope.of(context).unfocus()),
         style: TextStyle(
           fontSize: 18,
         ),
         keyboardType: keyboardType,
         decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.only(left: 20, top: 0, right: 20, bottom: 0),
+          contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
           fillColor: Color(0xFFF2F2F2),
           filled: true,
           hintStyle: TextStyle(
             color: Color(0xFFB4B4B4),
           ),
           enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(90)),
+              borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
               borderSide: BorderSide(
                 color: Colors.transparent,
               )),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(90)),
+            borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
             borderSide: BorderSide(
               color: Color(0xFFF7DABFB),
             ),
@@ -79,8 +79,7 @@ class PasswordBox extends StatefulWidget {
   });
 
   @override
-  _PasswordBoxState createState() =>
-      _PasswordBoxState(focusNode, focusNodeNext, controller);
+  _PasswordBoxState createState() => _PasswordBoxState(focusNode, focusNodeNext, controller);
 }
 
 class _PasswordBoxState extends State<PasswordBox> {
@@ -97,10 +96,7 @@ class _PasswordBoxState extends State<PasswordBox> {
         borderRadius: BorderRadius.all(Radius.circular(90)),
         border: Border.all(color: Colors.transparent),
         boxShadow: [
-          BoxShadow(
-              color:
-                  (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent),
-              blurRadius: (focusNode.hasFocus ? 3 : 0)),
+          BoxShadow(color: (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent), blurRadius: (focusNode.hasFocus ? 3 : 0)),
         ],
       ),
       child: TextField(
@@ -110,12 +106,9 @@ class _PasswordBoxState extends State<PasswordBox> {
           fontSize: 18,
         ),
         obscureText: passwordVisible,
-        onEditingComplete: () => (focusNodeNext != null
-            ? FocusScope.of(context).requestFocus(focusNodeNext)
-            : FocusScope.of(context).unfocus()),
+        onEditingComplete: () => (focusNodeNext != null ? FocusScope.of(context).requestFocus(focusNodeNext) : FocusScope.of(context).unfocus()),
         decoration: InputDecoration(
-          contentPadding:
-              EdgeInsets.only(left: 20, top: 0, right: 20, bottom: 0),
+          contentPadding: EdgeInsets.only(left: 20, top: 0, right: 20, bottom: 0),
           fillColor: Color(0xFFF2F2F2),
           filled: true,
           hintStyle: TextStyle(
@@ -154,16 +147,14 @@ class GoogleSignInButton extends StatelessWidget {
 
   Future<String> signInWithGoogle() async {
     final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+    final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
 
     final AuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleSignInAuthentication.accessToken,
       idToken: googleSignInAuthentication.idToken,
     );
 
-    final UserCredential authResult =
-        await _auth.signInWithCredential(credential);
+    final UserCredential authResult = await _auth.signInWithCredential(credential);
     final User user = authResult.user;
 
     if (user != null) {
@@ -192,11 +183,7 @@ class GoogleSignInButton extends StatelessWidget {
         padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
         onPressed: () async {
           await signInWithGoogle().then((result) => {
-                if (result != null)
-                  {
-                    Navigator.pushReplacement(
-                        build, MaterialPageRoute(builder: (build) => Home()))
-                  }
+                if (result != null) {Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => Home()))}
               });
         },
         child: Row(
@@ -266,11 +253,7 @@ class PrimaryButton extends StatelessWidget {
   final Color textColor;
   final Function onClickFunction;
 
-  PrimaryButton(
-      {this.onClickFunction,
-      this.text = "Sample Text",
-      this.color = Colors.white,
-      this.textColor = Colors.black});
+  PrimaryButton({this.onClickFunction, this.text = "Sample Text", this.color = Colors.white, this.textColor = Colors.black});
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +427,7 @@ class RoundedLinearProgress extends StatelessWidget {
           ),
         ],
       ),
-      height: 15,
+      height: 12,
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(10)),
         child: LinearProgressIndicator(
@@ -474,10 +457,8 @@ class UnlockPremium extends StatelessWidget {
             height: 60,
             decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(
-                    width: 1, style: BorderStyle.solid, color: Colors.white),
-                bottom: BorderSide(
-                    width: 1, style: BorderStyle.solid, color: Colors.white),
+                top: BorderSide(width: 1, style: BorderStyle.solid, color: Colors.white),
+                bottom: BorderSide(width: 1, style: BorderStyle.solid, color: Colors.white),
               ),
               gradient: LinearGradient(
                 begin: Alignment(0.91, -1.29),
@@ -520,16 +501,9 @@ class GoalSelection extends StatefulWidget {
   final String assetPath;
   final Function(bool) callBack;
 
-  const GoalSelection(
-      {this.title,
-      this.description,
-      this.color,
-      this.value,
-      this.assetPath,
-      this.callBack});
+  const GoalSelection({this.title, this.description, this.color, this.value, this.assetPath, this.callBack});
 
-  _GoalSelectionState createState() => _GoalSelectionState(
-      title, description, color, value, assetPath, callBack);
+  _GoalSelectionState createState() => _GoalSelectionState(title, description, color, value, assetPath, callBack);
 }
 
 class _GoalSelectionState extends State<GoalSelection> {
@@ -540,8 +514,7 @@ class _GoalSelectionState extends State<GoalSelection> {
   Function(bool) callBack;
   bool value;
 
-  _GoalSelectionState(this.title, this.description, this.color, this.value,
-      this.assetPath, this.callBack);
+  _GoalSelectionState(this.title, this.description, this.color, this.value, this.assetPath, this.callBack);
 
   @override
   Widget build(BuildContext context) {
@@ -618,14 +591,7 @@ class CustomStatusBar extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       height: 65,
       padding: EdgeInsets.only(left: 15, right: 20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFEAEAEA),
-            width: 1
-          )
-        )
-      ),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFEAEAEA), width: 1))),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Row(

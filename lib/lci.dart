@@ -610,6 +610,15 @@ class LciResult extends StatelessWidget {
                     );
                   }).toList(),
                 ),
+                Padding(padding: EdgeInsets.all(20)),
+                PrimaryButton(
+                  text: 'Back to home',
+                  textColor: Colors.white,
+                  color: Color(0xFF170E9A),
+                  onClickFunction: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                ),
               ],
             ),
           ),

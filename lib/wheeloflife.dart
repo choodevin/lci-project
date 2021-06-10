@@ -61,7 +61,7 @@ class _WheelOfLife extends State<WheelOfLife> {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(35, 35, 35, 10),
+            padding: EdgeInsets.fromLTRB(25, 35, 25, 10),
             child: Column(
               children: [
                 TextWithIcon(
