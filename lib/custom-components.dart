@@ -440,6 +440,58 @@ class RoundedLinearProgress extends StatelessWidget {
   }
 }
 
+class MultiColorProgressBar extends StatelessWidget {
+  final double valueOne;
+  final double valueTwo;
+  final Color colorOne;
+  final Color colorTwo;
+
+  MultiColorProgressBar(this.valueOne, this.valueTwo, this.colorOne, this.colorTwo);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 5,
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      height: 12,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            child: SizedBox(
+              height: 12,
+              child: LinearProgressIndicator(
+                value: valueTwo,
+                valueColor: AlwaysStoppedAnimation<Color>(colorTwo),
+                backgroundColor: Color(0xFFCDCDCD),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 12,
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              child: LinearProgressIndicator(
+                value: valueOne,
+                valueColor: AlwaysStoppedAnimation<Color>(colorOne),
+                backgroundColor: Colors.transparent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class UnlockPremium extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

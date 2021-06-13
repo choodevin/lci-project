@@ -43,21 +43,21 @@ class TabletHome extends StatelessWidget {
 
 class Home extends StatefulWidget {
   final UserData userdata;
-  final wheeldata;
+  final wheelData;
   final sevenThings;
 
-  const Home({this.userdata, this.wheeldata, this.sevenThings});
+  const Home({this.userdata, this.wheelData, this.sevenThings});
 
   @override
-  _HomeState createState() => _HomeState(userdata, wheeldata, sevenThings);
+  _HomeState createState() => _HomeState(userdata, wheelData, sevenThings);
 }
 
 class _HomeState extends State<Home> {
   UserData userdata = UserData();
-  final wheeldata;
+  final wheelData;
   Map<String, dynamic> sevenThings;
 
-  _HomeState(this.userdata, this.wheeldata, this.sevenThings);
+  _HomeState(this.userdata, this.wheelData, this.sevenThings);
 
   CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
 
@@ -87,8 +87,8 @@ class _HomeState extends State<Home> {
 
   Widget build(BuildContext context) {
     var subScore;
-    if (wheeldata != null) {
-      subScore = wheeldata.subScore();
+    if (wheelData != null) {
+      subScore = wheelData.subScore();
     }
 
     arrangeSevenThings() {
@@ -119,6 +119,7 @@ class _HomeState extends State<Home> {
         },
         child: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             child: Container(
               padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
               child: Column(
@@ -131,7 +132,7 @@ class _HomeState extends State<Home> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        wheeldata != null
+                        wheelData != null
                             ? Stack(
                                 children: [
                                   ClickablePrimaryCard(
@@ -489,7 +490,7 @@ class _HomeBaseState extends State<HomeBase> {
   @override
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
-      Home(userdata: userdata, wheeldata: wheeldata, sevenThings: sevenThings),
+      Home(userdata: userdata, wheelData: wheeldata, sevenThings: sevenThings),
       CampaignNew(),
       Text(
         'Profile',

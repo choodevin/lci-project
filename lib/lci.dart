@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 import 'package:spider_chart/spider_chart.dart';
 
@@ -399,7 +400,7 @@ class _LciTestFormState extends State<LciTestForm> {
                               }
                             }
                             CollectionReference ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
-                            await ref.doc(DateTime(dateNow.year, dateNow.month, dateNow.day).toString()).set(score).then((value) {
+                            await ref.doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString()).set(score).then((value) {
                               Navigator.of(context).popUntil((route) => route.isFirst);
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => LciResult(

@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'lci.dart';
 
 class LoadGoals extends StatelessWidget {
@@ -15,7 +16,41 @@ class LoadGoals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').doc();
+    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+
+    return FutureBuilder<QuerySnapshot>(
+      future: ref.get(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(body: Text("Something went wrong"));
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          var goals = snapshot.data;
+
+          if (goals == null || goals.size == 0) {
+            return Goals(userdata: userdata, edit: false);
+          } else {
+            var goalDate = goals.docs.last.id;
+            return GetScoreFromGoals(goals: goals.docs.last.data(), goalDate: goalDate);
+          }
+        }
+
+        return Scaffold(body: CircularProgressIndicator());
+      },
+    );
+  }
+}
+
+class GetScoreFromGoals extends StatelessWidget {
+  final goals;
+  final goalDate;
+
+  const GetScoreFromGoals({Key key, this.goals, this.goalDate}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore').doc(goals['targetLCI']);
 
     return FutureBuilder<DocumentSnapshot>(
       future: ref.get(),
@@ -25,12 +60,8 @@ class LoadGoals extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          QuerySnapshot goals = snapshot.data.data();
-          if (goals == null || goals.size == 0) {
-            return Goals(userdata: userdata);
-          } else {
-            return GoalStatus(goals: goals);
-          }
+          var score = snapshot.data;
+          return GoalStatus(goals: goals, score: score, goalDate: goalDate);
         }
 
         return Scaffold(body: CircularProgressIndicator());
@@ -41,37 +72,44 @@ class LoadGoals extends StatelessWidget {
 
 class Goals extends StatefulWidget {
   final userdata;
+  final goals;
+  final edit;
 
-  const Goals({this.userdata});
+  const Goals({this.userdata, this.edit, this.goals});
 
-  _GoalsState createState() => _GoalsState(userdata: userdata);
+  _GoalsState createState() => _GoalsState(userdata: userdata, edit: edit, goals: goals);
 }
 
 class _GoalsState extends State<Goals> {
   final userdata;
+  final edit;
+  Map<String, dynamic> goals = {};
 
-  _GoalsState({this.userdata});
+  _GoalsState({this.userdata, this.edit, this.goals});
 
   int totalSelected;
-  Map<String, dynamic> goals = {};
 
   @override
   void initState() {
     super.initState();
-    goals['Spiritual Life'] = {"selected": false};
-    goals['Romance Relationship'] = {"selected": false};
-    goals['Family'] = {"selected": false};
-    goals['Social Life'] = {"selected": false};
-    goals['Health & Fitness'] = {"selected": false};
-    goals['Hobby & Leisure'] = {"selected": false};
-    goals['Physical Environment'] = {"selected": false};
-    goals['Self-Development'] = {"selected": false};
-    goals['Career or Study'] = {"selected": false};
-    goals['Finance'] = {"selected": false};
+    if (!edit) {
+      goals['Spiritual Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Romance Relationship'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Family'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Social Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Health & Fitness'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Hobby & Leisure'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Physical Environment'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Self-Development'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Career or Study'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals['Finance'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+    }
     int i = 0;
     goals.forEach((key, value) {
-      if (value['selected']) {
-        i++;
+      if (key != "targetLCI") {
+        if (value['selected']) {
+          i++;
+        }
       }
     });
     totalSelected = i;
@@ -124,24 +162,28 @@ class _GoalsState extends State<Goals> {
                 Padding(padding: EdgeInsets.all(5)),
                 Column(
                   children: goals.keys.map((key) {
-                    return Column(
-                      children: [
-                        GoalSelection(
-                          title: key,
-                          description: goalDetails.getDesc(key),
-                          color: goalDetails.getColor(key),
-                          value: goals[key]['selected'],
-                          assetPath: goalDetails.getAssetPath(key),
-                          callBack: (bool newValue) {
-                            goals[key]['selected'] = newValue;
-                            setState(() {
-                              newValue ? totalSelected++ : totalSelected--;
-                            });
-                          },
-                        ),
-                        Padding(padding: EdgeInsets.all(5)),
-                      ],
-                    );
+                    if (key != "targetLCI") {
+                      return Column(
+                        children: [
+                          GoalSelection(
+                            title: key,
+                            description: goalDetails.getDesc(key),
+                            color: goalDetails.getColor(key),
+                            value: goals[key]['selected'],
+                            assetPath: goalDetails.getAssetPath(key),
+                            callBack: (bool newValue) {
+                              goals[key]['selected'] = newValue;
+                              setState(() {
+                                newValue ? totalSelected++ : totalSelected--;
+                              });
+                            },
+                          ),
+                          Padding(padding: EdgeInsets.all(5)),
+                        ],
+                      );
+                    } else {
+                      return SizedBox.shrink();
+                    }
                   }).toList(),
                 ),
                 Padding(padding: EdgeInsets.all(30)),
@@ -189,11 +231,19 @@ class LoadScore extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          QuerySnapshot score = snapshot.data;
+          var scoreTemp = snapshot.data;
+          var score;
 
-          if (score == null || score.size == 0) {
+          if (scoreTemp == null || scoreTemp.size == 0) {
             return GoalsNoLci(userdata: userdata);
           } else {
+            var latest = DateFormat('d-M-y').format(DateFormat('d-M-y').parse(scoreTemp.docs.last.id));
+            scoreTemp.docs.forEach((e) {
+              var temp = DateFormat('d-M-y').format(DateFormat('d-M-y').parse(e.id));
+              if (temp.compareTo(latest) >= 0) {
+                score = e;
+              }
+            });
             return GoalSetting(userdata: userdata, score: score, goals: goals);
           }
         }
@@ -261,12 +311,20 @@ class GoalSetting extends StatefulWidget {
 class _GoalSettingState extends State<GoalSetting> {
   final userdata;
   final score;
+  final _targetController = new TextEditingController();
   final _qOneController = new TextEditingController();
+  final _qTwoController = new TextEditingController();
+  final _qThreeController = new TextEditingController();
+  final _qFourController = new TextEditingController();
 
   List<String> displayedList;
   Map<String, dynamic> goals;
   String toDisplay;
+  FocusNode _targetNode;
   FocusNode _qOneNode;
+  FocusNode _qTwoNode;
+  FocusNode _qThreeNode;
+  FocusNode _qFourNode;
   Map<String, double> subScore;
 
   var goalDetails = new GoalsDetails();
@@ -278,8 +336,24 @@ class _GoalSettingState extends State<GoalSetting> {
 
   void initState() {
     super.initState();
+    _targetNode = FocusNode();
     _qOneNode = FocusNode();
+    _qTwoNode = FocusNode();
+    _qThreeNode = FocusNode();
+    _qFourNode = FocusNode();
+    _targetNode.addListener(() {
+      setState(() {});
+    });
     _qOneNode.addListener(() {
+      setState(() {});
+    });
+    _qTwoNode.addListener(() {
+      setState(() {});
+    });
+    _qThreeNode.addListener(() {
+      setState(() {});
+    });
+    _qFourNode.addListener(() {
       setState(() {});
     });
 
@@ -288,15 +362,23 @@ class _GoalSettingState extends State<GoalSetting> {
     }
 
     goals.entries.forEach((element) {
-      if (element.value['selected']) {
-        if (!displayedList.contains(element.key)) {
-          toDisplay = element.key;
-          return;
+      if (element.key != "targetLCI") {
+        if (element.value['selected']) {
+          if (!displayedList.contains(element.key)) {
+            toDisplay = element.key;
+            return;
+          }
         }
       }
     });
 
-    scoreObj = new LCIScore(score.docs.last.data());
+    _targetController.text = goals[toDisplay]['target'].toString();
+    _qOneController.text = goals[toDisplay]['q1'];
+    _qTwoController.text = goals[toDisplay]['q2'];
+    _qThreeController.text = goals[toDisplay]['q3'];
+    _qFourController.text = goals[toDisplay]['q4'];
+
+    scoreObj = new LCIScore(score.data());
     subScore = scoreObj.subScore();
 
     questionStyle = TextStyle(
@@ -307,6 +389,15 @@ class _GoalSettingState extends State<GoalSetting> {
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+
+    Future<void> updateGoals() {
+      var dateNow = DateTime.now();
+      return user.doc(DateTime(dateNow.year, dateNow.month, dateNow.day).toString()).set(goals).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('There was an error inserting the item, please try again.'),
+          )));
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -382,10 +473,16 @@ class _GoalSettingState extends State<GoalSetting> {
                         ),
                       ),
                       Padding(padding: EdgeInsets.all(2)),
+                      InputBox(
+                        focusNode: _targetNode,
+                        focusNodeNext: _qOneNode,
+                        controller: _targetController,
+                        keyboardType: TextInputType.number,
+                      ),
                     ],
                   ),
                 ),
-                Padding(padding: EdgeInsets.all(15)),
+                Padding(padding: EdgeInsets.all(20)),
                 Text(
                   "How do you define your goal ?",
                   style: questionStyle,
@@ -393,45 +490,127 @@ class _GoalSettingState extends State<GoalSetting> {
                 Padding(padding: EdgeInsets.all(2)),
                 InputBox(
                   focusNode: _qOneNode,
+                  focusNodeNext: _qTwoNode,
                   controller: _qOneController,
                   minLines: 5,
                 ),
-                Padding(padding: EdgeInsets.all(15)),
+                Padding(padding: EdgeInsets.all(20)),
+                Text(
+                  "What do you want to achieve in 1 month ?",
+                  style: questionStyle,
+                ),
+                Padding(padding: EdgeInsets.all(2)),
+                InputBox(
+                  focusNode: _qTwoNode,
+                  focusNodeNext: _qThreeNode,
+                  controller: _qTwoController,
+                  minLines: 5,
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                Text(
+                  "What do you need to do weekly to achieve the above ?",
+                  style: questionStyle,
+                ),
+                Padding(padding: EdgeInsets.all(2)),
+                InputBox(
+                  focusNode: _qThreeNode,
+                  focusNodeNext: _qFourNode,
+                  controller: _qThreeController,
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                Text(
+                  "How many times a week ?",
+                  style: questionStyle,
+                ),
+                Padding(padding: EdgeInsets.all(2)),
+                InputBox(
+                  maxLines: 1,
+                  focusNode: _qFourNode,
+                  controller: _qFourController,
+                  keyboardType: TextInputType.number,
+                ),
+                Padding(padding: EdgeInsets.all(20)),
                 PrimaryButton(
                   text: "Confirm & Proceed",
                   color: Color(0xFF299E45),
                   textColor: Colors.white,
                   onClickFunction: () async {
+                    var targetScore = double.tryParse(_targetController.text);
+                    if (targetScore != null) {
+                      if (targetScore <= subScore[toDisplay] || targetScore > 10) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Goal input cannot be lesser than current value and cannot be higher than 10'),
+                        ));
+                        return;
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Invalid goal input.'),
+                      ));
+                      return;
+                    }
+
                     var selectedCount = 0;
                     displayedList.add(toDisplay);
-                    goals.values.forEach((element) {
-                      if (element['selected']) {
-                        selectedCount++;
+                    goals.entries.forEach((element) {
+                      if (element.key != "targetLCI") {
+                        if (element.value['selected']) {
+                          selectedCount++;
+                        }
                       }
                     });
+
                     if (displayedList.length != selectedCount) {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GoalSetting(
-                            userdata: userdata,
-                            score: score,
-                            goals: goals,
-                            displayedList: displayedList,
+                      if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                        goals[toDisplay]['target'] = _targetController.text;
+                        goals[toDisplay]['q1'] = _qOneController.text;
+                        goals[toDisplay]['q2'] = _qTwoController.text;
+                        goals[toDisplay]['q3'] = _qThreeController.text;
+                        goals[toDisplay]['q4'] = _qFourController.text;
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GoalSetting(
+                              userdata: userdata,
+                              score: score,
+                              goals: goals,
+                              displayedList: displayedList,
+                            ),
                           ),
-                        ),
-                      );
-                      displayedList.remove(toDisplay);
+                        );
+                        displayedList.remove(toDisplay);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Please make sure all questions had been answered.'),
+                        ));
+                        return;
+                      }
                     } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GoalStatus(
-                            score: score,
-                            goals: goals,
+                      if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                        goals[toDisplay]['target'] = _targetController.text;
+                        goals[toDisplay]['q1'] = _qOneController.text;
+                        goals[toDisplay]['q2'] = _qTwoController.text;
+                        goals[toDisplay]['q3'] = _qThreeController.text;
+                        goals[toDisplay]['q4'] = _qFourController.text;
+                        goals['targetLCI'] = score.id;
+                        var dateNow = DateTime.now();
+                        await updateGoals();
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => GoalStatus(
+                              score: score,
+                              goals: goals,
+                              goalDate: DateTime(dateNow.year, dateNow.month, dateNow.day).toString(),
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Please make sure all questions had been answered.'),
+                        ));
+                        return;
+                      }
                     }
                   },
                 ),
@@ -446,13 +625,158 @@ class _GoalSettingState extends State<GoalSetting> {
 
 class GoalStatus extends StatelessWidget {
   final goals;
+  final goalDate;
   final score;
 
-  const GoalStatus({Key key, this.goals, this.score}) : super(key: key);
+  const GoalStatus({Key key, this.goals, this.score, this.goalDate}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    var goalDetails = new GoalsDetails();
+    var scoreObj = new LCIScore(score.data());
+
+    Map<String, dynamic> getSelected() {
+      Map<String, dynamic> result = {};
+      goals.forEach((key, value) {
+        if (key != "targetLCI") {
+          if (value['selected']) {
+            result[key] = value;
+          }
+        }
+      });
+      return result;
+    }
+
+    Map<String, dynamic> goalsTemp = getSelected();
+    Map<String, dynamic> subScore = scoreObj.subScore();
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+            ),
+            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PageHeadings(
+                  text: "Milestone Goals",
+                  metaText: "Review your current status with your goals",
+                ),
+                Padding(padding: EdgeInsets.all(20)),
+                Column(
+                  children: goalsTemp.keys.map((key) {
+                    return Column(
+                      children: [
+                        PrimaryCard(
+                          padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextWithIcon(
+                                assetColor: goalDetails.getColor(key),
+                                assetPath: goalDetails.getAssetPath(key),
+                                text: key,
+                                textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
+                              ),
+                              Padding(padding: EdgeInsets.all(7.5)),
+                              MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target']) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                              Padding(padding: EdgeInsets.all(15)),
+                              Text(
+                                "Definition of Success/Goal",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(2)),
+                              Text(
+                                goalsTemp[key]['q1'],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(15)),
+                              Text(
+                                "Achivemenet within this month",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(2)),
+                              Text(
+                                goalsTemp[key]['q2'],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(15)),
+                              Text(
+                                "Weekly tasks to achieve",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(2)),
+                              Text(
+                                goalsTemp[key]['q3'],
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: goalDetails.getColor(key),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.all(30)),
+                      ],
+                    );
+                  }).toList(),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Goal Setting Date:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('d/M/y').format(DateTime.parse(goalDate)),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(padding: EdgeInsets.all(30)),
+                PrimaryButton(
+                  text: "Review / Revise Goals",
+                  color: Color(0xFF170E9A),
+                  textColor: Colors.white,
+                  onClickFunction: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(goals: goals, edit: true)));
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
