@@ -8,6 +8,7 @@ class UserData {
   String dateOfBirth;
   String type;
   String subscription;
+  String currentEnrolledCampaign;
 
   UserData(
       {this.email = "",

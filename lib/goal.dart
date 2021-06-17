@@ -125,7 +125,7 @@ class _GoalsState extends State<Goals> {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -268,7 +268,7 @@ class GoalsNoLci extends StatelessWidget {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -405,7 +405,7 @@ class _GoalSettingState extends State<GoalSetting> {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -493,6 +493,7 @@ class _GoalSettingState extends State<GoalSetting> {
                   focusNodeNext: _qTwoNode,
                   controller: _qOneController,
                   minLines: 5,
+                  maxLines: 5
                 ),
                 Padding(padding: EdgeInsets.all(20)),
                 Text(
@@ -505,6 +506,7 @@ class _GoalSettingState extends State<GoalSetting> {
                   focusNodeNext: _qThreeNode,
                   controller: _qTwoController,
                   minLines: 5,
+                  maxLines: 5
                 ),
                 Padding(padding: EdgeInsets.all(20)),
                 Text(
@@ -524,7 +526,6 @@ class _GoalSettingState extends State<GoalSetting> {
                 ),
                 Padding(padding: EdgeInsets.all(2)),
                 InputBox(
-                  maxLines: 1,
                   focusNode: _qFourNode,
                   controller: _qFourController,
                   keyboardType: TextInputType.number,
@@ -657,7 +658,7 @@ class GoalStatus extends StatelessWidget {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

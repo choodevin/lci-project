@@ -1,10 +1,47 @@
+import 'dart:math';
+
 import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'entity/CampaignData.dart';
+
+class LoadCampaign extends StatelessWidget {
+  final userdata;
+
+  const LoadCampaign({Key key, this.userdata}) : super(key: key);
+
+  Widget build(BuildContext context) {
+    var ref = FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: userdata.currentEnrolledCampaign);
+
+    return FutureBuilder<QuerySnapshot>(
+      future: ref.get(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(body: Text("Something went wrong"));
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          var campaign = CampaignData();
+          campaign.name = snapshot.data.docs.last.get('name');
+          campaign.campaignAdmin = snapshot.data.docs.last.get('campaignAdmin');
+          campaign.duration = snapshot.data.docs.last.get('duration');
+          campaign.goalDecision = snapshot.data.docs.last.get('goalDecision');
+          campaign.invitationCode = snapshot.data.docs.last.get('invitationCode');
+          campaign.rules = snapshot.data.docs.last.get('rules');
+          campaign.sevenThingsDeadline = snapshot.data.docs.last.get('sevenThingDeadline');
+          campaign.sevenThingsPenaltyDecision = snapshot.data.docs.last.get('sevenThingsPenaltyDecision');
+          campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
+          campaign.startDate = snapshot.data.docs.last.get('startDate');
+          return CampaignMain(campaign: campaign);
+        }
+
+        return Scaffold(body: CircularProgressIndicator());
+      },
+    );
+  }
+}
 
 class CampaignNew extends StatelessWidget {
   @override
@@ -12,7 +49,7 @@ class CampaignNew extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
+          padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -26,8 +63,7 @@ class CampaignNew extends StatelessWidget {
                 color: Color(0xFF299E45),
                 textColor: Colors.white,
                 onClickFunction: () {
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => SetupCampaign()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaign()));
                 },
               ),
               Padding(padding: EdgeInsets.all(20)),
@@ -61,15 +97,41 @@ class SetupCampaign extends StatefulWidget {
 
 class _SetupCampaignState extends State<SetupCampaign> {
   final CampaignData campaignData = CampaignData();
+  final _scorePenaltyController = new TextEditingController();
+  final _campaignNameController = new TextEditingController();
   String selectedDeadline = "0:00";
   String goalSettingLabel = "On Member";
   bool goalSettingDecision = true;
   bool penaltyDecision = false;
   int selectedMonth = 1;
+  int selectedGoalReview = 1;
+  FocusNode _scorePenaltyNode;
+  FocusNode _campaignNameNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _scorePenaltyNode = new FocusNode();
+    _scorePenaltyNode.addListener(() {
+      setState(() {});
+    });
+    _campaignNameNode = new FocusNode();
+    _campaignNameNode.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     List<int> monthList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    List<int> generateDay() {
+      List<int> list = <int>[];
+      for (var i = 1; i <= 31; i++) {
+        list.add(i);
+      }
+      return list;
+    }
 
     List<String> generateTimes() {
       List<String> list = <String>[];
@@ -80,12 +142,13 @@ class _SetupCampaignState extends State<SetupCampaign> {
     }
 
     List<String> timeList = generateTimes();
+    List<int> dayList = generateDay();
 
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -93,6 +156,25 @@ class _SetupCampaignState extends State<SetupCampaign> {
                   text: 'Setting up New Campaign',
                 ),
                 Padding(padding: EdgeInsets.all(15)),
+                Text(
+                  'Campaign Name',
+                  style: TextStyle(
+                    color: Color(0xFF6E6E6E),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Padding(padding: EdgeInsets.all(2)),
+                InputBox(
+                  focusNode: _campaignNameNode,
+                  controller: _campaignNameController,
+                ),
+                Padding(padding: EdgeInsets.all(10)),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                ),
+                Padding(padding: EdgeInsets.all(10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -134,8 +216,7 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                   fontSize: 18,
                                 ),
                                 value: selectedMonth,
-                                items: monthList
-                                    .map<DropdownMenuItem<int>>((int value) {
+                                items: monthList.map<DropdownMenuItem<int>>((int value) {
                                   return DropdownMenuItem<int>(
                                     value: value,
                                     child: Center(
@@ -169,12 +250,12 @@ class _SetupCampaignState extends State<SetupCampaign> {
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Divider(
                   height: 1,
                   thickness: 1,
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -192,9 +273,7 @@ class _SetupCampaignState extends State<SetupCampaign> {
                         Text(
                           goalSettingLabel,
                           style: TextStyle(
-                            color: goalSettingDecision
-                                ? Color(0xFF36C164)
-                                : Color(0xFF999999),
+                            color: goalSettingDecision ? Color(0xFF36C164) : Color(0xFF999999),
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -218,12 +297,12 @@ class _SetupCampaignState extends State<SetupCampaign> {
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Divider(
                   height: 1,
                   thickness: 1,
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -262,8 +341,7 @@ class _SetupCampaignState extends State<SetupCampaign> {
                               fontSize: 18,
                             ),
                             value: selectedDeadline,
-                            items: timeList
-                                .map<DropdownMenuItem<String>>((String value) {
+                            items: timeList.map<DropdownMenuItem<String>>((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
                                 child: Center(
@@ -286,12 +364,12 @@ class _SetupCampaignState extends State<SetupCampaign> {
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Divider(
                   height: 1,
                   thickness: 1,
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -314,28 +392,55 @@ class _SetupCampaignState extends State<SetupCampaign> {
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Divider(
                   height: 1,
                   thickness: 1,
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '7 Things Penalty',
+                      '7 Things Score Penalty %',
                       style: TextStyle(
-                        color: penaltyDecision
-                            ? Color(0xFF6E6E6E)
-                            : Color(0xFFAAAAAA),
+                        color: penaltyDecision ? Color(0xFF6E6E6E) : Color(0xFFAAAAAA),
                         fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(
+                      height: 45,
+                      width: 90,
+                      child: InputBox(
+                        focusNode: _scorePenaltyNode,
+                        controller: _scorePenaltyController,
+                        textAlign: TextAlign.center,
+                        readOnly: !penaltyDecision,
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(padding: EdgeInsets.all(10)),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                ),
+                Padding(padding: EdgeInsets.all(10)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Goal Settings Review Day',
+                      style: TextStyle(
+                        color: Color(0xFF6E6E6E),
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     Container(
                       height: 35,
-                      width: 180,
+                      width: 65,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
                         color: Colors.white,
@@ -357,24 +462,23 @@ class _SetupCampaignState extends State<SetupCampaign> {
                             style: TextStyle(
                               color: Color(0xFF6E6E6E),
                               fontWeight: FontWeight.w500,
-                              fontSize: 18,
+                              fontSize: 14,
                             ),
-                            value: selectedDeadline,
-                            items: timeList
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
+                            value: selectedGoalReview,
+                            items: dayList.map<DropdownMenuItem<int>>((int value) {
+                              return DropdownMenuItem<int>(
                                 value: value,
                                 child: Center(
                                   child: Text(
-                                    value,
+                                    value.toString(),
                                   ),
                                 ),
                               );
                             }).toList(),
-                            onChanged: (String newValue) {
+                            onChanged: (int newValue) {
                               setState(
                                 () {
-                                  selectedDeadline = newValue;
+                                  selectedGoalReview = newValue;
                                 },
                               );
                             },
@@ -382,9 +486,17 @@ class _SetupCampaignState extends State<SetupCampaign> {
                         ),
                       ),
                     ),
+                    Text(
+                      'of each month',
+                      style: TextStyle(
+                        color: Color(0xFF6E6E6E),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(12)),
+                Padding(padding: EdgeInsets.all(10)),
                 Divider(
                   height: 1,
                   thickness: 1,
@@ -395,17 +507,33 @@ class _SetupCampaignState extends State<SetupCampaign> {
                   text: 'Next',
                   color: Color(0xFF299E45),
                   onClickFunction: () {
+                    if (_campaignNameController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Do not leave campaign name blank')));
+                      return;
+                    }
+                    campaignData.name = _campaignNameController.text;
                     campaignData.duration = selectedMonth;
-                    campaignData.goalDecision =
-                        goalSettingDecision ? "On Member" : "On Campaign";
+                    campaignData.goalDecision = goalSettingDecision ? "On Member" : "On Campaign";
                     campaignData.sevenThingsDeadline = selectedDeadline;
                     campaignData.sevenThingsPenaltyDecision = penaltyDecision;
+                    campaignData.selectedGoalReview = selectedGoalReview;
                     if (penaltyDecision) {
-                      //PENALTY ON > PENALTY REQUIRED
+                      campaignData.sevenThingsPenalty = _scorePenaltyController.text;
+                      if (int.tryParse(campaignData.sevenThingsPenalty) != null) {
+                        var tempPenalty = int.parse(campaignData.sevenThingsPenalty);
+                        if (tempPenalty > 0 && tempPenalty <= 100) {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData)));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('7 Things penalty entered must be within 0-100')));
+                          return;
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid 7 things penalty input')));
+                        return;
+                      }
+                    } else {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData)));
                     }
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            SetupCampaignRules(campaignData: campaignData)));
                   },
                 ),
               ],
@@ -422,14 +550,41 @@ class SetupCampaignRules extends StatefulWidget {
 
   const SetupCampaignRules({this.campaignData});
 
-  _SetupCampaignRulesState createState() =>
-      _SetupCampaignRulesState(campaignData);
+  _SetupCampaignRulesState createState() => _SetupCampaignRulesState(campaignData);
 }
 
 class _SetupCampaignRulesState extends State<SetupCampaignRules> {
   final CampaignData campaignData;
+  final _rulesController = new TextEditingController();
 
   _SetupCampaignRulesState(this.campaignData);
+
+  FocusNode _rulesNode;
+
+  Future<String> generateInvitationCode() async {
+    var code;
+    var duplicate = true;
+    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random _rnd = Random();
+    code = String.fromCharCodes(Iterable.generate(5, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    while (duplicate) {
+      await FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: code).get().then((value) {
+        if (value == null || value.size == 0) {
+          duplicate = false;
+        }
+      });
+    }
+    return code;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _rulesNode = new FocusNode();
+    _rulesNode.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +592,7 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -454,32 +609,37 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
                   ),
                 ),
                 Padding(padding: EdgeInsets.all(8)),
-                PrimaryCard(),
+                InputBox(
+                  focusNode: _rulesNode,
+                  controller: _rulesController,
+                  minLines: 10,
+                  maxLines: 10,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                ),
+                Padding(padding: EdgeInsets.all(40)),
                 PrimaryButton(
                   textColor: Colors.white,
                   text: 'Next',
                   color: Color(0xFF299E45),
                   onClickFunction: () async {
-                    campaignData.campaignAdmin =
-                        FirebaseAuth.instance.currentUser.uid;
-                    DocumentReference campaignRef = FirebaseFirestore.instance
-                        .collection('CampaignData')
-                        .doc();
+                    campaignData.campaignAdmin = FirebaseAuth.instance.currentUser.uid;
+                    DocumentReference campaignRef = FirebaseFirestore.instance.collection('CampaignData').doc();
+                    campaignData.invitationCode = await generateInvitationCode();
+                    campaignData.rules = _rulesController.text;
                     await campaignRef.set({
+                      'name': campaignData.name,
                       'duration': campaignData.duration,
                       'startDate': Timestamp.now(),
                       'goalDecision': campaignData.goalDecision,
                       'sevenThingDeadline': campaignData.sevenThingsDeadline,
-                      'sevenThingsPenaltyDecision':
-                          campaignData.sevenThingsPenaltyDecision,
+                      'sevenThingsPenaltyDecision': campaignData.sevenThingsPenaltyDecision,
                       'sevenThingsPenalties': campaignData.sevenThingsPenalty,
-                      'campaignAdmin': campaignData.campaignAdmin
-                    }).whenComplete(() {
-                      campaignData.invitationCode = campaignRef.id;
+                      'campaignAdmin': campaignData.campaignAdmin,
+                      'invitationCode': campaignData.invitationCode,
+                      'rules': campaignData.rules
                     });
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                        builder: (context) =>
-                            SetupCampaignFinal(campaignData: campaignData)));
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignFinal(campaignData: campaignData)));
                   },
                 ),
               ],
@@ -501,7 +661,7 @@ class SetupCampaignFinal extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -544,9 +704,12 @@ class SetupCampaignFinal extends StatelessWidget {
                   textColor: Colors.white,
                   text: 'Finish',
                   color: Color(0xFF170E9A),
-                  onClickFunction: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => CampaignMain()));
+                  onClickFunction: () async {
+                    await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+                      "currentEnrolledCampaign": campaignData.invitationCode,
+                    });
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignMain()));
                   },
                 ),
               ],
@@ -559,163 +722,21 @@ class SetupCampaignFinal extends StatelessWidget {
 }
 
 class CampaignMain extends StatelessWidget {
+  final CampaignData campaign;
+
+  const CampaignMain({Key key, this.campaign}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Color(0xFF170E9A),
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.light,
-    ));
-    return WillPopScope(
-      onWillPop: () async {
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-          statusBarColor: Color(0xFFFAFAFA),
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.dark,
-        ));
-        return true;
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
-                  color: Color(0xFF170E9A),
-                  child: Text(
-                    'Campaign',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      PrimaryCard(
-                        child: Column(
-                          children: [
-                            TextWithIcon(
-                              assetPath: 'assets/medal.svg',
-                              text: '7 Things Ranking Board',
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(10),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(bottom: 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'John',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 20),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  RoundedLinearProgress(
-                                    color: Color(0xFF6EC8F4),
-                                    value: 0.6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(bottom: 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'Leela',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 20),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  RoundedLinearProgress(
-                                    color: Color(0xFF6EC8F4),
-                                    value: 0.6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(bottom: 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'Jason',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 20),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  RoundedLinearProgress(
-                                    color: Color(0xFF6EC8F4),
-                                    value: 0.6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(bottom: 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'Ah Beng',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 20),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  RoundedLinearProgress(
-                                    color: Color(0xFF6EC8F4),
-                                    value: 0.6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(bottom: 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    'Ah Kaw',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 20),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  RoundedLinearProgress(
-                                    color: Color(0xFF6EC8F4),
-                                    value: 0.6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Campaign',
+              ),
+            ],
           ),
         ),
       ),

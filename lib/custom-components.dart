@@ -13,6 +13,9 @@ class InputBox extends StatelessWidget {
   final TextInputType keyboardType;
   final int minLines;
   final int maxLines;
+  final BorderRadiusGeometry borderRadius;
+  final TextAlign textAlign;
+  final bool readOnly;
 
   const InputBox({
     this.focusNode,
@@ -20,13 +23,24 @@ class InputBox extends StatelessWidget {
     this.controller,
     this.keyboardType,
     this.minLines = 1,
-    this.maxLines = 10,
+    this.maxLines = 1,
+    this.borderRadius,
+    this.textAlign = TextAlign.left,
+    this.readOnly = false,
   });
 
   Widget build(BuildContext context) {
+    var bRadius;
+
+    if (borderRadius == null) {
+      bRadius = BorderRadius.all(Radius.circular(90 / minLines));
+    } else {
+      bRadius = borderRadius;
+    }
+
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
+        borderRadius: bRadius,
         border: Border.all(color: Colors.transparent),
         boxShadow: [
           BoxShadow(color: (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent), blurRadius: (focusNode.hasFocus ? 3 : 0)),
@@ -38,6 +52,12 @@ class InputBox extends StatelessWidget {
         obscureText: false,
         focusNode: focusNode,
         controller: controller,
+        textAlign: textAlign,
+        readOnly: readOnly,
+        autofocus: false,
+        enabled: !readOnly,
+        enableInteractiveSelection: !readOnly,
+        textCapitalization: TextCapitalization.sentences,
         onEditingComplete: () => (focusNodeNext != null ? FocusScope.of(context).requestFocus(focusNodeNext) : FocusScope.of(context).unfocus()),
         style: TextStyle(
           fontSize: 18,
@@ -51,12 +71,12 @@ class InputBox extends StatelessWidget {
             color: Color(0xFFB4B4B4),
           ),
           enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
+              borderRadius: bRadius,
               borderSide: BorderSide(
                 color: Colors.transparent,
               )),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(90 / minLines)),
+            borderRadius: bRadius,
             borderSide: BorderSide(
               color: Color(0xFFF7DABFB),
             ),

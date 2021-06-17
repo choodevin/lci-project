@@ -121,11 +121,12 @@ class _HomeState extends State<Home> {
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             child: Container(
-              padding: EdgeInsets.fromLTRB(30, 35, 30, 25),
+              padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PageHeadings(
-                    text: 'Good Morning, ' + userdata.name,
+                    text: 'Good Morning,\n' + userdata.name,
                   ),
                   Container(
                     margin: EdgeInsets.only(top: 10),
@@ -452,6 +453,7 @@ class _GetUserDataState extends State<GetUserData> {
           userdata.dateOfBirth = snapshot.data[0].get('dateOfBirth');
           userdata.type = snapshot.data[0].get('type');
           userdata.subscription = snapshot.data[0].get('subscription');
+          userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
 
           return HomeBase(userdata: userdata, wheeldata: wheeldata, sevenThings: seventhings);
         }
@@ -491,7 +493,7 @@ class _HomeBaseState extends State<HomeBase> {
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
       Home(userdata: userdata, wheelData: wheeldata, sevenThings: sevenThings),
-      CampaignNew(),
+      userdata.currentEnrolledCampaign.isNotEmpty ? LoadCampaign(userdata: userdata) : CampaignNew(),
       Text(
         'Profile',
       ),
