@@ -305,26 +305,29 @@ class PrimaryCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final Color color;
   final BorderSide borderSide;
+  final double minHeight;
 
   PrimaryCard({
     this.child,
     this.padding = const EdgeInsets.fromLTRB(20, 15, 20, 15),
     this.color = const Color(0xFFFFFFFF),
     this.borderSide = BorderSide.none,
+    this.minHeight = 0.0,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: BoxConstraints(minHeight: minHeight),
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.all(Radius.circular(25)),
         boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.15),
+            color: Color.fromRGBO(0, 0, 0, 0.06),
             blurRadius: 8,
-            offset: Offset(0, 4),
+            offset: Offset(0, 8),
           ),
         ],
       ),
@@ -365,28 +368,57 @@ class ClickablePrimaryCard extends StatelessWidget {
 class PageHeadings extends StatelessWidget {
   final String text;
   final String metaText;
+  final bool popAvailable;
 
-  PageHeadings({this.text = "", this.metaText = ""});
+  PageHeadings({this.text = "", this.metaText = "", this.popAvailable = false});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          text,
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
-        ),
-        Padding(
-          padding: EdgeInsets.all(3),
-        ),
-        Text(
-          metaText,
-          style: TextStyle(
-            color: Color(0xFF878787),
+    return Padding(
+      padding: popAvailable ? EdgeInsets.only(top: 5) : EdgeInsets.zero,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              popAvailable
+                  ? GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                        child: SvgPicture.asset(
+                          'assets/back.svg',
+                          height: 26,
+                          width: 26,
+                        ),
+                      ),
+                    )
+                  : SizedBox.shrink(),
+              Container(
+                width: MediaQuery.of(context).size.width - 66.5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      text,
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
+                    ),
+                    metaText.isNotEmpty
+                        ? Text(
+                            metaText,
+                            style: TextStyle(
+                              color: Color(0xFF878787),
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -645,51 +677,6 @@ class _GoalSelectionState extends State<GoalSelection> {
                 ),
               ),
             )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CustomStatusBar extends StatelessWidget {
-  final String text;
-
-  const CustomStatusBar({this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: 65,
-      padding: EdgeInsets.only(left: 15, right: 20),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFEAEAEA), width: 1))),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(100),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Padding(
-                  padding: EdgeInsets.all(10),
-                  child: SvgPicture.asset(
-                    'assets/back.svg',
-                    height: 22,
-                    width: 22,
-                  )),
-            ),
-            Padding(padding: EdgeInsets.all(5)),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 22,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ],
         ),
       ),

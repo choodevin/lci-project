@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ntp/ntp.dart';
 import 'package:spider_chart/spider_chart.dart';
 
@@ -15,31 +14,6 @@ import 'campaign.dart';
 import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
 import 'goal.dart';
-import 'login.dart';
-
-class TabletHome extends StatelessWidget {
-  Future<void> signOut() async {
-    GoogleSignIn().signOut();
-    await FirebaseAuth.instance.signOut();
-  }
-
-  Widget build(BuildContext build) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            child: ElevatedButton(
-              child: Text('sign out'),
-              onPressed: () {
-                signOut().then((value) => {Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => Login()))});
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class Home extends StatefulWidget {
   final UserData userdata;
@@ -125,11 +99,9 @@ class _HomeState extends State<Home> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PageHeadings(
-                    text: 'Good Morning,\n' + userdata.name,
-                  ),
+                  PageHeadings(text: 'Home'),
                   Container(
-                    margin: EdgeInsets.only(top: 10),
+                    margin: EdgeInsets.only(top: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

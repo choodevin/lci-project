@@ -57,160 +57,158 @@ class _WheelOfLife extends State<WheelOfLife> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 10),
-            child: Column(
-              children: [
-                TextWithIcon(
-                  text: 'Wheel of Life',
-                  assetPath: 'assets/wheel_of_life.svg',
-                  assetHeight: 32,
-                  assetColor: Color(0xFF170E9A),
-                  textStyle: TextStyle(color: Color(0xFF170E9A), fontSize: 28, fontWeight: FontWeight.w900),
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Wheel of Life',
+                popAvailable: true,
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                 ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                ),
-                Container(
-                  height: 300,
-                  child: SpiderChart(
-                    data: [
-                      subScore['Spiritual Life'],
-                      subScore['Romance Relationship'],
-                      subScore['Family'],
-                      subScore['Social Life'],
-                      subScore['Health & Fitness'],
-                      subScore['Hobby & Leisure'],
-                      subScore['Physical Environment'],
-                      subScore['Self-Development'],
-                      subScore['Career or Study'],
-                      subScore['Finance']
-                    ],
-                    maxValue: 10,
-                    colors: [
-                      Color(0xFF7C0E6F),
-                      Color(0xFF6EC8F4),
-                      Color(0xFFC4CF54),
-                      Color(0xFFE671A8),
-                      Color(0xFF003989),
-                      Color(0xFFF27C00),
-                      Color(0xFFFFE800),
-                      Color(0xFF00862F),
-                      Color(0xFFD9000D),
-                      Color(0xFF8C8B8B),
-                    ],
-                  ),
-                ),
-                Padding(padding: EdgeInsets.all(15)),
-                Padding(
-                  padding: EdgeInsets.only(left: 50, right: 50),
-                  child: PrimaryCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Statistics',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Padding(padding: EdgeInsets.all(5)),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Current Year',
-                              style: TextStyle(
-                                fontSize: 18,
-                              ),
-                            ),
-                            CupertinoSwitch(
-                              value: isCurrentYear,
-                              onChanged: (value) {
-                                setState(() {
-                                  isCurrentYear = value;
-                                  isLastYear = false;
-                                  isAverage = false;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Last Year',
-                              style: TextStyle(
-                                fontSize: 18,
-                              ),
-                            ),
-                            CupertinoSwitch(
-                              value: isLastYear,
-                              onChanged: (value) {
-                                setState(() {
-                                  isLastYear = value;
-                                  isCurrentYear = false;
-                                  isAverage = false;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Average',
-                              style: TextStyle(
-                                fontSize: 18,
-                              ),
-                            ),
-                            CupertinoSwitch(
-                              value: isAverage,
-                              onChanged: (value) {
-                                setState(() {
-                                  isAverage = value;
-                                  isCurrentYear = false;
-                                  isLastYear = false;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(padding: EdgeInsets.all(15)),
-                Column(
-                  children: subScore.keys.map((e) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 40),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            e,
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                          ),
-                          Padding(padding: EdgeInsets.all(5)),
-                          RoundedLinearProgress(
-                            color: colors[e],
-                            value: subScore[e] / 10,
-                          ),
+                padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 300,
+                      child: SpiderChart(
+                        data: [
+                          subScore['Spiritual Life'],
+                          subScore['Romance Relationship'],
+                          subScore['Family'],
+                          subScore['Social Life'],
+                          subScore['Health & Fitness'],
+                          subScore['Hobby & Leisure'],
+                          subScore['Physical Environment'],
+                          subScore['Self-Development'],
+                          subScore['Career or Study'],
+                          subScore['Finance']
+                        ],
+                        maxValue: 10,
+                        colors: [
+                          Color(0xFF7C0E6F),
+                          Color(0xFF6EC8F4),
+                          Color(0xFFC4CF54),
+                          Color(0xFFE671A8),
+                          Color(0xFF003989),
+                          Color(0xFFF27C00),
+                          Color(0xFFFFE800),
+                          Color(0xFF00862F),
+                          Color(0xFFD9000D),
+                          Color(0xFF8C8B8B),
                         ],
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    Padding(padding: EdgeInsets.all(15)),
+                    Padding(
+                      padding: EdgeInsets.only(left: 50, right: 50),
+                      child: PrimaryCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'Statistics',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            Padding(padding: EdgeInsets.all(5)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Current Year',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                CupertinoSwitch(
+                                  value: isCurrentYear,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isCurrentYear = value;
+                                      isLastYear = false;
+                                      isAverage = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Last Year',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                CupertinoSwitch(
+                                  value: isLastYear,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isLastYear = value;
+                                      isCurrentYear = false;
+                                      isAverage = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Average',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                CupertinoSwitch(
+                                  value: isAverage,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isAverage = value;
+                                      isCurrentYear = false;
+                                      isLastYear = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(15)),
+                    Column(
+                      children: subScore.keys.map((e) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 40),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                e,
+                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                              ),
+                              Padding(padding: EdgeInsets.all(5)),
+                              RoundedLinearProgress(
+                                color: colors[e],
+                                value: subScore[e] / 10,
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              )
+            ],
           ),
         ),
       ),

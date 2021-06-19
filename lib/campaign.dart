@@ -5,7 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ntp/ntp.dart';
 import 'entity/CampaignData.dart';
+import 'entity/GoalsDetails.dart';
+import 'entity/LCIScore.dart';
+import 'goal.dart';
 
 class LoadCampaign extends StatelessWidget {
   final userdata;
@@ -30,6 +35,7 @@ class LoadCampaign extends StatelessWidget {
           campaign.goalDecision = snapshot.data.docs.last.get('goalDecision');
           campaign.invitationCode = snapshot.data.docs.last.get('invitationCode');
           campaign.rules = snapshot.data.docs.last.get('rules');
+          campaign.selectedGoalReview = snapshot.data.docs.last.get('selectedGoalReview');
           campaign.sevenThingsDeadline = snapshot.data.docs.last.get('sevenThingDeadline');
           campaign.sevenThingsPenaltyDecision = snapshot.data.docs.last.get('sevenThingsPenaltyDecision');
           campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
@@ -81,13 +87,102 @@ class CampaignNew extends StatelessWidget {
                 text: 'Join Campaign',
                 color: Color(0xFF170E9A),
                 textColor: Colors.white,
-                onClickFunction: () {},
+                onClickFunction: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => JoinCampaign()));
+                },
               ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class JoinCampaign extends StatefulWidget {
+  _JoinCampaignState createState() => _JoinCampaignState();
+}
+
+class _JoinCampaignState extends State<JoinCampaign> {
+  FocusNode _campaignCodeNode;
+  var _campaignCodeController = new TextEditingController();
+  var loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _campaignCodeNode = new FocusNode();
+    _campaignCodeNode.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: !loading
+              ? Column(
+                  children: [
+                    PageHeadings(
+                      text: 'Enter Campaign Code',
+                      popAvailable: true,
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                          ),
+                        ],
+                      ),
+                    ),
+                    InputBox(
+                      focusNode: _campaignCodeNode,
+                      controller: _campaignCodeController,
+                    ),
+                    PrimaryButton(
+                      color: Color(0xFF170E9A),
+                      textColor: Colors.white,
+                      text: 'Join',
+                      onClickFunction: () async {
+                        if (_campaignCodeController.text.isNotEmpty) {
+                          setState(() {
+                            loading = true;
+                          });
+
+                          var message = await joinCampaign();
+
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+                          setState(() {
+                            loading = false;
+                          });
+
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a campaign code.')));
+                        }
+                      },
+                    ),
+                  ],
+                )
+              : CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Future<String> joinCampaign() async {
+    return await FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: _campaignCodeController.text).get().then((value) async {
+      if (value == null || value.size == 0) {
+        return 'No campaign found';
+      } else {
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({'currentEnrolledCampaign': _campaignCodeController.text});
+        return 'You have been enrolled into the campaign, you can now head to the campaign page';
+      }
+    });
   }
 }
 
@@ -636,6 +731,7 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
                       'sevenThingsPenalties': campaignData.sevenThingsPenalty,
                       'campaignAdmin': campaignData.campaignAdmin,
                       'invitationCode': campaignData.invitationCode,
+                      'selectedGoalReview': campaignData.selectedGoalReview,
                       'rules': campaignData.rules
                     });
                     Navigator.of(context).popUntil((route) => route.isFirst);
@@ -721,25 +817,548 @@ class SetupCampaignFinal extends StatelessWidget {
   }
 }
 
-class CampaignMain extends StatelessWidget {
-  final CampaignData campaign;
+class CampaignMain extends StatefulWidget {
+  final campaign;
 
   const CampaignMain({Key key, this.campaign}) : super(key: key);
+
+  _CampaignMainState createState() => _CampaignMainState(campaign);
+}
+
+class _CampaignMainState extends State<CampaignMain> {
+  final CampaignData campaign;
+
+  _CampaignMainState(this.campaign);
+
+  DocumentSnapshot selectedUser;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PageHeadings(
+                  text: 'Campaign',
+                ),
+                getCampaignUsers(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PrimaryCard(
+                      child: TextWithIcon(
+                        text: "7 Things Ranking Board",
+                        assetPath: 'assets/medal.svg',
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(20)),
+                    Text(
+                      'Custom Ground Rules',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                    ),
+                    Padding(padding: EdgeInsets.all(7.6)),
+                    PrimaryCard(
+                      child: Text(
+                        campaign.rules,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(20)),
+                    Text(
+                      'Campaign Information',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                    ),
+                    Padding(padding: EdgeInsets.all(7.6)),
+                    PrimaryCard(
+                      child: Column(
+                        children: [
+                          Padding(padding: EdgeInsets.all(10)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Duration of the campaign',
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                campaign.duration.toString() + " months",
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Goal Setting Decision',
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                campaign.goalDecision,
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '7 Things Deadline',
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                campaign.sevenThingsDeadline,
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '7 Things Penalty (' + (campaign.sevenThingsPenaltyDecision ? 'On' : 'Off') + ')',
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              campaign.sevenThingsPenalty != null
+                                  ? Text(
+                                      campaign.sevenThingsPenalty,
+                                      style: TextStyle(
+                                        color: Color(0xFF6E6E6E),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )
+                                  : SizedBox.shrink(),
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Goal Settings Review Day ' + campaign.selectedGoalReview.toString() + ' of every month',
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getCampaignUsers() {
+    var users;
+    return FutureBuilder(
+      future: FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaign.invitationCode).get(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(body: Text("Something went wrong"));
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          users = snapshot.data;
+          return Container(
+            margin: EdgeInsets.only(top: 20),
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: users.size,
+              itemBuilder: (context, index) {
+                DocumentSnapshot user = users.docs[index];
+                if (user.id != FirebaseAuth.instance.currentUser.uid) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => LoadGoals(
+                            toGetUid: user.id,
+                            userdata: user,
+                            isSelf: false,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        Container(
+                          clipBehavior: Clip.hardEdge,
+                          margin: EdgeInsets.only(left: 8, right: 8),
+                          height: 76,
+                          width: 76,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color.fromRGBO(0, 0, 0, 0.13),
+                                blurRadius: 5,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                clipBehavior: Clip.hardEdge,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.black, width: 2),
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: EdgeInsets.all(23),
+                                child: SvgPicture.asset(
+                                  'assets/user.svg',
+                                  color: Colors.black,
+                                  height: 22,
+                                  width: 22,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.all(3)),
+                        Text(
+                          user.get('name'),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return SizedBox.shrink();
+              },
+            ),
+          );
+        }
+
+        return Container(
+          margin: EdgeInsets.only(top: 20),
+          height: 120,
+          child: Align(
+            alignment: Alignment.center,
+            child: Text(
+              'Loading user data ...',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E), fontWeight: FontWeight.w600),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class CampaignUserDetails extends StatefulWidget {
+  final userdata;
+  final goalExists;
+  final goals;
+  final score;
+
+  const CampaignUserDetails({Key key, this.userdata, this.goalExists, this.goals, this.score}) : super(key: key);
+
+  _CampaignUserDetailsState createState() => _CampaignUserDetailsState(userdata, goalExists, goals, score);
+}
+
+class _CampaignUserDetailsState extends State<CampaignUserDetails> {
+  final userdata;
+  final bool goalExists;
+  final goals;
+  final score;
+
+  var today;
+
+  _CampaignUserDetailsState(this.userdata, this.goalExists, this.goals, this.score);
+
+  Future<DateTime> getNetworkTime() async {
+    DateTime _myTime;
+    _myTime = await NTP.now();
+    return _myTime;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getNetworkTime().then((value) {
+      setState(() {
+        today = DateTime(value.year, value.month, value.day);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var goalDetails = new GoalsDetails();
+    Map<String, dynamic> goalsTemp;
+    Map<String, dynamic> subScore;
+    var scoreObj;
+
+    Map<String, dynamic> getSelected() {
+      Map<String, dynamic> result = {};
+      goals.forEach((key, value) {
+        if (key != "targetLCI") {
+          if (value['selected']) {
+            result[key] = value;
+          }
+        }
+      });
+      return result;
+    }
+
+    if (goalExists) {
+      scoreObj = new LCIScore(score.data());
+      goalsTemp = getSelected();
+      subScore = scoreObj.subScore();
+    }
+
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
             children: [
               PageHeadings(
-                text: 'Campaign',
+                text: userdata.get('name') + "'s Details",
+                popAvailable: true,
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                child: Column(
+                  children: [
+                    getTargetSevenThings(),
+                    Padding(padding: EdgeInsets.all(20)),
+                    TextWithIcon(
+                      text: 'Milestones',
+                      assetPath: 'assets/star.svg',
+                    ),
+                    goalExists
+                        ? Column(
+                            children: goalsTemp.keys.map((key) {
+                              return Column(
+                                children: [
+                                  PrimaryCard(
+                                    padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                                    child: Column(
+                                      children: [
+                                        TextWithIcon(
+                                          assetColor: goalDetails.getColor(key),
+                                          assetPath: goalDetails.getAssetPath(key),
+                                          text: key,
+                                          textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(7.5)),
+                                        MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target']) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                        Padding(padding: EdgeInsets.all(15)),
+                                        Text(
+                                          "Definition of Success/Goal",
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(2)),
+                                        Text(
+                                          goalsTemp[key]['q1'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(15)),
+                                        Text(
+                                          "Achivemenet within this month",
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(2)),
+                                        Text(
+                                          goalsTemp[key]['q2'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(15)),
+                                        Text(
+                                          "Weekly tasks to achieve",
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(2)),
+                                        Text(
+                                          goalsTemp[key]['q3'],
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: goalDetails.getColor(key),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(padding: EdgeInsets.all(30)),
+                                ],
+                              );
+                            }).toList(),
+                          )
+                        : Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text('He/She has no goals set yet'),
+                          ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget getTargetSevenThings() {
+    DocumentReference sevenThingsRef = userdata.reference.collection('SevenThings').doc(today.toString());
+    return FutureBuilder(
+      future: sevenThingsRef.get(),
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(body: Text("Something went wrong"));
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          Map<String, dynamic> data = snapshot.data.data();
+          return SizedBox(
+            child: Column(
+              children: [
+                PrimaryCard(
+                  child: Column(
+                    children: [
+                      TextWithIcon(
+                        text: 'Today\'s 7 Things',
+                        assetPath: 'assets/tasks.svg',
+                      ),
+                      Padding(padding: EdgeInsets.all(5)),
+                      data == null || data.length == 0
+                          ? Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Text('He/She has not set any 7 things for today.', style: TextStyle(color: Color(0xFF6E6E6E))),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: data.keys.map((key) {
+                                return Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(right: 15),
+                                        height: 16,
+                                        width: 16,
+                                        child: Checkbox(
+                                          activeColor: Color(0xFFF48A1D),
+                                          checkColor: Colors.white,
+                                          value: data[key]['status'],
+                                          onChanged: null,
+                                        ),
+                                      ),
+                                      Text(
+                                        key,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return SizedBox.shrink();
+      },
     );
   }
 }
