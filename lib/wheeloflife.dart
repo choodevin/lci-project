@@ -20,7 +20,6 @@ class LoadWheelOfLife extends StatelessWidget {
 
         if (snapshot.connectionState == ConnectionState.done) {
           QuerySnapshot score = snapshot.data;
-
           return WheelOfLife(scoreBundle: score);
         }
 

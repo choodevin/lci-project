@@ -467,13 +467,15 @@ class _SevenThingsState extends State<SevenThings> {
                                       await addSevenThingsDialog();
                                       var countPrimary = 0;
                                       var countSecondary = 0;
-                                      sevenThings.values.forEach((element) {
-                                        if (element['type'] == "Primary") {
-                                          countPrimary++;
-                                        } else {
-                                          countSecondary++;
-                                        }
-                                      });
+                                      if(sevenThings != null) {
+                                        sevenThings.values.forEach((element) {
+                                          if (element['type'] == "Primary") {
+                                            countPrimary++;
+                                          } else {
+                                            countSecondary++;
+                                          }
+                                        });
+                                      }
                                       if (countPrimary == 3 && tempSevenThingsType == "Primary") {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
