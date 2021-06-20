@@ -86,10 +86,10 @@ class _SevenThingsState extends State<SevenThings> {
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  var suggestions = ['Do exercise', 'Study', 'Finish homework', 'Wake up early'];
-
   var tempSevenThingsType;
   var newSevenThings;
+
+  List<String> suggestions = <String>[];
 
   var editable = true;
   var showEmpty = false;
@@ -98,6 +98,33 @@ class _SevenThingsState extends State<SevenThings> {
   var _editSevenThingsController = TextEditingController();
 
   final _editForm = GlobalKey<FormState>();
+
+  Future<List<String>> getSuggestions() async {
+    return await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').get().then((value) {
+      var goal = value.docs.last.data();
+      var result = <String>[];
+      goal.forEach((key, value) {
+        if (key != 'targetLCI') {
+          if (value['selected']) {
+            if (sevenThings[value['q3']] == null) {
+              result.add(value['q3']);
+            }
+          }
+        }
+      });
+      return result;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getSuggestions().then((value) {
+      setState(() {
+        suggestions = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -438,6 +465,30 @@ class _SevenThingsState extends State<SevenThings> {
                                   child: InkWell(
                                     onTap: () async {
                                       await addSevenThingsDialog();
+                                      var countPrimary = 0;
+                                      var countSecondary = 0;
+                                      sevenThings.values.forEach((element) {
+                                        if (element['type'] == "Primary") {
+                                          countPrimary++;
+                                        } else {
+                                          countSecondary++;
+                                        }
+                                      });
+                                      if (countPrimary == 3 && tempSevenThingsType == "Primary") {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('You already have 3 Primary Things'),
+                                          ),
+                                        );
+                                        return;
+                                      } else if (countSecondary == 4 && tempSevenThingsType == "Secondary") {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('You already have 4 Secondary Things'),
+                                          ),
+                                        );
+                                        return;
+                                      }
                                       if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
                                         var addClientComplete = false;
                                         setState(
@@ -507,8 +558,14 @@ class _SevenThingsState extends State<SevenThings> {
                                           updateSevenThings();
                                         });
                                       },
-                                      child: Padding(
-                                        padding: EdgeInsets.only(top: 5, bottom: 5),
+                                      child: Container(
+                                        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                        decoration: sevenThings[key]['type'] == 'Primary'
+                                            ? BoxDecoration(
+                                                color: Color(0xFFF2F2F2),
+                                                borderRadius: BorderRadius.all(Radius.circular(5)),
+                                              )
+                                            : BoxDecoration(),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
@@ -553,6 +610,9 @@ class _SevenThingsState extends State<SevenThings> {
                                                   ),
                                                   onTap: () {
                                                     setState(() {
+                                                      if (sevenThings[key]['source'] == "Suggested") {
+                                                        suggestions.add(key);
+                                                      }
                                                       sevenThings.remove(key);
                                                       updateSevenThings();
                                                     });
@@ -584,83 +644,85 @@ class _SevenThingsState extends State<SevenThings> {
                             text: '7 Things Suggestions',
                           ),
                           Padding(padding: EdgeInsets.all(10)),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (var suggestion in suggestions)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          suggestions != null
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Text(
-                                      suggestion.toString(),
-                                      style: TextStyle(fontSize: 17),
-                                    ),
-                                    ClipOval(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          child: Padding(
-                                            padding: EdgeInsets.all(10),
-                                            child: SizedBox(
-                                              width: 16,
-                                              height: 16,
-                                              child: SvgPicture.asset(
-                                                'assets/plus.svg',
-                                                color: Color(0xFF878787),
+                                    for (var suggestion in suggestions)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            suggestion.toString(),
+                                            style: TextStyle(fontSize: 17),
+                                          ),
+                                          ClipOval(
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                child: Padding(
+                                                  padding: EdgeInsets.all(10),
+                                                  child: SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child: SvgPicture.asset(
+                                                      'assets/plus.svg',
+                                                      color: Color(0xFF878787),
+                                                    ),
+                                                  ),
+                                                ),
+                                                onTap: () async {
+                                                  var addClientComplete = false;
+                                                  await sevenThingsTypeSelectionDialog();
+                                                  if (tempSevenThingsType != null) {
+                                                    setState(
+                                                      () {
+                                                        if (sevenThings != null) {
+                                                          if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
+                                                            if (sevenThings[suggestions] != null) {
+                                                              sevenThings[suggestion]['status'] = false;
+                                                              sevenThings[suggestion]['type'] = tempSevenThingsType;
+                                                            } else {
+                                                              sevenThings[suggestion] = {"status": false, "source": "Suggested", "type": tempSevenThingsType};
+                                                            }
+                                                            addClientComplete = true;
+                                                            suggestions.remove(suggestion);
+                                                          } else {
+                                                            var message = "";
+                                                            if (sevenThings.length == 7) {
+                                                              message = "Your 7 things list is full, remove something and try again.";
+                                                            } else {
+                                                              message = 'Your 7 things list contains the same item.';
+                                                            }
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text(message),
+                                                              ),
+                                                            );
+                                                          }
+                                                        } else {
+                                                          suggestions.remove(suggestion);
+                                                          sevenThings = {
+                                                            suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
+                                                          };
+                                                          addClientComplete = true;
+                                                        }
+                                                        if (addClientComplete) {
+                                                          updateSevenThings();
+                                                          tempSevenThingsType = null;
+                                                        }
+                                                      },
+                                                    );
+                                                  }
+                                                },
                                               ),
                                             ),
                                           ),
-                                          onTap: () async {
-                                            var addClientComplete = false;
-                                            await sevenThingsTypeSelectionDialog();
-                                            if (tempSevenThingsType != null) {
-                                              setState(
-                                                () {
-                                                  if (sevenThings != null) {
-                                                    if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
-                                                      if (sevenThings[suggestions] != null) {
-                                                        sevenThings[suggestion]['status'] = false;
-                                                        sevenThings[suggestion]['type'] = tempSevenThingsType;
-                                                      } else {
-                                                        sevenThings[suggestion] = {"status": false, "type": tempSevenThingsType};
-                                                      }
-                                                      addClientComplete = true;
-                                                      suggestions.remove(suggestion);
-                                                    } else {
-                                                      var message = "";
-                                                      if (sevenThings.length == 7) {
-                                                        message = "Your 7 things list is full, remove something and try again.";
-                                                      } else {
-                                                        message = 'Your 7 things list contains the same item.';
-                                                      }
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(message),
-                                                        ),
-                                                      );
-                                                    }
-                                                  } else {
-                                                    suggestions.remove(suggestion);
-                                                    sevenThings = {
-                                                      suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                                    };
-                                                    addClientComplete = true;
-                                                  }
-                                                  if (addClientComplete) {
-                                                    updateSevenThings();
-                                                    tempSevenThingsType = null;
-                                                  }
-                                                },
-                                              );
-                                            }
-                                          },
-                                        ),
+                                        ],
                                       ),
-                                    ),
                                   ],
-                                ),
-                            ],
-                          ),
+                                )
+                              : CircularProgressIndicator(),
                         ],
                       ),
                     ),

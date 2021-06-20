@@ -150,7 +150,7 @@ class _LoginFormState extends State<LoginForm> {
                 }
               },
             ),
-          ),
+          ),/*
           Container(
             margin: EdgeInsets.only(top: 10.0),
             child: Column(
@@ -179,7 +179,7 @@ class _LoginFormState extends State<LoginForm> {
                 FacebookSignInButton(),
               ],
             ),
-          ),
+          ),*/
           Container(
             margin: EdgeInsets.only(top: 60.0),
             child: Row(

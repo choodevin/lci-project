@@ -10,6 +10,7 @@ import 'package:ntp/ntp.dart';
 import 'entity/CampaignData.dart';
 import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
+import 'entity/UserData.dart';
 import 'goal.dart';
 
 class LoadCampaign extends StatelessWidget {
@@ -50,6 +51,10 @@ class LoadCampaign extends StatelessWidget {
 }
 
 class CampaignNew extends StatelessWidget {
+  final userdata;
+
+  const CampaignNew({Key key, this.userdata}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +74,7 @@ class CampaignNew extends StatelessWidget {
                 color: Color(0xFF299E45),
                 textColor: Colors.white,
                 onClickFunction: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaign()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaign(userdata: userdata,)));
                 },
               ),
               Padding(padding: EdgeInsets.all(20)),
@@ -132,39 +137,37 @@ class _JoinCampaignState extends State<JoinCampaign> {
                     Container(
                       padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Container(
-                            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                          InputBox(
+                            focusNode: _campaignCodeNode,
+                            controller: _campaignCodeController,
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          PrimaryButton(
+                            color: Color(0xFF170E9A),
+                            textColor: Colors.white,
+                            text: 'Join',
+                            onClickFunction: () async {
+                              if (_campaignCodeController.text.isNotEmpty) {
+                                setState(() {
+                                  loading = true;
+                                });
+
+                                var message = await joinCampaign();
+
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+                                setState(() {
+                                  loading = false;
+                                });
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a campaign code.')));
+                              }
+                            },
                           ),
                         ],
                       ),
-                    ),
-                    InputBox(
-                      focusNode: _campaignCodeNode,
-                      controller: _campaignCodeController,
-                    ),
-                    PrimaryButton(
-                      color: Color(0xFF170E9A),
-                      textColor: Colors.white,
-                      text: 'Join',
-                      onClickFunction: () async {
-                        if (_campaignCodeController.text.isNotEmpty) {
-                          setState(() {
-                            loading = true;
-                          });
-
-                          var message = await joinCampaign();
-
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-
-                          setState(() {
-                            loading = false;
-                          });
-
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please enter a campaign code.')));
-                        }
-                      },
                     ),
                   ],
                 )
@@ -187,13 +190,19 @@ class _JoinCampaignState extends State<JoinCampaign> {
 }
 
 class SetupCampaign extends StatefulWidget {
-  _SetupCampaignState createState() => _SetupCampaignState();
+  final userdata;
+
+  const SetupCampaign({Key key, this.userdata}) : super(key: key);
+
+  _SetupCampaignState createState() => _SetupCampaignState(userdata);
 }
 
 class _SetupCampaignState extends State<SetupCampaign> {
   final CampaignData campaignData = CampaignData();
   final _scorePenaltyController = new TextEditingController();
   final _campaignNameController = new TextEditingController();
+  final userdata;
+
   String selectedDeadline = "0:00";
   String goalSettingLabel = "On Member";
   bool goalSettingDecision = true;
@@ -202,6 +211,8 @@ class _SetupCampaignState extends State<SetupCampaign> {
   int selectedGoalReview = 1;
   FocusNode _scorePenaltyNode;
   FocusNode _campaignNameNode;
+
+  _SetupCampaignState(this.userdata);
 
   @override
   void initState() {
@@ -242,51 +253,179 @@ class _SetupCampaignState extends State<SetupCampaign> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PageHeadings(
-                  text: 'Setting up New Campaign',
-                ),
-                Padding(padding: EdgeInsets.all(15)),
-                Text(
-                  'Campaign Name',
-                  style: TextStyle(
-                    color: Color(0xFF6E6E6E),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Padding(padding: EdgeInsets.all(2)),
-                InputBox(
-                  focusNode: _campaignNameNode,
-                  controller: _campaignNameController,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Setup a new Campaign',
+                popAvailable: true,
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Padding(padding: EdgeInsets.all(15)),
                     Text(
-                      'Duration of the campaign',
+                      'Campaign Name',
                       style: TextStyle(
                         color: Color(0xFF6E6E6E),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    Padding(padding: EdgeInsets.all(2)),
+                    InputBox(
+                      focusNode: _campaignNameNode,
+                      controller: _campaignNameController,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Text(
+                          'Duration of the campaign',
+                          style: TextStyle(
+                            color: Color(0xFF6E6E6E),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              height: 35,
+                              width: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(15)),
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    blurRadius: 5,
+                                    spreadRadius: 2,
+                                    offset: Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: ButtonTheme(
+                                alignedDropdown: true,
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton(
+                                    dropdownColor: Colors.white,
+                                    isExpanded: true,
+                                    style: TextStyle(
+                                      color: Color(0xFF6E6E6E),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                    ),
+                                    value: selectedMonth,
+                                    items: monthList.map<DropdownMenuItem<int>>((int value) {
+                                      return DropdownMenuItem<int>(
+                                        value: value,
+                                        child: Center(
+                                          child: Text(
+                                            value.toString(),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (int newValue) {
+                                      setState(
+                                        () {
+                                          selectedMonth = newValue;
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(padding: EdgeInsets.all(5)),
+                            Text(
+                              'months',
+                              style: TextStyle(
+                                color: Color(0xFF6E6E6E),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Goal Setting Decision',
+                          style: TextStyle(
+                            color: Color(0xFF6E6E6E),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              goalSettingLabel,
+                              style: TextStyle(
+                                color: goalSettingDecision ? Color(0xFF36C164) : Color(0xFF999999),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Padding(padding: EdgeInsets.all(2)),
+                            CupertinoSwitch(
+                              activeColor: Color(0xFF36C164),
+                              value: goalSettingDecision,
+                              onChanged: (value) {
+                                setState(() {
+                                  goalSettingDecision = value;
+                                  if (goalSettingDecision) {
+                                    goalSettingLabel = "On Member";
+                                  } else {
+                                    goalSettingLabel = "On Campaign";
+                                  }
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '7 Things Deadline',
+                          style: TextStyle(
+                            color: Color(0xFF6E6E6E),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Container(
                           height: 35,
-                          width: 80,
+                          width: 100,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.all(Radius.circular(15)),
                             color: Colors.white,
@@ -310,8 +449,132 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                   fontWeight: FontWeight.w500,
                                   fontSize: 18,
                                 ),
-                                value: selectedMonth,
-                                items: monthList.map<DropdownMenuItem<int>>((int value) {
+                                value: selectedDeadline,
+                                items: timeList.map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Center(
+                                      child: Text(
+                                        value,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String newValue) {
+                                  setState(
+                                    () {
+                                      selectedDeadline = newValue;
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '7 Things Penalty (On/Off)',
+                          style: TextStyle(
+                            color: Color(0xFF6E6E6E),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        CupertinoSwitch(
+                          activeColor: Color(0xFF36C164),
+                          value: penaltyDecision,
+                          onChanged: (value) {
+                            setState(() {
+                              penaltyDecision = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '7 Things Score Penalty %',
+                          style: TextStyle(
+                            color: penaltyDecision ? Color(0xFF6E6E6E) : Color(0xFFAAAAAA),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 45,
+                          width: 90,
+                          child: InputBox(
+                            focusNode: _scorePenaltyNode,
+                            controller: _scorePenaltyController,
+                            textAlign: TextAlign.center,
+                            readOnly: !penaltyDecision,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Goal Settings Review Day',
+                          style: TextStyle(
+                            color: Color(0xFF6E6E6E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Container(
+                          height: 35,
+                          width: 65,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(15)),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 5,
+                                spreadRadius: 2,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ButtonTheme(
+                            alignedDropdown: true,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton(
+                                dropdownColor: Colors.white,
+                                isExpanded: true,
+                                style: TextStyle(
+                                  color: Color(0xFF6E6E6E),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                                value: selectedGoalReview,
+                                items: dayList.map<DropdownMenuItem<int>>((int value) {
                                   return DropdownMenuItem<int>(
                                     value: value,
                                     child: Center(
@@ -324,7 +587,7 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                 onChanged: (int newValue) {
                                   setState(
                                     () {
-                                      selectedMonth = newValue;
+                                      selectedGoalReview = newValue;
                                     },
                                   );
                                 },
@@ -332,307 +595,60 @@ class _SetupCampaignState extends State<SetupCampaign> {
                             ),
                           ),
                         ),
-                        Padding(padding: EdgeInsets.all(5)),
                         Text(
-                          'months',
+                          'of each month',
                           style: TextStyle(
                             color: Color(0xFF6E6E6E),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Goal Setting Decision',
-                      style: TextStyle(
-                        color: Color(0xFF6E6E6E),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          goalSettingLabel,
-                          style: TextStyle(
-                            color: goalSettingDecision ? Color(0xFF36C164) : Color(0xFF999999),
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Padding(padding: EdgeInsets.all(2)),
-                        CupertinoSwitch(
-                          activeColor: Color(0xFF36C164),
-                          value: goalSettingDecision,
-                          onChanged: (value) {
-                            setState(() {
-                              goalSettingDecision = value;
-                              if (goalSettingDecision) {
-                                goalSettingLabel = "On Member";
-                              } else {
-                                goalSettingLabel = "On Campaign";
-                              }
-                            });
-                          },
-                        ),
                       ],
                     ),
-                  ],
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '7 Things Deadline',
-                      style: TextStyle(
-                        color: Color(0xFF6E6E6E),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
                     ),
-                    Container(
-                      height: 35,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: ButtonTheme(
-                        alignedDropdown: true,
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton(
-                            dropdownColor: Colors.white,
-                            isExpanded: true,
-                            style: TextStyle(
-                              color: Color(0xFF6E6E6E),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 18,
-                            ),
-                            value: selectedDeadline,
-                            items: timeList.map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Center(
-                                  child: Text(
-                                    value,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (String newValue) {
-                              setState(
-                                () {
-                                  selectedDeadline = newValue;
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '7 Things Penalty (On/Off)',
-                      style: TextStyle(
-                        color: Color(0xFF6E6E6E),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    CupertinoSwitch(
-                      activeColor: Color(0xFF36C164),
-                      value: penaltyDecision,
-                      onChanged: (value) {
-                        setState(() {
-                          penaltyDecision = value;
-                        });
+                    Padding(padding: EdgeInsets.all(20)),
+                    PrimaryButton(
+                      textColor: Colors.white,
+                      text: 'Next',
+                      color: Color(0xFF299E45),
+                      onClickFunction: () {
+                        if (_campaignNameController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Do not leave campaign name blank')));
+                          return;
+                        }
+                        campaignData.name = _campaignNameController.text;
+                        campaignData.duration = selectedMonth;
+                        campaignData.goalDecision = goalSettingDecision ? "On Member" : "On Campaign";
+                        campaignData.sevenThingsDeadline = selectedDeadline;
+                        campaignData.sevenThingsPenaltyDecision = penaltyDecision;
+                        campaignData.selectedGoalReview = selectedGoalReview;
+                        if (penaltyDecision) {
+                          campaignData.sevenThingsPenalty = _scorePenaltyController.text;
+                          if (int.tryParse(campaignData.sevenThingsPenalty) != null) {
+                            var tempPenalty = int.parse(campaignData.sevenThingsPenalty);
+                            if (tempPenalty > 0 && tempPenalty <= 100) {
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('7 Things penalty entered must be within 0-100')));
+                              return;
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid 7 things penalty input')));
+                            return;
+                          }
+                        } else {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
+                        }
                       },
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '7 Things Score Penalty %',
-                      style: TextStyle(
-                        color: penaltyDecision ? Color(0xFF6E6E6E) : Color(0xFFAAAAAA),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 45,
-                      width: 90,
-                      child: InputBox(
-                        focusNode: _scorePenaltyNode,
-                        controller: _scorePenaltyController,
-                        textAlign: TextAlign.center,
-                        readOnly: !penaltyDecision,
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Goal Settings Review Day',
-                      style: TextStyle(
-                        color: Color(0xFF6E6E6E),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Container(
-                      height: 35,
-                      width: 65,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: ButtonTheme(
-                        alignedDropdown: true,
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton(
-                            dropdownColor: Colors.white,
-                            isExpanded: true,
-                            style: TextStyle(
-                              color: Color(0xFF6E6E6E),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                            value: selectedGoalReview,
-                            items: dayList.map<DropdownMenuItem<int>>((int value) {
-                              return DropdownMenuItem<int>(
-                                value: value,
-                                child: Center(
-                                  child: Text(
-                                    value.toString(),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                            onChanged: (int newValue) {
-                              setState(
-                                () {
-                                  selectedGoalReview = newValue;
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'of each month',
-                      style: TextStyle(
-                        color: Color(0xFF6E6E6E),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(padding: EdgeInsets.all(10)),
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                ),
-                Padding(padding: EdgeInsets.all(20)),
-                PrimaryButton(
-                  textColor: Colors.white,
-                  text: 'Next',
-                  color: Color(0xFF299E45),
-                  onClickFunction: () {
-                    if (_campaignNameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Do not leave campaign name blank')));
-                      return;
-                    }
-                    campaignData.name = _campaignNameController.text;
-                    campaignData.duration = selectedMonth;
-                    campaignData.goalDecision = goalSettingDecision ? "On Member" : "On Campaign";
-                    campaignData.sevenThingsDeadline = selectedDeadline;
-                    campaignData.sevenThingsPenaltyDecision = penaltyDecision;
-                    campaignData.selectedGoalReview = selectedGoalReview;
-                    if (penaltyDecision) {
-                      campaignData.sevenThingsPenalty = _scorePenaltyController.text;
-                      if (int.tryParse(campaignData.sevenThingsPenalty) != null) {
-                        var tempPenalty = int.parse(campaignData.sevenThingsPenalty);
-                        if (tempPenalty > 0 && tempPenalty <= 100) {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData)));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('7 Things penalty entered must be within 0-100')));
-                          return;
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid 7 things penalty input')));
-                        return;
-                      }
-                    } else {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData)));
-                    }
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -642,17 +658,19 @@ class _SetupCampaignState extends State<SetupCampaign> {
 
 class SetupCampaignRules extends StatefulWidget {
   final CampaignData campaignData;
+  final userdata;
 
-  const SetupCampaignRules({this.campaignData});
+  const SetupCampaignRules({this.campaignData, this.userdata});
 
-  _SetupCampaignRulesState createState() => _SetupCampaignRulesState(campaignData);
+  _SetupCampaignRulesState createState() => _SetupCampaignRulesState(campaignData, userdata);
 }
 
 class _SetupCampaignRulesState extends State<SetupCampaignRules> {
   final CampaignData campaignData;
+  final userdata;
   final _rulesController = new TextEditingController();
 
-  _SetupCampaignRulesState(this.campaignData);
+  _SetupCampaignRulesState(this.campaignData, this.userdata);
 
   FocusNode _rulesNode;
 
@@ -686,60 +704,64 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PageHeadings(
-                  text: 'Setting up New Campaign',
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Setup a new Campaign',
+                popAvailable: true,
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Any other rules for the campaign',
+                      style: TextStyle(
+                        color: Color(0xFF6E6E6E),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(8)),
+                    InputBox(
+                      focusNode: _rulesNode,
+                      controller: _rulesController,
+                      minLines: 10,
+                      maxLines: 10,
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                    ),
+                    Padding(padding: EdgeInsets.all(40)),
+                    PrimaryButton(
+                      textColor: Colors.white,
+                      text: 'Next',
+                      color: Color(0xFF299E45),
+                      onClickFunction: () async {
+                        campaignData.campaignAdmin = FirebaseAuth.instance.currentUser.uid;
+                        DocumentReference campaignRef = FirebaseFirestore.instance.collection('CampaignData').doc();
+                        campaignData.invitationCode = await generateInvitationCode();
+                        campaignData.rules = _rulesController.text;
+                        await campaignRef.set({
+                          'name': campaignData.name,
+                          'duration': campaignData.duration,
+                          'startDate': Timestamp.now(),
+                          'goalDecision': campaignData.goalDecision,
+                          'sevenThingDeadline': campaignData.sevenThingsDeadline,
+                          'sevenThingsPenaltyDecision': campaignData.sevenThingsPenaltyDecision,
+                          'sevenThingsPenalties': campaignData.sevenThingsPenalty,
+                          'campaignAdmin': campaignData.campaignAdmin,
+                          'invitationCode': campaignData.invitationCode,
+                          'selectedGoalReview': campaignData.selectedGoalReview,
+                          'rules': campaignData.rules
+                        });
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignFinal(campaignData: campaignData, userdata: userdata)));
+                      },
+                    ),
+                  ],
                 ),
-                Padding(padding: EdgeInsets.all(15)),
-                Text(
-                  'Any other rules for the campaign',
-                  style: TextStyle(
-                    color: Color(0xFF6E6E6E),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Padding(padding: EdgeInsets.all(8)),
-                InputBox(
-                  focusNode: _rulesNode,
-                  controller: _rulesController,
-                  minLines: 10,
-                  maxLines: 10,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                ),
-                Padding(padding: EdgeInsets.all(40)),
-                PrimaryButton(
-                  textColor: Colors.white,
-                  text: 'Next',
-                  color: Color(0xFF299E45),
-                  onClickFunction: () async {
-                    campaignData.campaignAdmin = FirebaseAuth.instance.currentUser.uid;
-                    DocumentReference campaignRef = FirebaseFirestore.instance.collection('CampaignData').doc();
-                    campaignData.invitationCode = await generateInvitationCode();
-                    campaignData.rules = _rulesController.text;
-                    await campaignRef.set({
-                      'name': campaignData.name,
-                      'duration': campaignData.duration,
-                      'startDate': Timestamp.now(),
-                      'goalDecision': campaignData.goalDecision,
-                      'sevenThingDeadline': campaignData.sevenThingsDeadline,
-                      'sevenThingsPenaltyDecision': campaignData.sevenThingsPenaltyDecision,
-                      'sevenThingsPenalties': campaignData.sevenThingsPenalty,
-                      'campaignAdmin': campaignData.campaignAdmin,
-                      'invitationCode': campaignData.invitationCode,
-                      'selectedGoalReview': campaignData.selectedGoalReview,
-                      'rules': campaignData.rules
-                    });
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignFinal(campaignData: campaignData)));
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -749,8 +771,9 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
 
 class SetupCampaignFinal extends StatelessWidget {
   final CampaignData campaignData;
+  final UserData userdata;
 
-  const SetupCampaignFinal({Key key, this.campaignData}) : super(key: key);
+  const SetupCampaignFinal({Key key, this.campaignData, this.userdata}) : super(key: key);
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -804,8 +827,9 @@ class SetupCampaignFinal extends StatelessWidget {
                     await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
                       "currentEnrolledCampaign": campaignData.invitationCode,
                     });
+                    userdata.currentEnrolledCampaign = campaignData.invitationCode;
                     Navigator.of(context).popUntil((route) => route.isFirst);
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignMain()));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadCampaign(userdata: userdata)));
                   },
                 ),
               ],
@@ -1029,78 +1053,93 @@ class _CampaignMainState extends State<CampaignMain> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           users = snapshot.data;
-          return Container(
-            margin: EdgeInsets.only(top: 20),
-            height: 120,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: users.size,
-              itemBuilder: (context, index) {
-                DocumentSnapshot user = users.docs[index];
-                if (user.id != FirebaseAuth.instance.currentUser.uid) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => LoadGoals(
-                            toGetUid: user.id,
-                            userdata: user,
-                            isSelf: false,
+          if(users.docs.length == 1) {
+            return Container(
+
+              height: 50,
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  'No users found',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Color(0xFF6E6E6E), fontWeight: FontWeight.w600),
+                ),
+              ),
+            );
+          } else {
+            return Container(
+              margin: EdgeInsets.only(top: 20),
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: users.size,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot user = users.docs[index];
+                  if (user.id != FirebaseAuth.instance.currentUser.uid) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => LoadGoals(
+                              toGetUid: user.id,
+                              userdata: user,
+                              isSelf: false,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      children: [
-                        Container(
-                          clipBehavior: Clip.hardEdge,
-                          margin: EdgeInsets.only(left: 8, right: 8),
-                          height: 76,
-                          width: 76,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color.fromRGBO(0, 0, 0, 0.13),
-                                blurRadius: 5,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                clipBehavior: Clip.hardEdge,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.black, width: 2),
-                                  shape: BoxShape.circle,
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Container(
+                            clipBehavior: Clip.hardEdge,
+                            margin: EdgeInsets.only(left: 8, right: 8),
+                            height: 76,
+                            width: 76,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color.fromRGBO(0, 0, 0, 0.13),
+                                  blurRadius: 5,
+                                  offset: Offset(0, 2),
                                 ),
-                                padding: EdgeInsets.all(23),
-                                child: SvgPicture.asset(
-                                  'assets/user.svg',
-                                  color: Colors.black,
-                                  height: 22,
-                                  width: 22,
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.black, width: 2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: EdgeInsets.all(23),
+                                  child: SvgPicture.asset(
+                                    'assets/user.svg',
+                                    color: Colors.black,
+                                    height: 22,
+                                    width: 22,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        Padding(padding: EdgeInsets.all(3)),
-                        Text(
-                          user.get('name'),
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                return SizedBox.shrink();
-              },
-            ),
-          );
+                          Padding(padding: EdgeInsets.all(3)),
+                          Text(
+                            user.get('name'),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return SizedBox.shrink();
+                },
+              ),
+            );
+          }
         }
 
         return Container(

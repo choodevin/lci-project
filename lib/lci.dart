@@ -24,50 +24,51 @@ class Lci extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PageHeadings(
-                  text: 'Welcome to LCI Test',
-                  metaText: 'Brief explanation of LCI Test here',
-                ),
-                Padding(padding: EdgeInsets.all(20)),
-                PrimaryCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Things before test',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      Padding(padding: EdgeInsets.all(10)),
-                      for (var i = 0; i < lciRules.length; i++)
-                        Text(
-                          (i + 1).toString() + '. ' + lciRules[i],
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: Color(0xFF5D88FF),
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Welcome to LCI Test',
+                metaText: 'Brief explanation of LCI Test here',
+                popAvailable: true,
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    PrimaryCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Things before test',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                    ],
-                  ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          for (var i = 0; i < lciRules.length; i++)
+                            Text(
+                              (i + 1).toString() + '. ' + lciRules[i],
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: Color(0xFF5D88FF),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(20)),
+                    PrimaryButton(
+                      color: Color(0xFF00A83B),
+                      textColor: Colors.white,
+                      text: 'Let\'s get started',
+                      onClickFunction: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciPartOne(userdata: userdata)));
+                      },
+                    ),
+                  ],
                 ),
-                Padding(padding: EdgeInsets.all(20)),
-                PrimaryButton(
-                  color: Color(0xFF00A83B),
-                  textColor: Colors.white,
-                  text: 'Let\'s get started',
-                  onClickFunction: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciPartOne(userdata: userdata)));
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

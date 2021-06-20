@@ -374,51 +374,46 @@ class PageHeadings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: popAvailable ? EdgeInsets.only(top: 5) : EdgeInsets.zero,
-      child: Column(
-        children: [
-          Row(
+    return Row(
+      crossAxisAlignment: metaText.isNotEmpty ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: [
+        popAvailable
+            ? GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                  child: SvgPicture.asset(
+                    'assets/back.svg',
+                    height: 26,
+                    width: 26,
+                  ),
+                ),
+              )
+            : SizedBox.shrink(),
+        Container(
+          margin: popAvailable && metaText.isNotEmpty ? EdgeInsets.only(top: 20) : EdgeInsets.zero,
+          width: MediaQuery.of(context).size.width - 66.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              popAvailable
-                  ? GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                        child: SvgPicture.asset(
-                          'assets/back.svg',
-                          height: 26,
-                          width: 26,
-                        ),
+              Text(
+                text,
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
+              ),
+              metaText.isNotEmpty
+                  ? Text(
+                      metaText,
+                      style: TextStyle(
+                        color: Color(0xFF878787),
                       ),
                     )
                   : SizedBox.shrink(),
-              Container(
-                width: MediaQuery.of(context).size.width - 66.5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      text,
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
-                    ),
-                    metaText.isNotEmpty
-                        ? Text(
-                            metaText,
-                            style: TextStyle(
-                              color: Color(0xFF878787),
-                            ),
-                          )
-                        : SizedBox.shrink(),
-                  ],
-                ),
-              ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -680,6 +675,37 @@ class _GoalSelectionState extends State<GoalSelection> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class Information extends StatelessWidget {
+  final label;
+  final text;
+
+  const Information({Key key, this.label, this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black,
+          ),
+        ),
+      ],
     );
   }
 }

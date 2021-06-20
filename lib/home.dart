@@ -1,4 +1,7 @@
 import 'package:LCI/custom-components.dart';
+import 'package:LCI/entity/GoalsDetails.dart';
+import 'package:LCI/lci.dart';
+import 'package:LCI/profile.dart';
 import 'package:LCI/seventhings.dart';
 import 'package:LCI/wheeloflife.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,19 +22,21 @@ class Home extends StatefulWidget {
   final UserData userdata;
   final wheelData;
   final sevenThings;
+  final goals;
 
-  const Home({this.userdata, this.wheelData, this.sevenThings});
+  const Home({this.userdata, this.wheelData, this.sevenThings, this.goals});
 
   @override
-  _HomeState createState() => _HomeState(userdata, wheelData, sevenThings);
+  _HomeState createState() => _HomeState(userdata, wheelData, sevenThings, goals);
 }
 
 class _HomeState extends State<Home> {
   UserData userdata = UserData();
   final wheelData;
   Map<String, dynamic> sevenThings;
+  Map<String, dynamic> goals;
 
-  _HomeState(this.userdata, this.wheelData, this.sevenThings);
+  _HomeState(this.userdata, this.wheelData, this.sevenThings, this.goals);
 
   CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
 
@@ -60,6 +65,8 @@ class _HomeState extends State<Home> {
   }
 
   Widget build(BuildContext context) {
+    var goalDetails = GoalsDetails();
+
     var subScore;
     if (wheelData != null) {
       subScore = wheelData.subScore();
@@ -164,7 +171,35 @@ class _HomeState extends State<Home> {
                                       : Container(),
                                 ],
                               )
-                            : PrimaryCard(),
+                            : PrimaryCard(
+                                padding: EdgeInsets.fromLTRB(30, 25, 30, 30),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    TextWithIcon(
+                                      assetPath: 'assets/wheel_of_life.svg',
+                                      text: 'Wheel of Life',
+                                    ),
+                                    Padding(padding: EdgeInsets.all(30)),
+                                    Text(
+                                      'Lets Get Started with taking LCI Test',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Padding(padding: EdgeInsets.all(30)),
+                                    PrimaryButton(
+                                      text: 'Take LCI Test',
+                                      color: Color(0xFFBC7AFE),
+                                      textColor: Colors.white,
+                                      onClickFunction: () {
+                                        Navigator.of(context).push(MaterialPageRoute(
+                                            builder: (context) => Lci(
+                                                  userdata: userdata,
+                                                )));
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                         Padding(padding: EdgeInsets.all(20)),
                         Stack(
                           children: [
@@ -246,112 +281,81 @@ class _HomeState extends State<Home> {
                                     text: 'Your Goals',
                                   ),
                                   Padding(padding: EdgeInsets.all(10)),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.only(top: 13, bottom: 13),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFF003989),
-                                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Color.fromRGBO(0, 0, 0, 0.3),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                  goals != null && goals.length != 0
+                                      ? Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: goals.keys.map((key) {
+                                            if (key != 'targetLCI') {
+                                              if (goals[key]['selected']) {
+                                                return Column(
+                                                  children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                                                      decoration: BoxDecoration(
+                                                        color: goalDetails.getColor(key),
+                                                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Color.fromRGBO(0, 0, 0, 0.3),
+                                                            blurRadius: 10,
+                                                            offset: Offset(0, 5),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Column(
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                goalDetails.getAssetPath(key),
+                                                                height: 18,
+                                                                color: Colors.white,
+                                                              ),
+                                                              Padding(padding: EdgeInsets.all(3.5)),
+                                                              Text(
+                                                                key,
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontSize: 18,
+                                                                  color: Colors.white,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Padding(padding: EdgeInsets.all(6)),
+                                                  ],
+                                                );
+                                              } else {
+                                                return SizedBox.shrink();
+                                              }
+                                            } else {
+                                              return SizedBox.shrink();
+                                            }
+                                          }).toList(),
+                                        )
+                                      : Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
                                           children: [
-                                            SvgPicture.asset(
-                                              'assets/heart.svg',
-                                              height: 20,
-                                              color: Colors.white,
-                                            ),
-                                            Padding(padding: EdgeInsets.all(3.5)),
+                                            Padding(padding: EdgeInsets.all(30)),
                                             Text(
-                                              'Health',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 22,
-                                                color: Colors.white,
-                                              ),
+                                              'Lets Get Started with taking LCI Test',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Padding(padding: EdgeInsets.all(30)),
+                                            PrimaryButton(
+                                              text: 'Set Goals',
+                                              color: Color(0xFFFE7A7A),
+                                              textColor: Colors.white,
+                                              onClickFunction: () {
+                                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadGoals(userdata: userdata)));
+                                              },
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      Padding(padding: EdgeInsets.all(10)),
-                                      Container(
-                                        padding: EdgeInsets.only(top: 13, bottom: 13),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFFD9000D),
-                                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Color.fromRGBO(0, 0, 0, 0.3),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/suitcase.svg',
-                                              height: 20,
-                                              color: Colors.white,
-                                            ),
-                                            Padding(padding: EdgeInsets.all(3.5)),
-                                            Text(
-                                              'Career',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 22,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(padding: EdgeInsets.all(10)),
-                                      Container(
-                                        padding: EdgeInsets.only(top: 13, bottom: 13),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFF8C8B8B),
-                                          borderRadius: BorderRadius.all(Radius.circular(8)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Color.fromRGBO(0, 0, 0, 0.3),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/coins.svg',
-                                              height: 20,
-                                              color: Colors.white,
-                                            ),
-                                            Padding(padding: EdgeInsets.all(3.5)),
-                                            Text(
-                                              'Finance',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 22,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
                             ),
@@ -403,31 +407,43 @@ class _GetUserDataState extends State<GetUserData> {
     DocumentReference userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid);
     DocumentReference sThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(toSearch.toString());
     Query wheelRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
+    CollectionReference goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
 
     return FutureBuilder<List<dynamic>>(
-      future: Future.wait([userRef.get(), sThingsRef.get(), wheelRef.get()]),
+      future: Future.wait([userRef.get(), sThingsRef.get(), wheelRef.get(), goalsRef.get()]),
       builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.hasError) {
           return Scaffold(body: Text("Something went wrong"));
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
+          DocumentSnapshot ud = snapshot.data[0];
           var userdata = UserData();
-          var wheeldata;
-          var seventhings;
+          var wheelData;
+          var sevenThings;
+          var goals;
           if (snapshot.data[2].docs.length != 0) {
-            wheeldata = LCIScore(snapshot.data[2].docs.last.data());
+            wheelData = LCIScore(snapshot.data[2].docs.last.data());
           }
-          seventhings = snapshot.data[1].data();
+          if (snapshot.data[3].docs.length != 0) {
+            goals = snapshot.data[3].docs.last.data();
+          }
+          sevenThings = snapshot.data[1].data();
           userdata.name = snapshot.data[0].get('name');
           userdata.gender = snapshot.data[0].get('gender');
           userdata.country = snapshot.data[0].get('country');
           userdata.dateOfBirth = snapshot.data[0].get('dateOfBirth');
           userdata.type = snapshot.data[0].get('type');
           userdata.subscription = snapshot.data[0].get('subscription');
-          userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
+          Map<String, dynamic> udx = ud.data();
+          if (udx.containsKey('currentEnrolledCampaign')) {
+            userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
+          } else {
+            userdata.currentEnrolledCampaign = "";
+          }
+          userdata.email = FirebaseAuth.instance.currentUser.email;
 
-          return HomeBase(userdata: userdata, wheeldata: wheeldata, sevenThings: seventhings);
+          return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals);
         }
 
         return Scaffold(body: CircularProgressIndicator());
@@ -440,20 +456,22 @@ class HomeBase extends StatefulWidget {
   final UserData userdata;
   final LCIScore wheeldata;
   final sevenThings;
+  final goals;
 
-  const HomeBase({this.userdata, this.wheeldata, this.sevenThings});
+  const HomeBase({this.userdata, this.wheeldata, this.sevenThings, this.goals});
 
-  _HomeBaseState createState() => _HomeBaseState(userdata, wheeldata, sevenThings);
+  _HomeBaseState createState() => _HomeBaseState(userdata, wheeldata, sevenThings, goals);
 }
 
 class _HomeBaseState extends State<HomeBase> {
   UserData userdata;
-  LCIScore wheeldata;
+  LCIScore wheelData;
   var sevenThings;
+  var goals;
 
   int index = 0;
 
-  _HomeBaseState(this.userdata, this.wheeldata, this.sevenThings);
+  _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals);
 
   void onTap(int i) {
     setState(() {
@@ -464,11 +482,13 @@ class _HomeBaseState extends State<HomeBase> {
   @override
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
-      Home(userdata: userdata, wheelData: wheeldata, sevenThings: sevenThings),
-      userdata.currentEnrolledCampaign.isNotEmpty ? LoadCampaign(userdata: userdata) : CampaignNew(),
-      Text(
-        'Profile',
-      ),
+      Home(userdata: userdata, wheelData: wheelData, sevenThings: sevenThings, goals: goals),
+      userdata.currentEnrolledCampaign.isNotEmpty
+          ? LoadCampaign(userdata: userdata)
+          : CampaignNew(
+              userdata: userdata,
+            ),
+      Profile(userdata: userdata),
     ];
     return Scaffold(
       body: screen.elementAt(index),

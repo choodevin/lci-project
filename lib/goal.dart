@@ -107,7 +107,7 @@ class Goals extends StatefulWidget {
 class _GoalsState extends State<Goals> {
   final userdata;
   final edit;
-  Map<String, dynamic> goals = {};
+  Map<String, dynamic> goals;
 
   _GoalsState({this.userdata, this.edit, this.goals});
 
@@ -117,6 +117,7 @@ class _GoalsState extends State<Goals> {
   void initState() {
     super.initState();
     if (!edit) {
+      goals = Map<String, dynamic>();
       goals['Spiritual Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
       goals['Romance Relationship'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
       goals['Family'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
@@ -152,9 +153,6 @@ class _GoalsState extends State<Goals> {
                 popAvailable: true,
               ),
               Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-                ),
                 padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -228,7 +226,11 @@ class _GoalsState extends State<Goals> {
                       textColor: Colors.white,
                       text: 'Confirm & Proceed',
                       onClickFunction: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals)));
+                        if(totalSelected ==0) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select at least one goal')));
+                        } else {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals)));
+                        }
                       },
                     ),
                   ],
@@ -293,32 +295,34 @@ class GoalsNoLci extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PageHeadings(
-                  text: 'LCI Result Missing',
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'LCI Result Missing',
+                popAvailable: true,
+              ),
+              Container(
+                padding: EdgeInsets.fromLTRB(20, 0, 20, 25),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'You haven\'t done any LCI Test before. Please do the following test below',
+                      style: TextStyle(color: Color(0xFF5D88FF), fontSize: 16),
+                    ),
+                    Padding(padding: EdgeInsets.all(15)),
+                    PrimaryButton(
+                      onClickFunction: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => Lci(userdata: userdata)));
+                      },
+                      text: 'Take LCI Test',
+                      color: Color(0xFFBC7AFE),
+                      textColor: Colors.white,
+                    ),
+                  ],
                 ),
-                Text(
-                  'You haven\'t done any LCI Test before. Please do the following test below',
-                  style: TextStyle(color: Color(0xFF5D88FF), fontSize: 17),
-                ),
-                Padding(padding: EdgeInsets.all(5)),
-                PrimaryButton(
-                  onClickFunction: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => Lci(userdata: userdata)));
-                  },
-                  text: 'Take LCI Test',
-                  color: Color(0xFFBC7AFE),
-                  textColor: Colors.white,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
