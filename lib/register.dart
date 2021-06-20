@@ -971,195 +971,11 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                           color: (isComplete ? Color(0xFF299E45) : Color(0xFFAFAFAF)),
                           onClickFunction: (isComplete
                               ? () {
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterGrouping(user: user)));
+                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterPlan(user: user)));
                                 }
                               : null),
                         ),
                       ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class RegisterGrouping extends StatefulWidget {
-  final UserData user;
-
-  RegisterGrouping({this.user});
-
-  @override
-  _RegisterGroupingState createState() => _RegisterGroupingState(user);
-}
-
-class _RegisterGroupingState extends State<RegisterGrouping> {
-  final UserData user;
-
-  _RegisterGroupingState(this.user);
-
-  bool isActiveSolo = false;
-  bool isActiveTeam = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: 'Welcome, ' + user.name + '!',
-                metaText: 'Now choose your path. Are you going to improve alone or with your peers?',
-                popAvailable: true,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-                ),
-                padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            height: MediaQuery.of(context).size.height / 2.8,
-                            width: MediaQuery.of(context).size.width / 2.35,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isActiveSolo = true;
-                                  isActiveTeam = false;
-                                  user.type = "Solo";
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterGrouping(user: user), builder: (context) => RegisterPlan(user: user)));
-                                });
-                              },
-                              child: PrimaryCard(
-                                color: (isActiveSolo ? Color(0xFF170E9A) : Colors.white),
-                                padding: EdgeInsets.all(5),
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomLeft,
-                                      colors: [const Color(0xff1c62d9), const Color(0xff3d65dc), const Color(0xffe774eb)],
-                                      stops: [0.0, 0.126, 1.0],
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: SizedBox(),
-                                      ),
-                                      Expanded(
-                                        child: SvgPicture.asset(
-                                          'assets/user.svg',
-                                          height: 75,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.bottomCenter,
-                                          child: Text(
-                                            'SOLO',
-                                            style: TextStyle(
-                                              shadows: [
-                                                Shadow(
-                                                  offset: Offset(3, 3),
-                                                  blurRadius: 5.0,
-                                                  color: Color.fromRGBO(0, 0, 0, 0.15),
-                                                ),
-                                              ],
-                                              color: Colors.white,
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            height: MediaQuery.of(context).size.height / 2.8,
-                            width: MediaQuery.of(context).size.width / 2.35,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isActiveSolo = false;
-                                  isActiveTeam = true;
-                                  user.type = "Team";
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterGrouping(user: user), builder: (context) => RegisterPlan(user: user)));
-                                });
-                              },
-                              child: PrimaryCard(
-                                color: (isActiveTeam ? Color(0xFF170E9A) : Colors.white),
-                                padding: EdgeInsets.all(5),
-                                child: Container(
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomLeft,
-                                      colors: [const Color(0xffef4159), const Color(0xffFFD381)],
-                                      stops: [0.0, 1.0],
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: SizedBox(),
-                                      ),
-                                      Expanded(
-                                        child: SvgPicture.asset(
-                                          'assets/user-friends.svg',
-                                          height: 75,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Align(
-                                          alignment: Alignment.bottomCenter,
-                                          child: Text(
-                                            'TEAM',
-                                            style: TextStyle(
-                                              shadows: [
-                                                Shadow(
-                                                  offset: Offset(3, 3),
-                                                  blurRadius: 5.0,
-                                                  color: Color.fromRGBO(0, 0, 0, 0.15),
-                                                ),
-                                              ],
-                                              color: Colors.white,
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ],
                 ),
@@ -1455,7 +1271,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                         if (isPremium) {
                           user.subscription = "Premium";
                         } else if (isStandard) {
-                          user.subscription = "Standard";
+                          user.subscription = "Premium";
                         }
 
                         try {
@@ -1472,7 +1288,6 @@ class _RegisterPlanState extends State<RegisterPlan> {
                                 'gender': user.gender,
                                 'country': user.country,
                                 'dateOfBirth': user.dateOfBirth,
-                                'type': user.type,
                                 'subscription': user.subscription,
                               })
                               .then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData())))

@@ -1,4 +1,3 @@
-
 class UserData {
   String email;
   String password;
@@ -6,17 +5,8 @@ class UserData {
   String gender;
   String country;
   String dateOfBirth;
-  String type;
   String subscription;
   String currentEnrolledCampaign;
 
-  UserData(
-      {this.email = "",
-      this.password = "",
-      this.name = "",
-      this.gender = "",
-      this.country = "",
-      this.dateOfBirth = "",
-      this.type = "",
-      this.subscription = ""});
+  UserData({this.email = "", this.password = "", this.name = "", this.gender = "", this.country = "", this.dateOfBirth = "", this.subscription = "", this.currentEnrolledCampaign = ""});
 }

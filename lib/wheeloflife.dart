@@ -191,9 +191,18 @@ class _WheelOfLife extends State<WheelOfLife> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                e,
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    e,
+                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                  ),
+                                  Text(
+                                    subScore[e].toString(),
+                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                  ),
+                                ],
                               ),
                               Padding(padding: EdgeInsets.all(5)),
                               RoundedLinearProgress(
