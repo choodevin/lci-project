@@ -1,9 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:flutter/services.dart';
 
+import 'entity/Video.dart';
 import 'home.dart';
 
 class InputBox extends StatelessWidget {
@@ -203,7 +207,7 @@ class GoogleSignInButton extends StatelessWidget {
         padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
         onPressed: () async {
           await signInWithGoogle().then((result) => {
-                if (result != null) {Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => Home()))}
+                if (result != null) {Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => GetUserData()))}
               });
         },
         child: Row(
@@ -230,7 +234,66 @@ class GoogleSignInButton extends StatelessWidget {
   }
 }
 
-class FacebookSignInButton extends StatelessWidget {
+class FacebookSignInButton extends StatefulWidget {
+  static final FacebookLogin facebookSignIn = new FacebookLogin();
+
+  @override
+  _FacebookSignInButtonState createState() => _FacebookSignInButtonState();
+}
+
+class _FacebookSignInButtonState extends State<FacebookSignInButton> {
+  FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<Null> _login(BuildContext build) async {
+    print('logging in');
+    final FacebookLoginResult result = await FacebookSignInButton.facebookSignIn.logIn(['email']);
+
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+        final FacebookAccessToken accessToken = result.accessToken;
+        print('''
+         Logged in!
+         Token: ${accessToken.token}
+         User id: ${accessToken.userId}
+         Expires: ${accessToken.expires}
+         Permissions: ${accessToken.permissions}
+         Declined permissions: ${accessToken.declinedPermissions}
+         ''');
+
+        try {
+          await loginWithFacebook(result, build);
+          Navigator.pushReplacement(build, MaterialPageRoute(builder: (context) => GetUserData()));
+        } catch (e) {
+          print(e);
+        }
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Login cancelled by the user.'),
+        ));
+        break;
+      case FacebookLoginStatus.error:
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Something went wrong with the login process.\n'
+              'Here\'s the error Facebook gave us: ${result.errorMessage}'),
+        ));
+        break;
+    }
+  }
+
+  Future loginWithFacebook(FacebookLoginResult result, context) async {
+    final FacebookAccessToken accessToken = result.accessToken;
+    AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
+    var a = await _auth.signInWithCredential(credential);
+    if (a.user != null) {
+      // Navigator.pushReplacement(
+      //     context, MaterialPageRoute(builder: (context) => GetUserData()));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("logged in success!"),
+      ));
+    }
+  }
+
   Widget build(BuildContext build) {
     return Material(
       shape: RoundedRectangleBorder(
@@ -242,7 +305,9 @@ class FacebookSignInButton extends StatelessWidget {
       child: MaterialButton(
         elevation: 3,
         padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
-        onPressed: () {},
+        onPressed: () async {
+          await _login(build);
+        },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -254,7 +319,7 @@ class FacebookSignInButton extends StatelessWidget {
               ),
             ),
             Text(
-              'Continue with Facebook',
+              'Sign in with Facebook',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.white,
@@ -380,7 +445,7 @@ class PageHeadings extends StatelessWidget {
         popAvailable
             ? GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).maybePop();
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
@@ -706,6 +771,80 @@ class Information extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class PrimaryDialog extends StatelessWidget {
+  final title;
+  final content;
+  final actions;
+
+  const PrimaryDialog({Key key, this.title, this.content, this.actions}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: title,
+      content: content,
+      actions: actions,
+      titlePadding: EdgeInsets.fromLTRB(20, 15, 20, 0),
+      contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 0),
+      insetPadding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+    );
+  }
+}
+
+class VideoPlayer extends StatefulWidget {
+  final url;
+
+  const VideoPlayer({Key key, this.url}) : super(key: key);
+
+  _VideoPlayerState createState() => _VideoPlayerState(url);
+}
+
+class _VideoPlayerState extends State<VideoPlayer> {
+  final url;
+
+  _VideoPlayerState(this.url);
+
+  var _controller;
+
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId: Video.VIDEO_1,
+      params: YoutubePlayerParams(
+        showControls: true,
+        showFullscreenButton: true,
+        desktopMode: true,
+      ),
+    );
+    _controller.onEnterFullscreen = () {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    };
+  }
+
+  void dispose() {
+    _controller.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      contentPadding: EdgeInsets.zero,
+      titlePadding: EdgeInsets.zero,
+      actionsPadding: EdgeInsets.zero,
+      buttonPadding: EdgeInsets.zero,
+      insetPadding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+      content: YoutubePlayerControllerProvider(
+        controller: _controller,
+        child: YoutubePlayerIFrame(),
+      ),
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:LCI/custom-components.dart';
 import 'package:LCI/entity/GoalsDetails.dart';
+import 'package:LCI/entity/Video.dart';
 import 'package:LCI/lci.dart';
 import 'package:LCI/profile.dart';
+import 'package:LCI/register.dart';
 import 'package:LCI/seventhings.dart';
 import 'package:LCI/wheeloflife.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -92,6 +94,17 @@ class _HomeState extends State<Home> {
       arrangeSevenThings();
     }
 
+    Future<void> infoVideo() {
+      return showDialog<void>(
+        context: context,
+        builder: (c) {
+          return VideoPlayer(
+            url: Video.VIDEO_1,
+          );
+        },
+      );
+    }
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () {
@@ -100,13 +113,32 @@ class _HomeState extends State<Home> {
         },
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             child: Container(
               padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  PageHeadings(text: 'Home'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      PageHeadings(text: 'Home'),
+                      GestureDetector(
+                        onTap: () {
+                          infoVideo();
+                        },
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: SvgPicture.asset(
+                            'assets/info.svg',
+                            height: 14,
+                            width: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   Container(
                     margin: EdgeInsets.only(top: 20),
                     child: Column(
@@ -217,86 +249,86 @@ class _HomeState extends State<Home> {
                                   Padding(padding: EdgeInsets.all(10)),
                                   goals != null && goals.length != 0
                                       ? Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: goals.keys.map((key) {
-                                      if (key != 'targetLCI') {
-                                        if (goals[key]['selected']) {
-                                          return Column(
-                                            children: [
-                                              Container(
-                                                padding: EdgeInsets.only(top: 10, bottom: 10),
-                                                decoration: BoxDecoration(
-                                                  color: goalDetails.getColor(key),
-                                                  borderRadius: BorderRadius.all(Radius.circular(5)),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Color.fromRGBO(0, 0, 0, 0.3),
-                                                      blurRadius: 10,
-                                                      offset: Offset(0, 5),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: goals.keys.map((key) {
+                                            if (key != 'targetLCI') {
+                                              if (goals[key]['selected']) {
+                                                return Column(
                                                   children: [
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        SvgPicture.asset(
-                                                          goalDetails.getAssetPath(key),
-                                                          height: 18,
-                                                          color: Colors.white,
-                                                        ),
-                                                        Padding(padding: EdgeInsets.all(3.5)),
-                                                        Text(
-                                                          key,
-                                                          style: TextStyle(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontSize: 18,
-                                                            color: Colors.white,
+                                                    Container(
+                                                      padding: EdgeInsets.only(top: 10, bottom: 10),
+                                                      decoration: BoxDecoration(
+                                                        color: goalDetails.getColor(key),
+                                                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Color.fromRGBO(0, 0, 0, 0.3),
+                                                            blurRadius: 10,
+                                                            offset: Offset(0, 5),
                                                           ),
-                                                        ),
-                                                      ],
+                                                        ],
+                                                      ),
+                                                      child: Column(
+                                                        children: [
+                                                          Row(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                goalDetails.getAssetPath(key),
+                                                                height: 18,
+                                                                color: Colors.white,
+                                                              ),
+                                                              Padding(padding: EdgeInsets.all(3.5)),
+                                                              Text(
+                                                                key,
+                                                                style: TextStyle(
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontSize: 18,
+                                                                  color: Colors.white,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
+                                                    Padding(padding: EdgeInsets.all(6)),
                                                   ],
-                                                ),
-                                              ),
-                                              Padding(padding: EdgeInsets.all(6)),
-                                            ],
-                                          );
-                                        } else {
-                                          return SizedBox.shrink();
-                                        }
-                                      } else {
-                                        return SizedBox.shrink();
-                                      }
-                                    }).toList(),
-                                  )
+                                                );
+                                              } else {
+                                                return SizedBox.shrink();
+                                              }
+                                            } else {
+                                              return SizedBox.shrink();
+                                            }
+                                          }).toList(),
+                                        )
                                       : Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Padding(padding: EdgeInsets.all(30)),
-                                      Text(
-                                        'Lets Get Started with taking LCI Test',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Padding(padding: EdgeInsets.all(30)),
-                                      PrimaryButton(
-                                        text: 'Set Goals',
-                                        color: Color(0xFFFE7A7A),
-                                        textColor: Colors.white,
-                                        onClickFunction: () {
-                                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadGoals(userdata: userdata)));
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Padding(padding: EdgeInsets.all(30)),
+                                            Text(
+                                              'Lets Get Started with taking LCI Test',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Padding(padding: EdgeInsets.all(30)),
+                                            PrimaryButton(
+                                              text: 'Set Goals',
+                                              color: Color(0xFFFE7A7A),
+                                              textColor: Colors.white,
+                                              onClickFunction: () {
+                                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadGoals(userdata: userdata)));
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                 ],
                               ),
                             ),
                             userdata.subscription != "Premium"
                                 ? Positioned.fill(
-                              child: UnlockPremium(),
-                            )
+                                    child: UnlockPremium(),
+                                  )
                                 : Container(),
                           ],
                         ),
@@ -318,49 +350,70 @@ class _HomeState extends State<Home> {
                                   Padding(padding: EdgeInsets.all(10)),
                                   sevenThings != null && sevenThings.length > 0
                                       ? Column(
-                                    children: sevenThings.keys.map((key) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                            updateSevenThings();
-                                          });
-                                        },
-                                        child: Padding(
-                                          padding: EdgeInsets.only(top: 5, bottom: 5),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    height: 20,
-                                                    width: 20,
-                                                    child: Checkbox(
-                                                      activeColor: Color(0xFFF48A1D),
-                                                      checkColor: Colors.white,
-                                                      value: sevenThings[key]['status'],
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          sevenThings[key]['status'] = value;
-                                                        });
-                                                      },
+                                          children: sevenThings.keys.map((key) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  sevenThings[key]['status'] = !sevenThings[key]['status'];
+                                                  updateSevenThings();
+                                                });
+                                              },
+                                              child: Padding(
+                                                padding: EdgeInsets.only(top: 5, bottom: 5),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        SizedBox(
+                                                          height: 20,
+                                                          width: 20,
+                                                          child: Checkbox(
+                                                            activeColor: Color(0xFFF48A1D),
+                                                            checkColor: Colors.white,
+                                                            value: sevenThings[key]['status'],
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                sevenThings[key]['status'] = value;
+                                                              });
+                                                            },
+                                                          ),
+                                                        ),
+                                                        Padding(padding: EdgeInsets.all(7.5)),
+                                                        Text(
+                                                          key,
+                                                          style: TextStyle(fontSize: 17),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ),
-                                                  Padding(padding: EdgeInsets.all(7.5)),
-                                                  Text(
-                                                    key,
-                                                    style: TextStyle(fontSize: 17),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
-                                            ],
-                                          ),
+                                            );
+                                          }).toList(),
+                                        )
+                                      : Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Padding(padding: EdgeInsets.all(30)),
+                                            Text(
+                                              'You have not set any daily tasks today',
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            Padding(padding: EdgeInsets.all(30)),
+                                            PrimaryButton(
+                                              text: 'Set 7 Things',
+                                              color: Color(0xFF7A90FE),
+                                              textColor: Colors.white,
+                                              onClickFunction: () {
+                                                Navigator.of(context).push(MaterialPageRoute(
+                                                    builder: (context) => Lci(
+                                                          userdata: userdata,
+                                                        )));
+                                              },
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    }).toList(),
-                                  )
-                                      : Text('No 7 Things assigned today.'),
                                 ],
                               ),
                             ),
@@ -418,31 +471,38 @@ class _GetUserDataState extends State<GetUserData> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           DocumentSnapshot ud = snapshot.data[0];
-          var userdata = UserData();
-          var wheelData;
-          var sevenThings;
-          var goals;
-          if (snapshot.data[2].docs.length != 0) {
-            wheelData = LCIScore(snapshot.data[2].docs.last.data());
-          }
-          if (snapshot.data[3].docs.length != 0) {
-            goals = snapshot.data[3].docs.last.data();
-          }
-          sevenThings = snapshot.data[1].data();
-          userdata.name = snapshot.data[0].get('name');
-          userdata.gender = snapshot.data[0].get('gender');
-          userdata.country = snapshot.data[0].get('country');
-          userdata.dateOfBirth = snapshot.data[0].get('dateOfBirth');
-          userdata.subscription = snapshot.data[0].get('subscription');
-          Map<String, dynamic> udx = ud.data();
-          if (udx.containsKey('currentEnrolledCampaign')) {
-            userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
-          } else {
-            userdata.currentEnrolledCampaign = "";
-          }
-          userdata.email = FirebaseAuth.instance.currentUser.email;
+          if (ud.exists) {
+            var userdata = UserData();
+            var wheelData;
+            var sevenThings;
+            var goals;
+            if (snapshot.data[2].docs.length != 0) {
+              wheelData = LCIScore(snapshot.data[2].docs.last.data());
+            }
+            if (snapshot.data[3].docs.length != 0) {
+              goals = snapshot.data[3].docs.last.data();
+            }
+            sevenThings = snapshot.data[1].data();
+            userdata.name = snapshot.data[0].get('name');
+            userdata.gender = snapshot.data[0].get('gender');
+            userdata.country = snapshot.data[0].get('country');
+            userdata.dateOfBirth = snapshot.data[0].get('dateOfBirth');
+            userdata.subscription = snapshot.data[0].get('subscription');
+            Map<String, dynamic> udx = ud.data();
+            if (udx.containsKey('currentEnrolledCampaign')) {
+              userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
+            } else {
+              userdata.currentEnrolledCampaign = "";
+            }
+            userdata.email = FirebaseAuth.instance.currentUser.email;
 
-          return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals);
+            return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals);
+          } else {
+            var userdata = UserData();
+            var sso = true;
+            userdata.email = FirebaseAuth.instance.currentUser.email;
+            return RegisterDetails(user: userdata, sso: sso);
+          }
         }
 
         return Scaffold(body: CircularProgressIndicator());

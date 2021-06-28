@@ -7,6 +7,42 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 
+class SevenThingsMain extends StatefulWidget {
+  _SevenThingsMainState createState() => _SevenThingsMainState();
+}
+
+class _SevenThingsMainState extends State<SevenThingsMain> {
+  var ref;
+
+  DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: ref,
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if(snapshot.hasError) {
+          return Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: Text('Something went wrong'),
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
+      }
+    );
+  }
+}
+
 class GetSevenThings extends StatefulWidget {
   final date;
 
@@ -63,7 +99,13 @@ class _GetSevenThingsState extends State<GetSevenThings> {
           );
         }
 
-        return CircularProgressIndicator();
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
       },
     );
   }
@@ -141,7 +183,7 @@ class _SevenThingsState extends State<SevenThings> {
       return showDialog<void>(
         context: context,
         builder: (BuildContext c) {
-          return AlertDialog(
+          return PrimaryDialog(
             title: Text('Select a type'),
             content: Text('Which type do you wan\'t this item to be assigned to ?'),
             actions: <Widget>[
@@ -169,7 +211,7 @@ class _SevenThingsState extends State<SevenThings> {
       return showDialog<void>(
         context: context,
         builder: (BuildContext c) {
-          return AlertDialog(
+          return PrimaryDialog(
             title: Text('Add Seven Things'),
             content: TextField(
               controller: _newSevenThingsController,
@@ -217,7 +259,7 @@ class _SevenThingsState extends State<SevenThings> {
       return showDialog<void>(
         context: context,
         builder: (BuildContext c) {
-          return AlertDialog(
+          return PrimaryDialog(
             title: Text('Edit Seven Things'),
             content: Form(
               key: _editForm,
@@ -467,7 +509,7 @@ class _SevenThingsState extends State<SevenThings> {
                                       await addSevenThingsDialog();
                                       var countPrimary = 0;
                                       var countSecondary = 0;
-                                      if(sevenThings != null) {
+                                      if (sevenThings != null) {
                                         sevenThings.values.forEach((element) {
                                           if (element['type'] == "Primary") {
                                             countPrimary++;
@@ -528,6 +570,7 @@ class _SevenThingsState extends State<SevenThings> {
                                             if (addClientComplete) {
                                               updateSevenThings();
                                               tempSevenThingsType = null;
+                                              _newSevenThingsController.text = "";
                                             }
                                           },
                                         );

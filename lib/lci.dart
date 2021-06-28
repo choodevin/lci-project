@@ -2,11 +2,14 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 import 'package:spider_chart/spider_chart.dart';
+import 'package:syncfusion_flutter_sliders/sliders.dart';
 
 import 'custom-components.dart';
 import 'entity/LCIScore.dart';
@@ -62,7 +65,7 @@ class Lci extends StatelessWidget {
                       textColor: Colors.white,
                       text: 'Let\'s get started',
                       onClickFunction: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciPartOne(userdata: userdata)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PartOne()));
                       },
                     ),
                   ],
@@ -76,138 +79,136 @@ class Lci extends StatelessWidget {
   }
 }
 
-class LciPartOne extends StatefulWidget {
-  final userdata;
-
-  const LciPartOne({this.userdata});
-
-  _LciPartOneState createState() => _LciPartOneState(userdata: userdata);
+class PartOne extends StatefulWidget {
+  _PartOne createState() => _PartOne();
 }
 
-class _LciPartOneState extends State<LciPartOne> {
-  UserData userdata;
-
-  _LciPartOneState({this.userdata});
-
-  String selected = "Single";
-
-  var sections = ['Spiritual Life', 'Single', 'Engaged', 'Family', 'Social Life', 'Health & Fitness', 'Hobby & Leisure', 'Physical Environment', 'Self-Development', 'Career or Study', 'Finance'];
+class _PartOne extends State<PartOne> {
+  var selected = 'Single';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+          child: Column(
+            children: [
+              PageHeadings(
+                text: 'Part 1',
+                popAvailable: true,
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 86,
+                ),
+                padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    PageHeadings(
-                      text: 'Part 1',
-                      metaText: 'Hello, ' + userdata.name,
-                    ),
-                    Padding(padding: EdgeInsets.all(20)),
-                    Text(
-                      'Are you single or engaged?',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    Padding(padding: EdgeInsets.all(10)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selected = "Single";
-                            });
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width / 3,
-                            padding: EdgeInsets.only(top: 15, bottom: 15),
-                            decoration: BoxDecoration(
-                              color: selected == "Single" ? Color(0xFF5D88FF) : Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color.fromRGBO(0, 0, 0, 0.15),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'SINGLE',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: selected == "Single" ? Colors.white : Colors.black,
-                              ),
-                            ),
-                          ),
+                        Text(
+                          'Are you single or engaged?',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selected = "Engaged";
-                            });
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width / 3,
-                            padding: EdgeInsets.only(top: 15, bottom: 15),
-                            decoration: BoxDecoration(
-                              color: selected == "Engaged" ? Color(0xFF5D88FF) : Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color.fromRGBO(0, 0, 0, 0.15),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
+                        Padding(padding: EdgeInsets.all(10)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selected = "Single";
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
+                                decoration: BoxDecoration(
+                                  color: selected == "Single" ? Color(0xFF170E9A) : Colors.white,
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  border: selected != "Single" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
                                 ),
-                              ],
-                            ),
-                            child: Text(
-                              'ENGAGED',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: selected == "Engaged" ? Colors.white : Colors.black,
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/check.svg',
+                                      color: selected == "Single" ? Colors.white : Color(0xFFCDCDCD),
+                                      height: 20,
+                                      width: 20,
+                                    ),
+                                    Padding(padding: EdgeInsets.all(10)),
+                                    Text(
+                                      'Single',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: selected == "Single" ? Colors.white : Color(0xFF9B9B9B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
+                            Padding(padding: EdgeInsets.all(5)),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selected = "Engaged";
+                                });
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width / 3,
+                                padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
+                                decoration: BoxDecoration(
+                                  color: selected == "Engaged" ? Color(0xFF170E9A) : Colors.white,
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  border: selected != "Engaged" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/check.svg',
+                                      color: selected == "Engaged" ? Colors.white : Color(0xFFCDCDCD),
+                                      height: 20,
+                                      width: 20,
+                                    ),
+                                    Padding(padding: EdgeInsets.all(10)),
+                                    Text(
+                                      'Engaged',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: selected == "Engaged" ? Colors.white : Color(0xFF9B9B9B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                    PrimaryButton(
+                      onClickFunction: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => PartTwo(
+                              selected: selected,
+                            ),
+                          ),
+                        );
+                      },
+                      text: 'Next',
+                      color: Color(0xFF299E45),
+                      textColor: Colors.white,
+                    ),
                   ],
                 ),
-                PrimaryButton(
-                  onClickFunction: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => LoadQuestions(
-                          userdata: userdata,
-                          selected: selected,
-                          sectionLeft: sections,
-                          point: 2,
-                        ),
-                      ),
-                    );
-                  },
-                  text: 'Confirm & Proceed',
-                  color: Color(0xFF299E45),
-                  textColor: Colors.white,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -215,31 +216,219 @@ class _LciPartOneState extends State<LciPartOne> {
   }
 }
 
-class LciTestForm extends StatefulWidget {
-  final userdata;
+class PartTwo extends StatefulWidget {
   final selected;
-  final current;
-  final questions;
-  final sections;
-  final part;
-  final score;
 
-  _LciTestFormState createState() => _LciTestFormState(selected, userdata, questions, sections, current, part, score);
+  const PartTwo({Key key, this.selected}) : super(key: key);
 
-  const LciTestForm({Key key, this.userdata, this.selected, this.questions, this.sections, this.current, this.part, this.score}) : super(key: key);
+  _PartTwoState createState() => _PartTwoState(selected);
 }
 
-class _LciTestFormState extends State<LciTestForm> {
-  final userdata;
+class _PartTwoState extends State<PartTwo> {
   final selected;
-  Map<String, dynamic> questions;
-  final current;
-  List<String> sections;
-  final part;
-  Map<String, dynamic> score = new Map<String, dynamic>();
-  Map<String, dynamic> subScore = new Map<String, dynamic>();
 
-  _LciTestFormState(this.selected, this.userdata, this.questions, this.sections, this.current, this.part, this.score);
+  _PartTwoState(this.selected);
+
+  var score = Map<String, Map<String, double>>();
+  var questionRef;
+  var list = ['1', '2', '3', '4', '5'];
+
+  @override
+  void initState() {
+    super.initState();
+    score = {
+      "Career or Study": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Family": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Finance": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Health & Fitness": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Hobby & Leisure": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Physical Environment": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Romance Relationship": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Self-Development": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Social Life": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      },
+      "Spiritual Life": {
+        "1": 1.0,
+        "2": 1.0,
+        "3": 1.0,
+        "4": 1.0,
+        "5": 1.0,
+      }
+    };
+    questionRef = FirebaseFirestore.instance.collection('LCITest').doc(selected).get();
+    list.shuffle();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: questionRef,
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: SafeArea(
+              child: Text('Something went wrong'),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          var questions = snapshot.data;
+          return Scaffold(
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    PageHeadings(
+                      text: 'Part 2',
+                      metaText: 'Romance Relationship',
+                      popAvailable: true,
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (var q in list)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                PrimaryCard(
+                                  padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Text(
+                                        questions.get(q)['title'],
+                                        style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                                      ),
+                                      SfSlider(
+                                        min: 1.0,
+                                        max: 10.0,
+                                        interval: 1.0,
+                                        showTicks: true,
+                                        showLabels: true,
+                                        stepSize: 1.0,
+                                        value: score['Romance Relationship'][q],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            score['Romance Relationship'][q] = value;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(padding: EdgeInsets.all(10)),
+                              ],
+                            ),
+                          PrimaryButton(
+                            text: 'Next',
+                            color: Color(0xFF299E45),
+                            textColor: Colors.white,
+                            onClickFunction: () {
+                              for (var q in list) {
+                                if (questions.get(q)['reverse']) {
+                                  score['Romance Relationship'][q] = 11.0 - score['Romance Relationship'][q];
+                                  break;
+                                }
+                              }
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AllQuestionForm(score: score)));
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class AllQuestionForm extends StatefulWidget {
+  final score;
+
+  const AllQuestionForm({Key key, this.score}) : super(key: key);
+
+  _AllQuestionFormState createState() => _AllQuestionFormState(score);
+}
+
+class _AllQuestionFormState extends State<AllQuestionForm> {
+  final score;
+
+  _AllQuestionFormState(this.score);
+
+  var _getAllQuestions;
+
+  var list = [];
+  var subList = [];
+  var loading = false;
 
   DateTime dateNow;
 
@@ -252,6 +441,17 @@ class _LciTestFormState extends State<LciTestForm> {
   @override
   void initState() {
     super.initState();
+    _getAllQuestions = FirebaseFirestore.instance.collection('LCITest').doc('All').get();
+    for (var i = 1; i <= 45; i++) {
+      list.add(i.toString());
+      var x = i;
+      var f = x % 5;
+      if(x == 0) {
+        f = 5;
+      }
+      subList.add(f.toString());
+    }
+    list.shuffle();
     getNetworkTime().then((value) {
       setState(() {
         dateNow = value;
@@ -261,271 +461,123 @@ class _LciTestFormState extends State<LciTestForm> {
 
   @override
   Widget build(BuildContext context) {
-    var toGet = ['1', '2', '3', '4', '5'];
-    String val;
-    bool startOver = false;
-
-    Future<void> showStartOver() {
-      return showDialog<void>(
-        context: context,
-        builder: (BuildContext c) {
-          return AlertDialog(
-            title: Text('Are you sure you want to start over ?'),
-            content: Text('You will lose all your answers if you start over.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  startOver = true;
-                  Navigator.of(context).pop();
-                },
-                child: Text('Start Over'),
-              ),
-              TextButton(
-                onPressed: () {
-                  startOver = false;
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancel'),
-              ),
-            ],
-          );
-        },
-      );
+    Future<void> setScore() async {
+      await FirebaseFirestore.instance
+          .collection('UserData')
+          .doc(FirebaseAuth.instance.currentUser.uid)
+          .collection('LCIScore')
+          .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
+          .set(score)
+          .then((value) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
+      });
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        await showStartOver();
-        if (startOver) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        }
-        return false;
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Container(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-              ),
-              padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PageHeadings(
-                    text: 'Part ' + part.toString(),
-                    metaText: current == "Romance Relationship" ? '$current ($selected)' : current,
+    return !loading
+        ? FutureBuilder(
+            future: _getAllQuestions,
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Scaffold(
+                  body: SafeArea(
+                    child: Text('Something went wrong'),
                   ),
-                  Padding(padding: EdgeInsets.all(20)),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: questions.keys.map((key) {
-                      if (toGet.length == 1) {
-                        val = toGet[0];
-                      } else {
-                        var temp = Random().nextInt(toGet.length);
-                        val = toGet[temp];
-                        toGet.removeAt(temp);
-                      }
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 40),
-                        child: PrimaryCard(
-                          padding: EdgeInsets.all(25),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                questions[val]['title'].toString(),
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              Padding(padding: EdgeInsets.all(10)),
-                              CustomSlider(
-                                index: val,
-                                callBack: (value, index) {
-                                  if (questions[index]['reverse']) {
-                                    subScore[index] = 10 - (value * 10);
-                                  } else {
-                                    subScore[index] = value * 10;
-                                  }
-                                },
-                              ),
-                            ],
+                );
+              }
+
+              if (snapshot.connectionState == ConnectionState.done) {
+                var questions = snapshot.data;
+                return Scaffold(
+                  body: SafeArea(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          PageHeadings(
+                            text: 'Part 3',
+                            metaText: 'LCI Test',
+                            popAvailable: true,
                           ),
-                        ),
-                      );
-                    }).toList(),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (var q in list)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      PrimaryCard(
+                                        padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              questions.get(q)['title'],
+                                              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                                            ),
+                                            SfSlider(
+                                              min: 1.0,
+                                              max: 10.0,
+                                              interval: 1.0,
+                                              showTicks: true,
+                                              showLabels: true,
+                                              stepSize: 1.0,
+                                              value: score[questions.get(q)['type']][subList[int.parse(q) - 1]],
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  score[questions.get(q)['type']][subList[int.parse(q) - 1]] = value;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(padding: EdgeInsets.all(10)),
+                                    ],
+                                  ),
+                                PrimaryButton(
+                                  text: 'Next',
+                                  color: Color(0xFF299E45),
+                                  textColor: Colors.white,
+                                  onClickFunction: () async {
+                                    for (var q in list) {
+                                      if (questions.get(q)['reverse']) {
+                                        score[questions.get(q)['type']][subList[int.parse(q) - 1]] = 11.0 - score[questions.get(q)['type']][subList[int.parse(q) - 1]];
+                                      }
+                                    }
+                                    setState(() {
+                                      loading = true;
+                                    });
+                                    await setScore();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  Padding(padding: EdgeInsets.all(20)),
-                  sections.length != 0
-                      ? PrimaryButton(
-                          text: 'Next',
-                          color: Color(0xFF170E9A),
-                          textColor: Colors.white,
-                          onClickFunction: () {
-                            if (subScore.length < 5) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('Please answer all the questions'),
-                              ));
-                            } else {
-                              if (score == null) {
-                                score = {current: subScore};
-                              } else {
-                                score[current] = subScore;
-                              }
-                              var point = part + 1;
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => LoadQuestions(
-                                        userdata: userdata,
-                                        selected: selected,
-                                        point: point,
-                                        sectionLeft: sections,
-                                        score: score,
-                                      )));
-                            }
-                          },
-                        )
-                      : PrimaryButton(
-                          text: 'Submit',
-                          color: Color(0xFF170E9A),
-                          textColor: Colors.white,
-                          onClickFunction: () async {
-                            if (subScore.length < 5) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                content: Text('Please answer all the questions'),
-                              ));
-                            } else {
-                              if (score == null) {
-                                score = {current: subScore};
-                              } else {
-                                score[current] = subScore;
-                              }
-                            }
-                            CollectionReference ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
-                            await ref.doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString()).set(score).then((value) {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => LciResult(
-                                        score: score,
-                                      )));
-                            }).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('An error occurred'))));
-                          },
-                        ),
-                ],
+                );
+              }
+
+              return Scaffold(
+                body: SafeArea(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              );
+            },
+          )
+        : Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class LoadQuestions extends StatelessWidget {
-  final userdata;
-  final selected;
-  final point;
-  final List<String> sectionLeft;
-  final score;
-
-  const LoadQuestions({Key key, this.userdata, this.selected, this.point, this.sectionLeft, this.score}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    DocumentReference ref = FirebaseFirestore.instance.collection('LCITest').doc(selected);
-    String current;
-
-    if (point == 2) {
-      ref = FirebaseFirestore.instance.collection('LCITest').doc(selected);
-      sectionLeft.remove('Single');
-      sectionLeft.remove('Engaged');
-      current = "Romance Relationship";
-    } else {
-      int toGet = Random().nextInt(sectionLeft.length);
-      current = sectionLeft[toGet];
-      sectionLeft.removeAt(toGet);
-      ref = FirebaseFirestore.instance.collection('LCITest').doc(current);
-    }
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: ref.get(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(body: Text("Something went wrong"));
-        }
-
-        if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> questions = snapshot.data.data();
-
-          return LciTestForm(
-            userdata: userdata,
-            selected: selected,
-            sections: sectionLeft,
-            questions: questions,
-            current: current,
-            part: point,
-            score: score,
           );
-        }
-
-        return Scaffold(body: CircularProgressIndicator());
-      },
-    );
-  }
-}
-
-class CustomSlider extends StatefulWidget {
-  final callBack;
-  final index;
-
-  const CustomSlider({Key key, this.callBack, this.index}) : super(key: key);
-
-  _CustomSliderState createState() => _CustomSliderState(callBack, index);
-}
-
-class _CustomSliderState extends State<CustomSlider> {
-  final index;
-  Function callBack;
-
-  var x = 0.0;
-
-  _CustomSliderState(this.callBack, this.index);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: Color(0xFF6EC8F4),
-              inactiveTrackColor: Color(0xFFAFAFAF),
-              trackShape: RoundedRectSliderTrackShape(),
-              trackHeight: 8,
-              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
-              thumbColor: Color(0xFF453EAE),
-              tickMarkShape: RoundSliderTickMarkShape(),
-              activeTickMarkColor: Colors.transparent,
-              inactiveTickMarkColor: Colors.transparent,
-            ),
-            child: Slider(
-                label: (x * 10).toInt().toString(),
-                divisions: 10,
-                value: x,
-                onChanged: (value) {
-                  setState(() {
-                    x = value;
-                    callBack(x, index);
-                  });
-                }),
-          ),
-          Text(
-            (x * 10).toInt().toString(),
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-        ],
-      ),
-    );
   }
 }
 

@@ -150,7 +150,7 @@ class _LoginFormState extends State<LoginForm> {
                 }
               },
             ),
-          ),/*
+          ),
           Container(
             margin: EdgeInsets.only(top: 10.0),
             child: Column(
@@ -179,7 +179,7 @@ class _LoginFormState extends State<LoginForm> {
                 FacebookSignInButton(),
               ],
             ),
-          ),*/
+          ),
           Container(
             margin: EdgeInsets.only(top: 60.0),
             child: Row(
@@ -215,40 +215,6 @@ class _LoginFormState extends State<LoginForm> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class TabletLogin extends StatelessWidget {
-  Widget build(BuildContext build) {
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(build).size.height -
-                  MediaQuery.of(build).padding.top -
-                  MediaQuery.of(build).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(30, 35, 30, 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome Back!',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
-                ),
-                Text('Sign in to your account',
-                    style: TextStyle(
-                      color: Color(0xFF878787),
-                    )),
-                LoginForm(),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

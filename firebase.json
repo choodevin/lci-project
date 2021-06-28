@@ -12,5 +12,15 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "predeploy": [
+      "npm --prefix \"%RESOURCE_DIR%\" run lint"
+    ]
+  },
+  "emulators": {
+    "pubsub": {
+      "port": 8085
+    }
   }
 }

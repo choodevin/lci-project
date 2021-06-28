@@ -163,15 +163,17 @@ class _RegisterState extends State<Register> {
 
 class RegisterDetails extends StatefulWidget {
   final UserData user;
+  final sso;
 
-  RegisterDetails({this.user});
+  RegisterDetails({this.user, this.sso});
 
   @override
-  _RegisterDetailsState createState() => _RegisterDetailsState(user: user);
+  _RegisterDetailsState createState() => _RegisterDetailsState(user, sso);
 }
 
 class _RegisterDetailsState extends State<RegisterDetails> {
   final UserData user;
+  final sso;
   final _nameController = TextEditingController();
   final globalKey = GlobalKey<ScaffoldState>();
 
@@ -181,7 +183,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
   String selectedMonth = "January";
   String selectedDay = "1";
 
-  _RegisterDetailsState({this.user});
+  _RegisterDetailsState(this.user, this.sso);
 
   void dispose() {
     _nameController.dispose();
@@ -215,448 +217,462 @@ class _RegisterDetailsState extends State<RegisterDetails> {
 
     List<String> dayList = generateDayList();
 
-    return Scaffold(
-      key: globalKey,
-      body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: 'Create New Account',
-                metaText: 'Hi, it\s good to see you!',
-                popAvailable: true,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+    Widget content() {
+      return Scaffold(
+        key: globalKey,
+        body: SafeArea(
+          bottom: false,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: 'Create New Account',
+                  metaText: 'Hi, it\s good to see you!',
+                  popAvailable: true,
                 ),
-                padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      child: Column(
-                        children: [
-                          PrimaryCard(
-                            child: Column(
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  ),
+                  padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        child: Column(
+                          children: [
+                            PrimaryCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(
+                                    'Your Name',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(top: 10),
+                                    height: 30,
+                                    child: TextField(
+                                      autofocus: false,
+                                      maxLines: 1,
+                                      controller: _nameController,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                      ),
+                                      textCapitalization: TextCapitalization.words,
+                                      decoration: InputDecoration(
+                                        hintStyle: TextStyle(
+                                          color: Color(0xFFB4B4B4),
+                                        ),
+                                        hintText: 'John',
+                                        contentPadding: EdgeInsets.only(bottom: 12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(10),
+                            ),
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text(
-                                  'Your Name',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(top: 10),
-                                  height: 30,
-                                  child: TextField(
-                                    autofocus: false,
-                                    maxLines: 1,
-                                    controller: _nameController,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                    textCapitalization: TextCapitalization.words,
-                                    decoration: InputDecoration(
-                                      hintStyle: TextStyle(
-                                        color: Color(0xFFB4B4B4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width / 2.5,
+                                      child: PrimaryCard(
+                                        child: Container(
+                                          height: 90,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              Text(
+                                                'Gender',
+                                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                              ),
+                                              Container(
+                                                margin: EdgeInsets.only(top: 15),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                  children: [
+                                                    Container(
+                                                      height: 50,
+                                                      width: 50,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: (selectedGender == "Male" ? Colors.grey.withOpacity(0.2) : Colors.transparent),
+                                                            blurRadius: 5,
+                                                            spreadRadius: 2,
+                                                            offset: Offset(0, 5),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: MaterialButton(
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                        ),
+                                                        onPressed: () => setState(() => selectedGender = "Male"),
+                                                        child: Container(
+                                                          padding: EdgeInsets.only(top: 8, bottom: 8),
+                                                          child: SvgPicture.asset(
+                                                            'assets/male.svg',
+                                                            color: (selectedGender == "Male" ? Color(0xFF457CFE) : Color(0xFF6E6E6E)),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      height: 50,
+                                                      width: 50,
+                                                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(15)), boxShadow: [
+                                                        BoxShadow(
+                                                          color: (selectedGender == "Female" ? Colors.grey.withOpacity(0.2) : Colors.transparent),
+                                                          blurRadius: 5,
+                                                          spreadRadius: 2,
+                                                          offset: Offset(0, 5),
+                                                        ),
+                                                      ]),
+                                                      child: MaterialButton(
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                        ),
+                                                        onPressed: () => setState(() => selectedGender = "Female"),
+                                                        child: Container(
+                                                          padding: EdgeInsets.only(top: 8, bottom: 8),
+                                                          child: SvgPicture.asset(
+                                                            'assets/female.svg',
+                                                            color: (selectedGender == "Female" ? Color(0xFF457CFE) : Color(0xFF6E6E6E)),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                      hintText: 'John',
-                                      contentPadding: EdgeInsets.only(bottom: 12),
                                     ),
-                                  ),
+                                    Container(
+                                      width: MediaQuery.of(context).size.width / 2.3,
+                                      child: PrimaryCard(
+                                        child: Container(
+                                          height: 90,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              Text(
+                                                'Country',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                              Container(
+                                                height: 45,
+                                                margin: EdgeInsets.only(top: 15),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                  color: Colors.white,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey.withOpacity(0.2),
+                                                      blurRadius: 5,
+                                                      spreadRadius: 2,
+                                                      offset: Offset(0, 5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: ButtonTheme(
+                                                  alignedDropdown: true,
+                                                  child: DropdownButtonHideUnderline(
+                                                    child: DropdownButton(
+                                                      isExpanded: true,
+                                                      style: TextStyle(
+                                                        color: Color(0xFF6E6E6E),
+                                                        fontWeight: FontWeight.w500,
+                                                        fontSize: 16,
+                                                      ),
+                                                      value: selectedCountry,
+                                                      items: countryList.map<DropdownMenuItem<String>>((String value) {
+                                                        return DropdownMenuItem<String>(
+                                                          value: value,
+                                                          child: Center(child: Text(value)),
+                                                        );
+                                                      }).toList(),
+                                                      onChanged: (String newValue) {
+                                                        setState(() {
+                                                          selectedCountry = newValue;
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(10),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    width: MediaQuery.of(context).size.width / 2.5,
-                                    child: PrimaryCard(
-                                      child: Container(
-                                        height: 90,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            Text(
-                                              'Gender',
-                                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                                            ),
-                                            Container(
-                                              margin: EdgeInsets.only(top: 15),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                Padding(padding: EdgeInsets.all(7.5)),
+                                PrimaryCard(
+                                  child: Container(
+                                    height: 220,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        Text(
+                                          'Date of Birth',
+                                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.all(5),
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
+                                                  Text(
+                                                    'Year',
+                                                    style: TextStyle(
+                                                      color: Color(0xFF6E6E6E),
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 18,
+                                                    ),
+                                                  ),
                                                   Container(
-                                                    height: 50,
-                                                    width: 50,
+                                                    height: 45,
+                                                    width: 130,
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white,
                                                       borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                      color: Colors.white,
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: (selectedGender == "Male" ? Colors.grey.withOpacity(0.2) : Colors.transparent),
+                                                          color: Colors.grey.withOpacity(0.2),
                                                           blurRadius: 5,
                                                           spreadRadius: 2,
                                                           offset: Offset(0, 5),
                                                         ),
                                                       ],
                                                     ),
-                                                    child: MaterialButton(
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                      ),
-                                                      onPressed: () => setState(() => selectedGender = "Male"),
-                                                      child: Container(
-                                                        padding: EdgeInsets.only(top: 8, bottom: 8),
-                                                        child: SvgPicture.asset(
-                                                          'assets/male.svg',
-                                                          color: (selectedGender == "Male" ? Color(0xFF457CFE) : Color(0xFF6E6E6E)),
+                                                    child: ButtonTheme(
+                                                      alignedDropdown: true,
+                                                      child: DropdownButtonHideUnderline(
+                                                        child: DropdownButton(
+                                                          dropdownColor: Colors.white,
+                                                          isExpanded: true,
+                                                          style: TextStyle(
+                                                            color: Color(0xFF6E6E6E),
+                                                            fontWeight: FontWeight.w500,
+                                                            fontSize: 18,
+                                                          ),
+                                                          value: selectedYear,
+                                                          items: yearList.map<DropdownMenuItem<String>>((String value) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: value,
+                                                              child: Center(child: Text(value)),
+                                                            );
+                                                          }).toList(),
+                                                          onChanged: (String newValue) {
+                                                            setState(
+                                                              () {
+                                                                selectedYear = newValue;
+                                                              },
+                                                            );
+                                                          },
                                                         ),
                                                       ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    'Month',
+                                                    style: TextStyle(
+                                                      color: Color(0xFF6E6E6E),
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 18,
                                                     ),
                                                   ),
                                                   Container(
-                                                    height: 50,
-                                                    width: 50,
-                                                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(15)), boxShadow: [
-                                                      BoxShadow(
-                                                        color: (selectedGender == "Female" ? Colors.grey.withOpacity(0.2) : Colors.transparent),
-                                                        blurRadius: 5,
-                                                        spreadRadius: 2,
-                                                        offset: Offset(0, 5),
-                                                      ),
-                                                    ]),
-                                                    child: MaterialButton(
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                      ),
-                                                      onPressed: () => setState(() => selectedGender = "Female"),
-                                                      child: Container(
-                                                        padding: EdgeInsets.only(top: 8, bottom: 8),
-                                                        child: SvgPicture.asset(
-                                                          'assets/female.svg',
-                                                          color: (selectedGender == "Female" ? Color(0xFF457CFE) : Color(0xFF6E6E6E)),
+                                                    height: 45,
+                                                    width: 130,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                      color: Colors.white,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.grey.withOpacity(0.2),
+                                                          blurRadius: 5,
+                                                          spreadRadius: 2,
+                                                          offset: Offset(0, 5),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: ButtonTheme(
+                                                      alignedDropdown: true,
+                                                      child: DropdownButtonHideUnderline(
+                                                        child: DropdownButton(
+                                                          dropdownColor: Colors.white,
+                                                          isExpanded: true,
+                                                          style: TextStyle(
+                                                            color: Color(0xFF6E6E6E),
+                                                            fontWeight: FontWeight.w500,
+                                                            fontSize: 18,
+                                                          ),
+                                                          value: selectedMonth,
+                                                          items: monthList.map<DropdownMenuItem<String>>((String value) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: value,
+                                                              child: Center(child: Text(value)),
+                                                            );
+                                                          }).toList(),
+                                                          onChanged: (String newValue) {
+                                                            setState(
+                                                              () {
+                                                                selectedMonth = newValue;
+                                                              },
+                                                            );
+                                                          },
                                                         ),
                                                       ),
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: MediaQuery.of(context).size.width / 2.3,
-                                    child: PrimaryCard(
-                                      child: Container(
-                                        height: 90,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            Text(
-                                              'Country',
-                                              textAlign: TextAlign.start,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 20,
-                                              ),
-                                            ),
-                                            Container(
-                                              height: 45,
-                                              margin: EdgeInsets.only(top: 15),
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                color: Colors.white,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.grey.withOpacity(0.2),
-                                                    blurRadius: 5,
-                                                    spreadRadius: 2,
-                                                    offset: Offset(0, 5),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: ButtonTheme(
-                                                alignedDropdown: true,
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton(
-                                                    isExpanded: true,
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    'Day',
                                                     style: TextStyle(
                                                       color: Color(0xFF6E6E6E),
-                                                      fontWeight: FontWeight.w500,
-                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 18,
                                                     ),
-                                                    value: selectedCountry,
-                                                    items: countryList.map<DropdownMenuItem<String>>((String value) {
-                                                      return DropdownMenuItem<String>(
-                                                        value: value,
-                                                        child: Center(child: Text(value)),
-                                                      );
-                                                    }).toList(),
-                                                    onChanged: (String newValue) {
-                                                      setState(() {
-                                                        selectedCountry = newValue;
-                                                      });
-                                                    },
                                                   ),
-                                                ),
+                                                  Container(
+                                                    height: 45,
+                                                    width: 130,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                                                      color: Colors.white,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.grey.withOpacity(0.2),
+                                                          blurRadius: 5,
+                                                          spreadRadius: 2,
+                                                          offset: Offset(0, 5),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: ButtonTheme(
+                                                      alignedDropdown: true,
+                                                      child: DropdownButtonHideUnderline(
+                                                        child: DropdownButton(
+                                                          dropdownColor: Colors.white,
+                                                          isExpanded: true,
+                                                          style: TextStyle(
+                                                            color: Color(0xFF6E6E6E),
+                                                            fontWeight: FontWeight.w500,
+                                                            fontSize: 18,
+                                                          ),
+                                                          value: selectedDay,
+                                                          items: dayList.map<DropdownMenuItem<String>>((String value) {
+                                                            return DropdownMenuItem<String>(
+                                                              value: value,
+                                                              child: Center(
+                                                                child: Text(
+                                                                  value,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }).toList(),
+                                                          onChanged: (String newValue) {
+                                                            setState(
+                                                              () {
+                                                                selectedDay = newValue;
+                                                              },
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                              Padding(padding: EdgeInsets.all(7.5)),
-                              PrimaryCard(
-                                child: Container(
-                                  height: 220,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        'Date of Birth',
-                                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(5),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Year',
-                                                  style: TextStyle(
-                                                    color: Color(0xFF6E6E6E),
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 18,
-                                                  ),
-                                                ),
-                                                Container(
-                                                  height: 45,
-                                                  width: 130,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey.withOpacity(0.2),
-                                                        blurRadius: 5,
-                                                        spreadRadius: 2,
-                                                        offset: Offset(0, 5),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ButtonTheme(
-                                                    alignedDropdown: true,
-                                                    child: DropdownButtonHideUnderline(
-                                                      child: DropdownButton(
-                                                        dropdownColor: Colors.white,
-                                                        isExpanded: true,
-                                                        style: TextStyle(
-                                                          color: Color(0xFF6E6E6E),
-                                                          fontWeight: FontWeight.w500,
-                                                          fontSize: 18,
-                                                        ),
-                                                        value: selectedYear,
-                                                        items: yearList.map<DropdownMenuItem<String>>((String value) {
-                                                          return DropdownMenuItem<String>(
-                                                            value: value,
-                                                            child: Center(child: Text(value)),
-                                                          );
-                                                        }).toList(),
-                                                        onChanged: (String newValue) {
-                                                          setState(
-                                                            () {
-                                                              selectedYear = newValue;
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Month',
-                                                  style: TextStyle(
-                                                    color: Color(0xFF6E6E6E),
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 18,
-                                                  ),
-                                                ),
-                                                Container(
-                                                  height: 45,
-                                                  width: 130,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey.withOpacity(0.2),
-                                                        blurRadius: 5,
-                                                        spreadRadius: 2,
-                                                        offset: Offset(0, 5),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ButtonTheme(
-                                                    alignedDropdown: true,
-                                                    child: DropdownButtonHideUnderline(
-                                                      child: DropdownButton(
-                                                        dropdownColor: Colors.white,
-                                                        isExpanded: true,
-                                                        style: TextStyle(
-                                                          color: Color(0xFF6E6E6E),
-                                                          fontWeight: FontWeight.w500,
-                                                          fontSize: 18,
-                                                        ),
-                                                        value: selectedMonth,
-                                                        items: monthList.map<DropdownMenuItem<String>>((String value) {
-                                                          return DropdownMenuItem<String>(
-                                                            value: value,
-                                                            child: Center(child: Text(value)),
-                                                          );
-                                                        }).toList(),
-                                                        onChanged: (String newValue) {
-                                                          setState(
-                                                            () {
-                                                              selectedMonth = newValue;
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Day',
-                                                  style: TextStyle(
-                                                    color: Color(0xFF6E6E6E),
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 18,
-                                                  ),
-                                                ),
-                                                Container(
-                                                  height: 45,
-                                                  width: 130,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.grey.withOpacity(0.2),
-                                                        blurRadius: 5,
-                                                        spreadRadius: 2,
-                                                        offset: Offset(0, 5),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ButtonTheme(
-                                                    alignedDropdown: true,
-                                                    child: DropdownButtonHideUnderline(
-                                                      child: DropdownButton(
-                                                        dropdownColor: Colors.white,
-                                                        isExpanded: true,
-                                                        style: TextStyle(
-                                                          color: Color(0xFF6E6E6E),
-                                                          fontWeight: FontWeight.w500,
-                                                          fontSize: 18,
-                                                        ),
-                                                        value: selectedDay,
-                                                        items: dayList.map<DropdownMenuItem<String>>((String value) {
-                                                          return DropdownMenuItem<String>(
-                                                            value: value,
-                                                            child: Center(
-                                                              child: Text(
-                                                                value,
-                                                              ),
-                                                            ),
-                                                          );
-                                                        }).toList(),
-                                                        onChanged: (String newValue) {
-                                                          setState(
-                                                            () {
-                                                              selectedDay = newValue;
-                                                            },
-                                                          );
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Padding(padding: EdgeInsets.all(15)),
-                    PrimaryButton(
-                      text: "NEXT",
-                      color: Color(0xFF299E45),
-                      textColor: Colors.white,
-                      onClickFunction: () {
-                        if (_nameController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Please fill in your name'),
-                          ));
-                          return;
-                        } else {
-                          user.name = _nameController.text;
-                          user.dateOfBirth = "$selectedDay $selectedMonth $selectedYear";
-                          user.gender = selectedGender;
-                          user.country = selectedCountry;
-                          Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterDetails(), builder: (context) => RegisterTC(user: user)));
-                        }
-                      },
-                    ),
-                  ],
+                      Padding(padding: EdgeInsets.all(15)),
+                      PrimaryButton(
+                        text: "NEXT",
+                        color: Color(0xFF299E45),
+                        textColor: Colors.white,
+                        onClickFunction: () {
+                          if (_nameController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Please fill in your name'),
+                            ));
+                            return;
+                          } else {
+                            user.name = _nameController.text;
+                            user.dateOfBirth = "$selectedDay $selectedMonth $selectedYear";
+                            user.gender = selectedGender;
+                            user.country = selectedCountry;
+                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterDetails(), builder: (context) => RegisterTC(user: user)));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    if (sso != null && sso) {
+      return WillPopScope(
+        onWillPop: () async {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+          return true;
+        },
+        child: content(),
+      );
+    } else {
+      return content();
+    }
   }
 }
 
@@ -1281,19 +1297,18 @@ class _RegisterPlanState extends State<RegisterPlan> {
                         } finally {
                           CollectionReference userData = FirebaseFirestore.instance.collection('UserData');
                           var uid = FirebaseAuth.instance.currentUser.uid;
-                          await userData
-                              .doc(uid)
-                              .set({
-                                'name': user.name,
-                                'gender': user.gender,
-                                'country': user.country,
-                                'dateOfBirth': user.dateOfBirth,
-                                'subscription': user.subscription,
-                              })
-                              .then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData())))
-                              .catchError((error) => () async {
-                                    await FirebaseAuth.instance.currentUser.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
-                                  });
+                          await userData.doc(uid).set({
+                            'name': user.name,
+                            'gender': user.gender,
+                            'country': user.country,
+                            'dateOfBirth': user.dateOfBirth,
+                            'subscription': user.subscription,
+                          }).then((value) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData()));
+                          }).catchError((error) => () async {
+                                await FirebaseAuth.instance.currentUser.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
+                              });
                         }
                       },
                       color: Color(0xFF5D88FF),

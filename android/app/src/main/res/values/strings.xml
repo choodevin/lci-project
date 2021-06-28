@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">lciProject</string>
+    <string name="facebook_app_id">223412736102832</string>
+    <string name="fb_login_protocol_scheme">fb223412736102832</string>
+</resources>

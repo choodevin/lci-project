@@ -856,6 +856,17 @@ class _CampaignMainState extends State<CampaignMain> {
 
   DocumentSnapshot selectedUser;
 
+  Future<void> leaveCampaign() {
+    return showDialog<void>(
+      context: context,
+      builder: (c) {
+        return AlertDialog(
+
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -866,8 +877,27 @@ class _CampaignMainState extends State<CampaignMain> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                PageHeadings(
-                  text: 'Campaign',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    PageHeadings(
+                      text: 'Campaign',
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        leaveCampaign();
+                      },
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: SvgPicture.asset(
+                          'assets/info.svg',
+                          height: 14,
+                          width: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 getCampaignUsers(),
                 Column(

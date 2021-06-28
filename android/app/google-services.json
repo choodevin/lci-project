@@ -1,41 +1,35 @@
 {
   "project_info": {
-    "project_number": "95427789270",
-    "project_id": "lci-project-temp",
-    "storage_bucket": "lci-project-temp.appspot.com"
+    "project_number": "427811452112",
+    "firebase_url": "https://lciapp-add9e-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "lciapp-add9e",
+    "storage_bucket": "lciapp-add9e.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:95427789270:android:276c9ccac9803ba41ba477",
+        "mobilesdk_app_id": "1:427811452112:android:f977212fc58e60b5ae1ad5",
         "android_client_info": {
           "package_name": "com.lci.lciproject"
         }
       },
       "oauth_client": [
         {
-          "client_id": "95427789270-ejjkcm4vs25fkf9te223r32vdchi7inb.apps.googleusercontent.com",
+          "client_id": "427811452112-t1agpdm7luofc4e3osl6iih13n1ef91t.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCMeX-9OLN8rpKHsoSD1AqvvdbBXWr4WZQ"
+          "current_key": "AIzaSyBC17bVxtPuqDTA1kMtM1IydK0EVN5snSE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "95427789270-ejjkcm4vs25fkf9te223r32vdchi7inb.apps.googleusercontent.com",
+              "client_id": "427811452112-t1agpdm7luofc4e3osl6iih13n1ef91t.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "95427789270-ps7044r7sf7b8td769f5e7vqgek8ph2l.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.lci.lciproject"
-              }
             }
           ]
         }

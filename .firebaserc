@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "lci-project-temp"
+    "LCI": "lciapp-add9e",
+    "default": "lciapp-add9e"
   }
 }
