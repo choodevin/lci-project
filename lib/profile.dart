@@ -118,7 +118,7 @@ class Tutorial extends StatelessWidget {
                           ),
                           Padding(padding: EdgeInsets.all(4)),
                           Text(
-                            'It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.',
+                            'Life Compass Inventory (LCI) is a tools that quantify 10 areas in your life, and therefore able to visually understand your current life’s condition. It is an inventory that helps individual to explore and aware of different areas in life in a deeper level, by transforming the result to a readable quantification. It gives a deeper understanding to each areas of life.',
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -142,7 +142,7 @@ class Tutorial extends StatelessWidget {
                           ),
                           Padding(padding: EdgeInsets.all(4)),
                           Text(
-                            'It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.',
+                            'Goal setting is not something new to many people. However, we want to let you know that, there are 3 levels of goal when come to Goal Setting.\n\nLevel 1: Presenting Goal – Presenting Goal is a goal that focus on only outcome where it is often measurable or able to visually identify the differences. E.g. I want to have 6 packs.\n\nLevel 2: Performance Goal – Performance Goal is a goal that focus on process that usually help individuals to achieve presenting goal. E.g. I will do 50 push up and 100 sit-up every day.\n\nLevel3: Identity Goal – Identity Goal is a goal that focus on who you truly want to be, instead of just focus around the external factors. Identity Goal often provide a long lasting momentum compare to other 2 types of goal. Usually it the core, and once you achieve it, the other 2 will follow. E.g. I am a person who loves exercise.\n\nPeople often set goal but unable to follow through the process, or setback immediately after achieving their goal. That is before whatever Presenting & Performance Goal they set, are not consistent with their identity. Besides that, the real challenge is not how much you want the result, but if how willing you are to accept the sacrifices required to achieve your goal. That can usually be overcome by exploring on the Identity Goal.\n',
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -166,7 +166,7 @@ class Tutorial extends StatelessWidget {
                           ),
                           Padding(padding: EdgeInsets.all(4)),
                           Text(
-                            'It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.',
+                            'Campaign is an accountability event where you and your mates come together and support each other. In a campaign, you can set your own duration, goals, and reward & punishment system with everyone’s agreement, and every participants will be accountable and support for each other. You will witness the growth together, and encourage each other to move further. It is not about the speed, but consistency.',
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -190,7 +190,31 @@ class Tutorial extends StatelessWidget {
                           ),
                           Padding(padding: EdgeInsets.all(4)),
                           Text(
-                            'It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.',
+                            'Wheel of life is a tool that consists of 10 areas of individual’s life, where it helps individual to have an overall picture on life’s situation. With Wheel of Life, an individual can have a better understand and clearer direction on how to achieve fullness in life.',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                          Padding(padding: EdgeInsets.all(10)),
+                          VideoPlayer(url: Video.VIDEO_1),
+                        ],
+                      ),
+                    ),
+                    Padding(padding: EdgeInsets.all(30)),
+                    Container(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '7 Things',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                            ),
+                          ),
+                          Padding(padding: EdgeInsets.all(4)),
+                          Text(
+                            '7 things is a simple yet powerful tool for time management. In 7 things, you need to set your 7 daily items that you want to achieve with following guidelines:\n- The first item should be your core of the day, where it is usually take up most of your time and energy of the day.\n- The 2nd and 3rd items are something important that you want to achieve on that day, yet it doesn’t take as much time & energy as per 1st item.\n- The 4th to 7th items are something else that you need or want to do on that day, but less important compare to first three items.\n- Whenever you set your 7 things, it is important to always keep in mind that the items that you set should be align with your identity goals.',
                             style: TextStyle(
                               fontSize: 16,
                             ),
