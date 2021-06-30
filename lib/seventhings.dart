@@ -2,62 +2,39 @@ import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+
+import 'entity/Video.dart';
 
 class SevenThingsMain extends StatefulWidget {
-  _SevenThingsMainState createState() => _SevenThingsMainState();
+  final date;
+
+  const SevenThingsMain({Key key, this.date}) : super(key: key);
+
+  _SevenThingsMainState createState() => _SevenThingsMainState(date);
 }
 
 class _SevenThingsMainState extends State<SevenThingsMain> {
-  var ref;
+  final DateTime date;
 
-  DateTime date;
+  _SevenThingsMainState(this.date);
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: ref,
-      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if(snapshot.hasError) {
-          return Scaffold(
-            body: SafeArea(
-              child: Center(
-                child: Text('Something went wrong'),
-              ),
-            ),
-          );
-        }
+  DateTime selectedDate;
+  DateTime startDate = FirebaseAuth.instance.currentUser.metadata.creationTime;
+  DateTime initialDate;
+  DateTime endingDate;
+  int daysBetween;
+  ItemScrollController _itemScrollController = ItemScrollController();
+  ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
+  GetSevenThingList sevenThingList;
+  Function recallFunction;
+  Function addCallBack;
 
-        return Scaffold(
-          body: SafeArea(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        );
-      }
-    );
-  }
-}
-
-class GetSevenThings extends StatefulWidget {
-  final date;
-
-  const GetSevenThings({this.date});
-
-  _GetSevenThingsState createState() => _GetSevenThingsState(date: date);
-}
-
-class _GetSevenThingsState extends State<GetSevenThings> {
-  final date;
-
-  DateTime searchDate;
-  DateTime toSearch;
-
-  _GetSevenThingsState({this.date});
+  var isEdit = false;
 
   Future<DateTime> getNetworkTime() async {
     DateTime _myTime;
@@ -65,556 +42,656 @@ class _GetSevenThingsState extends State<GetSevenThings> {
     return _myTime;
   }
 
+  Future<void> infoVideo() {
+    return showDialog<void>(
+      context: context,
+      builder: (c) {
+        return VideoPlayer(
+          url: Video.VIDEO_1,
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    if (date == null || date == "") {
+    if (date == null) {
       getNetworkTime().then((value) {
         setState(() {
-          searchDate = value;
-          toSearch = DateTime(searchDate.year, searchDate.month, searchDate.day);
+          selectedDate = DateTime(value.year, value.month, value.day);
+          initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
+          endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
+          daysBetween = endingDate.difference(initialDate).inDays;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+              if(!value.get('viewedSevenThings')) {
+                infoVideo();
+                await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+                  "viewedSevenThings" : true,
+                });
+              }
+            });
+          });
         });
       });
     } else {
-      searchDate = date;
-      toSearch = DateTime(searchDate.year, searchDate.month, searchDate.day);
+      selectedDate = date;
+      initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
+      endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
+      daysBetween = endingDate.difference(initialDate).inDays;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+          if(!value.get('viewedSevenThings')) {
+            infoVideo();
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+              "viewedSevenThings" : true,
+            });
+          }
+        });
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference sevenThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
-    return FutureBuilder<DocumentSnapshot>(
-      future: sevenThingsRef.doc(toSearch.toString()).get(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return SevenThings(date: searchDate);
-        }
+    Function editingCallBack = (value, recall) {
+      setState(() {
+        isEdit = value;
+        recallFunction = recall;
+      });
+    };
 
-        if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data = snapshot.data.data();
-          return SevenThings(
-            sevenThings: data,
-            date: searchDate,
+    Function addCallBack = (recall) {
+      setState(() {
+        recallFunction = recall;
+      });
+    };
+
+    return selectedDate != null
+        ? Scaffold(
+            floatingActionButton: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FloatingActionButton(
+                  child: isEdit ? Icon(Icons.check) : Icon(Icons.add),
+                  backgroundColor: isEdit ? Color(0xFF299E45) : Color(0xFF170E9A),
+                  onPressed: isEdit
+                      ? () {
+                          recallFunction(0);
+                        }
+                      : () {
+                          recallFunction();
+                        },
+                ),
+              ],
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    PageHeadings(
+                      text: '7 Things',
+                      popAvailable: true,
+                      padding: EdgeInsets.fromLTRB(5, 20, 20, 0),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime(2010),
+                                lastDate: DateTime(2050),
+                                confirmText: 'Confirm',
+                              ).then((date) {
+                                if (date != null) {
+                                  Navigator.of(context).pushReplacement(PageRouteBuilder(
+                                    pageBuilder: (_, __, ___) => SevenThingsMain(date: date),
+                                    transitionDuration: Duration(seconds: 0),
+                                  ));
+                                  editingCallBack(false);
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 15),
+                              child: Text(
+                                "${DateFormat.MMMM().format(selectedDate)} ${selectedDate.year}".toUpperCase(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 24,
+                                  color: Color(0xFF707070),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 66,
+                            child: ScrollablePositionedList.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: daysBetween,
+                              itemBuilder: (c, i) {
+                                var toGet = DateTime(initialDate.year, initialDate.month, initialDate.day + i);
+                                var selected = false;
+                                if (toGet.compareTo(selectedDate) == 0) {
+                                  selected = true;
+                                }
+                                return GestureDetector(
+                                  onTap: !selected
+                                      ? () {
+                                          setState(() {
+                                            selectedDate = toGet;
+                                          });
+                                          editingCallBack(false, null);
+                                        }
+                                      : () {},
+                                  child: Container(
+                                    padding: EdgeInsets.fromLTRB(12, 6, 12, 6),
+                                    margin: EdgeInsets.fromLTRB(6, 0, 6, 15),
+                                    decoration: selected
+                                        ? BoxDecoration(
+                                            color: Color(0xFF170E9A),
+                                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Color.fromRGBO(0, 0, 0, 0.24),
+                                                blurRadius: 6,
+                                                offset: Offset(0, 3),
+                                              ),
+                                            ],
+                                          )
+                                        : BoxDecoration(),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          toGet.day.toString(),
+                                          style: TextStyle(
+                                            color: selected ? Colors.white : Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          DateFormat('EEE').format(toGet).toString().toUpperCase(),
+                                          style: TextStyle(
+                                            color: selected ? Colors.white : Colors.black,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                              itemScrollController: _itemScrollController,
+                              itemPositionsListener: _itemPositionsListener,
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                            child: Container(
+                              child: GetSevenThingList(date: selectedDate, key: Key(selectedDate.toString()), editingCallBack: editingCallBack, addCallBack: addCallBack),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        : Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+  }
+}
+
+class GetSevenThingList extends StatefulWidget {
+  final date;
+  final editingCallBack;
+  final addCallBack;
+
+  const GetSevenThingList({Key key, this.date, this.editingCallBack, this.addCallBack}) : super(key: key);
+
+  _GetSevenThingListState createState() => _GetSevenThingListState(date, editingCallBack, addCallBack);
+}
+
+class _GetSevenThingListState extends State<GetSevenThingList> {
+  final date;
+  final editingCallBack;
+  final addCallBack;
+
+  _GetSevenThingListState(this.date, this.editingCallBack, this.addCallBack);
+
+  Map<String, dynamic> content;
+
+  var ref;
+  var gRef;
+
+  @override
+  void initState() {
+    super.initState();
+    ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(date.toString()).get();
+    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').doc(date.toString()).get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: ref,
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 50),
+            child: Text("Something went wrong, please try again"),
           );
         }
 
-        return Scaffold(
-          body: SafeArea(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
+        if (snapshot.connectionState == ConnectionState.done) {
+          Map<String, dynamic> sevenThings = snapshot.data.data();
+          return SevenThingList(sevenThings: sevenThings, editingCallBack: editingCallBack, date: date, addCallBack: addCallBack);
+        }
+
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 50),
+          child: Center(child: CircularProgressIndicator()),
         );
       },
     );
   }
 }
 
-class SevenThings extends StatefulWidget {
+class SevenThingList extends StatefulWidget {
   final sevenThings;
+  final editingCallBack;
+  final addCallBack;
   final date;
 
-  const SevenThings({this.sevenThings, this.date});
+  const SevenThingList({Key key, this.sevenThings, this.editingCallBack, this.date, this.addCallBack}) : super(key: key);
 
-  _SevenThingsState createState() => _SevenThingsState(sevenThings: sevenThings, date: date);
+  _SevenThingListState createState() => _SevenThingListState(sevenThings, editingCallBack, date, addCallBack);
 }
 
-class _SevenThingsState extends State<SevenThings> {
+class _SevenThingListState extends State<SevenThingList> {
   Map<String, dynamic> sevenThings;
-  DateTime date;
+  final editingCallBack;
+  final addCallBack;
+  final date;
 
-  _SevenThingsState({this.sevenThings, this.date});
+  _SevenThingListState(this.sevenThings, this.editingCallBack, this.date, this.addCallBack);
 
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  var contentOrder = [];
+  var state = Status.NORMAL;
+  var gRef;
 
-  var tempSevenThingsType;
-  var newSevenThings;
+  TextEditingController _newSevenThings = new TextEditingController();
 
-  List<String> suggestions = <String>[];
+  Future<void> showLoading() {
+    return showDialog<void>(
+      barrierDismissible: false,
+      context: context,
+      builder: (c) {
+        return LoadingOverlay();
+      },
+    );
+  }
 
-  var editable = true;
-  var showEmpty = false;
-
-  var _newSevenThingsController = TextEditingController();
-  var _editSevenThingsController = TextEditingController();
-
-  final _editForm = GlobalKey<FormState>();
-
-  Future<List<String>> getSuggestions() async {
-    return await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').get().then((value) {
-      var goal = value.docs.last.data();
-      var result = <String>[];
-      goal.forEach((key, value) {
-        if (key != 'targetLCI') {
-          if (value['selected']) {
-            if (sevenThings[value['q3']] == null) {
-              result.add(value['q3']);
-            }
-          }
+  getProgress() {
+    if (sevenThings != null) {
+      var progress = 0.0;
+      sevenThings['content'].forEach((key, value) {
+        if (value['status']) {
+          progress++;
         }
       });
-      return result;
-    });
+      progress = progress / 7;
+      return progress;
+    } else {
+      return 0.0;
+    }
   }
+
+  var progressPercent;
 
   @override
   void initState() {
     super.initState();
-    getSuggestions().then((value) {
-      setState(() {
-        suggestions = value;
+    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection("Goals").get();
+    if (sevenThings == null || sevenThings['content'] == null || sevenThings['content'].length == 0) {
+      progressPercent = 0.0;
+      contentOrder = ["", "", "", "", "", "", ""];
+    } else {
+      if (sevenThings['status']['lockEdit'] != null) {
+        if (sevenThings['status']['lockEdit']) {
+          state = Status.LOCK_EDIT;
+        }
+      }
+
+      if (sevenThings['status']['locked'] != null) {
+        if (sevenThings['status']['locked']) {
+          state = Status.LOCK;
+        }
+      }
+
+      var primaryCounter = 0;
+      var secondaryCounter = 0;
+
+      sevenThings['content'].forEach((k, v) {
+        if (v['type'] == 'Primary') {
+          contentOrder.add(k);
+          primaryCounter++;
+        }
+      });
+      if (primaryCounter < 3) {
+        while (primaryCounter < 3) {
+          contentOrder.add("");
+          primaryCounter++;
+        }
+      }
+
+      sevenThings['content'].forEach((k, v) {
+        if (v['type'] == 'Secondary') {
+          contentOrder.add(k);
+          secondaryCounter++;
+        }
+      });
+      if (secondaryCounter < 4) {
+        while (secondaryCounter < 4) {
+          contentOrder.add("");
+          secondaryCounter++;
+        }
+      }
+
+      progressPercent = getProgress();
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      addCallBack(() async {
+        if (state == Status.NORMAL) {
+          if (contentOrder.contains("")) {
+            showDialog<String>(
+              context: context,
+              builder: (c) {
+                return PrimaryDialog(
+                  title: Text('Add Seven Things'),
+                  content: TextField(
+                    controller: _newSevenThings,
+                    style: TextStyle(fontSize: 16),
+                    maxLines: 1,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: 'Enter something here',
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        if (_newSevenThings.text.isNotEmpty) {
+                          Navigator.of(context).pop(_newSevenThings.text);
+                        }
+                      },
+                      child: Text('Confirm'),
+                    ),
+                  ],
+                );
+              },
+            ).then((value) async {
+              if (value != null) {
+                showLoading();
+                var type;
+                if (contentOrder.contains(value)) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                } else {
+                  for (var i = 0; i < contentOrder.length; i++) {
+                    var k = contentOrder[i];
+                    if (i > 3) {
+                      type = "Secondary";
+                    } else {
+                      type = "Primary";
+                    }
+                    if (k.isEmpty) {
+                      setState(() {
+                        contentOrder[i] = value;
+                        if (sevenThings['content'] == null) {
+                          sevenThings = {
+                            "content": {},
+                            "status": {},
+                          };
+                          sevenThings['content'][value] = {
+                            "status": false,
+                            "type": type,
+                          };
+                          sevenThings['content'] = sevenThings['content'];
+                        } else {
+                          sevenThings['content'][value] = {
+                            "status": false,
+                            "type": type,
+                          };
+                        }
+                      });
+                      break;
+                    }
+                  }
+                  await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                    Navigator.of(context).pop();
+                    _newSevenThings.text = "";
+                    progressPercent = getProgress();
+                  }).catchError((error) {
+                    print(error);
+                    Navigator.of(context).pop();
+                    _newSevenThings.text = "";
+                  });
+                }
+              }
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is full")));
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+        }
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
+    Function recallFunction = (type) async {
+      if (type == 0) {
+        showLoading();
+        var newContent = new Map<String, dynamic>();
+        for (var i = 0; i < contentOrder.length; i++) {
+          var k = contentOrder[i];
+          if (k.isNotEmpty) {
+            newContent[k] = sevenThings['content'][k];
+            if (i < 3) {
+              newContent[k]['type'] = "Primary";
+            } else {
+              newContent[k]['type'] = "Secondary";
+            }
+          }
+        }
+        await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+          Navigator.of(context).pop();
+          progressPercent = getProgress();
+        }).catchError((error) {
+          print(error);
+          Navigator.of(context).pop();
+        });
+        editingCallBack(false, () {});
+      }
+    };
 
-    Future<void> updateSevenThings() {
-      var toChange = date;
-      return user.doc(DateTime(toChange.year, toChange.month, toChange.day).toString()).set(sevenThings).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('There was an error inserting the item, please try again.'),
-          )));
+    popEdit() {
+      editingCallBack(true, recallFunction);
     }
 
-    Future<void> sevenThingsTypeSelectionDialog() {
-      return showDialog<void>(
+    Future<dynamic> showEditDelete(String key) {
+      _newSevenThings.text = key;
+      return showDialog<dynamic>(
         context: context,
-        builder: (BuildContext c) {
+        builder: (c) {
           return PrimaryDialog(
-            title: Text('Select a type'),
-            content: Text('Which type do you wan\'t this item to be assigned to ?'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  tempSevenThingsType = "Primary";
-                  Navigator.of(context).pop();
-                },
-                child: Text('Primary'),
-              ),
-              TextButton(
-                onPressed: () {
-                  tempSevenThingsType = "Secondary";
-                  Navigator.of(context).pop();
-                },
-                child: Text('Secondary'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-
-    Future<void> addSevenThingsDialog() {
-      return showDialog<void>(
-        context: context,
-        builder: (BuildContext c) {
-          return PrimaryDialog(
-            title: Text('Add Seven Things'),
+            title: Text("Edit Seven Things"),
             content: TextField(
-              controller: _newSevenThingsController,
+              controller: _newSevenThings,
               style: TextStyle(fontSize: 16),
               maxLines: 1,
+              textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                errorText: showEmpty ? 'Do not leave it blank' : null,
                 hintText: 'Enter something here',
               ),
             ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  if (_newSevenThingsController.text != "") {
-                    tempSevenThingsType = "Primary";
-                    Navigator.of(context).pop();
-                  } else {
-                    setState(() {
-                      showEmpty = true;
-                    });
-                  }
+                  Navigator.of(context).pop(0);
                 },
-                child: Text('Primary'),
+                child: Text('Delete', style: TextStyle(color: Color(0xFFFF0000))),
               ),
               TextButton(
                 onPressed: () {
-                  if (_newSevenThingsController.text != "") {
-                    tempSevenThingsType = "Secondary";
-                    Navigator.of(context).pop();
-                  } else {
-                    setState(() {
-                      showEmpty = true;
-                    });
-                  }
-                },
-                child: Text('Secondary'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-
-    Future<void> editSevenThing(String current) {
-      return showDialog<void>(
-        context: context,
-        builder: (BuildContext c) {
-          return PrimaryDialog(
-            title: Text('Edit Seven Things'),
-            content: Form(
-              key: _editForm,
-              child: TextFormField(
-                controller: _editSevenThingsController..text = current,
-                style: TextStyle(fontSize: 16),
-                maxLines: 1,
-                decoration: InputDecoration(
-                  errorText: showEmpty ? 'Do not leave it blank' : null,
-                  hintText: 'Enter something here',
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Do not leave it blank';
-                  } else {
-                    if (current != value) {
-                      if (sevenThings[value] != null) {
-                        return 'Duplicate seven things entered';
-                      }
-                    }
-                  }
-                  return null;
-                },
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  if (_editForm.currentState.validate()) {
-                    var temp = sevenThings[current];
-                    setState(() {
-                      sevenThings.remove(current);
-                      sevenThings[_editSevenThingsController.text] = temp;
-                      updateSevenThings();
-                    });
-                    Navigator.of(context).pop();
+                  if (_newSevenThings.text.isNotEmpty) {
+                    Navigator.of(context).pop(_newSevenThings.text);
                   }
                 },
                 child: Text('Confirm'),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancel'),
-              ),
             ],
           );
         },
       );
     }
 
-    arrangeSevenThings() {
-      Map<String, dynamic> primary = {};
-      Map<String, dynamic> secondary = {};
-      sevenThings.forEach((key, value) {
-        if (value['type'] == 'Primary') {
-          primary[key] = sevenThings[key];
-        } else {
-          secondary[key] = sevenThings[key];
-        }
-      });
-      primary.addAll(secondary);
-      setState(() {
-        sevenThings = primary;
-      });
-    }
-
-    if (sevenThings != null) {
-      arrangeSevenThings();
-    }
-
-    DateTime selectedDate = date;
-
-    if (selectedDate == null) {
-      selectedDate = DateTime.now();
-    }
-
-    Map<String, DateTime> getThisWeek() {
-      DateTime firstDayOfWeek = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
-      Map<String, DateTime> result = {
-        'MON': firstDayOfWeek,
-        'TUE': firstDayOfWeek.add(Duration(days: 1)),
-        'WED': firstDayOfWeek.add(Duration(days: 2)),
-        'THU': firstDayOfWeek.add(Duration(days: 3)),
-        'FRI': firstDayOfWeek.add(Duration(days: 4)),
-        'SAT': firstDayOfWeek.add(Duration(days: 5)),
-        'SUN': firstDayOfWeek.add(Duration(days: 6)),
-      };
-      return result;
-    }
-
-    getProgress() {
-      if (sevenThings != null) {
-        var progress = 0.0;
-        sevenThings.forEach((key, value) {
-          if (value['status']) {
-            progress++;
-          }
-        });
-        progress = progress / 7;
-        return progress;
-      } else {
-        return 0.0;
-      }
-    }
-
-    var progressPercent = getProgress();
-
-    final Map<String, DateTime> thisWeek = getThisWeek();
-    var format = DateFormat('MMMM');
-    String thisMonth = format.format(selectedDate);
-
-    return Scaffold(
-      key: _scaffoldKey,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: 'Your 7 Things',
-                popAvailable: true,
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+    return Column(
+      children: [
+        sevenThings != null && sevenThings['content'] != null
+            ? PrimaryCard(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      selectedDate.year == DateTime.now().year && selectedDate.day == DateTime.now().day && selectedDate.month == DateTime.now().month
-                          ? "TODAY"
-                          : DateFormat('dd MMMM yyyy').format(selectedDate).toString(),
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: Color(0xFF878787),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
-                      ),
+                    TextWithIcon(
+                      assetPath: 'assets/tasks.svg',
+                      text: 'Your 7 Things List',
                     ),
-                    Padding(padding: EdgeInsets.all(7.5)),
-                    GestureDetector(
-                      onTap: () {
-                        showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2010),
-                          lastDate: DateTime(2050),
-                          confirmText: 'Confirm',
-                        ).then((date) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetSevenThings(date: date))));
-                      },
-                      child: TextWithIcon(
-                        assetPath: 'assets/calendar.svg',
-                        text: thisMonth,
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(10)),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        for (var i = 0; i < thisWeek.length; i++)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, a1, a2) => GetSevenThings(date: thisWeek.entries.elementAt(i).value),
-                                    transitionDuration: Duration(seconds: 0),
-                                  ));
-                            },
-                            child: Container(
-                              height: 45,
-                              width: 45,
-                              decoration: thisWeek.entries.elementAt(i).value.day == selectedDate.day
-                                  ? BoxDecoration(
-                                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                                      color: Color(0xFF170E9A),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color.fromRGBO(0, 0, 0, 0.15),
-                                          blurRadius: 8,
-                                          offset: Offset(0, 4),
-                                        ),
-                                      ],
-                                    )
-                                  : BoxDecoration(),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    thisWeek.entries.elementAt(i).key,
-                                    style: TextStyle(
-                                      color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    thisWeek.entries.elementAt(i).value.day.toString(),
-                                    style: TextStyle(
-                                      color: thisWeek.entries.elementAt(i).value.day == selectedDate.day ? Colors.white : Color(0xFFAFAFAF),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(15)),
+                    Padding(padding: EdgeInsets.all(5)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           '7 Things Progress',
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                         Text(
                           (progressPercent * 100).toStringAsFixed(2) + '%',
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                       ],
                     ),
-                    Padding(padding: EdgeInsets.all(5)),
+                    Padding(padding: EdgeInsets.all(2)),
                     RoundedLinearProgress(
                       value: progressPercent,
                       color: Color(0xFF170E9A),
                     ),
-                    Padding(padding: EdgeInsets.all(20)),
-                    PrimaryCard(
-                      padding: EdgeInsets.fromLTRB(24, 20, 24, 24),
-                      child: Column(
+                    Padding(padding: EdgeInsets.all(7.5)),
+                    Container(
+                      height: 355,
+                      child: ReorderableListView(
+                        buildDefaultDragHandles: false,
+                        physics: NeverScrollableScrollPhysics(),
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextWithIcon(
-                                assetPath: 'assets/tasks.svg',
-                                text: 'Your 7 Things List',
-                              ),
-                              ClipOval(
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      await addSevenThingsDialog();
-                                      var countPrimary = 0;
-                                      var countSecondary = 0;
-                                      if (sevenThings != null) {
-                                        sevenThings.values.forEach((element) {
-                                          if (element['type'] == "Primary") {
-                                            countPrimary++;
-                                          } else {
-                                            countSecondary++;
-                                          }
-                                        });
-                                      }
-                                      if (countPrimary == 3 && tempSevenThingsType == "Primary") {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('You already have 3 Primary Things'),
-                                          ),
-                                        );
-                                        return;
-                                      } else if (countSecondary == 4 && tempSevenThingsType == "Secondary") {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('You already have 4 Secondary Things'),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      if (_newSevenThingsController.text != "" && tempSevenThingsType != null) {
-                                        var addClientComplete = false;
-                                        setState(
-                                          () {
-                                            if (sevenThings != null) {
-                                              if (!sevenThings.containsKey(_newSevenThingsController.text) && sevenThings.length < 7) {
-                                                if (sevenThings[suggestions] != null) {
-                                                  sevenThings[_newSevenThingsController.text]['status'] = false;
-                                                  sevenThings[_newSevenThingsController.text]['type'] = tempSevenThingsType;
-                                                } else {
-                                                  sevenThings[_newSevenThingsController.text] = {"status": false, "type": tempSevenThingsType};
-                                                }
-                                                addClientComplete = true;
-                                                suggestions.remove(_newSevenThingsController.text);
+                          for (int i = 0; i < contentOrder.length; i++)
+                            Container(
+                              key: Key(i.toString()),
+                              child: contentOrder[i].isNotEmpty
+                                  ? Container(
+                                      decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
+                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: contentOrder[i].isNotEmpty
+                                                ? () {
+                                              if (state != Status.LOCK) {
+                                                setState(() {
+                                                  sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
+                                                });
+                                                popEdit();
                                               } else {
-                                                var message = "";
-                                                if (sevenThings.length == 7) {
-                                                  message = "Your 7 things list is full, remove something and try again.";
-                                                } else {
-                                                  message = 'Your 7 things list contains the same item.';
-                                                }
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(message),
-                                                  ),
-                                                );
+                                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
                                               }
-                                            } else {
-                                              suggestions.remove(_newSevenThingsController.text);
-                                              sevenThings = {
-                                                _newSevenThingsController.text: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                              };
-                                              addClientComplete = true;
                                             }
-                                            if (addClientComplete) {
-                                              updateSevenThings();
-                                              tempSevenThingsType = null;
-                                              _newSevenThingsController.text = "";
-                                            }
-                                          },
-                                        );
-                                      }
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.all(10),
-                                      child: SvgPicture.asset(
-                                        'assets/plus.svg',
-                                        height: 18,
-                                        width: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.all(4)),
-                          sevenThings != null && sevenThings.length > 0
-                              ? Column(
-                                  children: sevenThings.keys.map((key) {
-                                    return GestureDetector(
-                                      onLongPress: () {
-                                        editSevenThing(key);
-                                      },
-                                      onTap: () {
-                                        setState(() {
-                                          sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                          updateSevenThings();
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                        decoration: sevenThings[key]['type'] == 'Primary'
-                                            ? BoxDecoration(
-                                                color: Color(0xFFF2F2F2),
-                                                borderRadius: BorderRadius.all(Radius.circular(5)),
-                                              )
-                                            : BoxDecoration(),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
+                                                : () {},
+                                            onLongPress: contentOrder[i].isNotEmpty && state == Status.NORMAL
+                                                ? () async {
+                                                    await showEditDelete(contentOrder[i]).then((value) async {
+                                                      if (value != null && value != contentOrder[i]) {
+                                                        showLoading();
+                                                        if (value != 0) {
+                                                          var occurrence = 0;
+                                                          for (var s in contentOrder) {
+                                                            if (s == value) {
+                                                              occurrence++;
+                                                            }
+                                                          }
+                                                          if (occurrence > 1) {
+                                                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                                                          } else {
+                                                            setState(() {
+                                                              var details = sevenThings['content'][contentOrder[i]];
+                                                              sevenThings['content'].remove(contentOrder[i]);
+                                                              sevenThings['content'][value] = details;
+                                                              contentOrder[i] = value;
+                                                              sevenThings['content'][value] = details;
+                                                            });
+                                                            await FirebaseFirestore.instance
+                                                                .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                                .set(sevenThings)
+                                                                .then((value) {
+                                                              Navigator.of(context).pop();
+                                                              _newSevenThings.text = "";
+                                                            }).catchError((error) {
+                                                              print(error);
+                                                              Navigator.of(context).pop();
+                                                            });
+                                                          }
+                                                        } else {
+                                                          setState(() {
+                                                            sevenThings['content'].remove(contentOrder[i]);
+                                                            sevenThings['content'].remove(contentOrder[i]);
+                                                            contentOrder[i] = "";
+                                                          });
+                                                          await FirebaseFirestore.instance
+                                                              .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                              .set(sevenThings)
+                                                              .then((value) {
+                                                            Navigator.of(context).pop();
+                                                            _newSevenThings.text = "";
+                                                          }).catchError((error) {
+                                                            print(error);
+                                                            Navigator.of(context).pop();
+                                                          });
+                                                        }
+                                                      }
+                                                    });
+                                                  }
+                                                : () {},
+                                            child: Row(
                                               children: [
                                                 SizedBox(
                                                   height: 20,
@@ -622,23 +699,30 @@ class _SevenThingsState extends State<SevenThings> {
                                                   child: Checkbox(
                                                     activeColor: Color(0xFFF48A1D),
                                                     checkColor: Colors.white,
-                                                    value: sevenThings[key]['status'],
+                                                    value: sevenThings['content'][contentOrder[i]]['status'],
                                                     onChanged: (value) {
-                                                      setState(() {
-                                                        sevenThings[key]['status'] = value;
-                                                        progressPercent = getProgress();
-                                                      });
+                                                      if (state != Status.LOCK) {
+                                                        setState(() {
+                                                          sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
+                                                        });
+                                                        popEdit();
+                                                      } else {
+                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+                                                      }
                                                     },
                                                   ),
                                                 ),
                                                 Padding(padding: EdgeInsets.all(7.5)),
                                                 Text(
-                                                  key,
+                                                  contentOrder[i],
                                                   style: TextStyle(fontSize: 17),
                                                 ),
                                               ],
                                             ),
-                                            ClipOval(
+                                          ),
+                                          state == Status.NORMAL ? ReorderableDragStartListener(
+                                            index: i,
+                                            child: ClipOval(
                                               child: Material(
                                                 color: Colors.transparent,
                                                 child: InkWell(
@@ -647,137 +731,234 @@ class _SevenThingsState extends State<SevenThings> {
                                                     child: SizedBox(
                                                       width: 16,
                                                       height: 16,
-                                                      child: SvgPicture.asset(
-                                                        'assets/close.svg',
-                                                        color: Color(0xFF878787),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  onTap: () {
-                                                    setState(() {
-                                                      if (sevenThings[key]['source'] == "Suggested") {
-                                                        suggestions.add(key);
-                                                      }
-                                                      sevenThings.remove(key);
-                                                      updateSevenThings();
-                                                    });
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                )
-                              : Text(
-                                  'You have ' + (sevenThings == null ? '0' : sevenThings.length.toString()) + '/7 items in the list.',
-                                  style: TextStyle(color: Color(0xFF878787), fontSize: 14),
-                                ),
-                          Padding(padding: EdgeInsets.all(5)),
-                        ],
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(20)),
-                    PrimaryCard(
-                      padding: EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          TextWithIcon(
-                            assetPath: 'assets/lightbulb.svg',
-                            text: '7 Things Suggestions',
-                          ),
-                          Padding(padding: EdgeInsets.all(10)),
-                          suggestions != null
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (var suggestion in suggestions)
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            suggestion.toString(),
-                                            style: TextStyle(fontSize: 17),
-                                          ),
-                                          ClipOval(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(10),
-                                                  child: SizedBox(
-                                                    width: 16,
-                                                    height: 16,
-                                                    child: SvgPicture.asset(
-                                                      'assets/plus.svg',
-                                                      color: Color(0xFF878787),
+                                                      child: Icon(Icons.drag_indicator),
                                                     ),
                                                   ),
                                                 ),
-                                                onTap: () async {
-                                                  var addClientComplete = false;
-                                                  await sevenThingsTypeSelectionDialog();
-                                                  if (tempSevenThingsType != null) {
-                                                    setState(
-                                                      () {
-                                                        if (sevenThings != null) {
-                                                          if (!sevenThings.containsKey(suggestion) && sevenThings.length < 7) {
-                                                            if (sevenThings[suggestions] != null) {
-                                                              sevenThings[suggestion]['status'] = false;
-                                                              sevenThings[suggestion]['type'] = tempSevenThingsType;
-                                                            } else {
-                                                              sevenThings[suggestion] = {"status": false, "source": "Suggested", "type": tempSevenThingsType};
-                                                            }
-                                                            addClientComplete = true;
-                                                            suggestions.remove(suggestion);
-                                                          } else {
-                                                            var message = "";
-                                                            if (sevenThings.length == 7) {
-                                                              message = "Your 7 things list is full, remove something and try again.";
-                                                            } else {
-                                                              message = 'Your 7 things list contains the same item.';
-                                                            }
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                content: Text(message),
-                                                              ),
-                                                            );
-                                                          }
-                                                        } else {
-                                                          suggestions.remove(suggestion);
-                                                          sevenThings = {
-                                                            suggestion: {"status": false, "source": "Suggested", "type": tempSevenThingsType}
-                                                          };
-                                                          addClientComplete = true;
-                                                        }
-                                                        if (addClientComplete) {
-                                                          updateSevenThings();
-                                                          tempSevenThingsType = null;
-                                                        }
-                                                      },
-                                                    );
-                                                  }
-                                                },
                                               ),
                                             ),
+                                          ) : Container(
+                                            height: 32,
                                           ),
                                         ],
                                       ),
-                                  ],
-                                )
-                              : CircularProgressIndicator(),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
+                                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 8),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: Checkbox(
+                                              value: null,
+                                              activeColor: Color(0xFFB6B6B6),
+                                              onChanged: (v) {},
+                                              tristate: true,
+                                            ),
+                                          ),
+                                          Padding(padding: EdgeInsets.all(7.5)),
+                                          Text(
+                                            "Empty",
+                                            style: TextStyle(fontSize: 16, color: Color(0xFF929292)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                            ),
                         ],
+                        onReorder: (oldIndex, newIndex) {
+                          setState(() {
+                            if (oldIndex < newIndex) {
+                              newIndex -= 1;
+                            }
+                            final String item = contentOrder.removeAt(oldIndex);
+                            contentOrder.insert(newIndex, item);
+                          });
+                          popEdit();
+                        },
                       ),
                     ),
                   ],
                 ),
               )
+            : PrimaryCard(
+                child: Column(
+                  children: [
+                    TextWithIcon(
+                      assetPath: 'assets/tasks.svg',
+                      text: 'Your 7 Things List',
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Text("No 7 things set"),
+                    ),
+                  ],
+                ),
+              ),
+        Padding(padding: EdgeInsets.all(20)),
+        state == Status.NORMAL ? PrimaryCard(
+          child: Column(
+            children: [
+              TextWithIcon(
+                assetPath: 'assets/light-bulb.svg',
+                text: '7 Things Suggestions',
+              ),
+              Padding(padding: EdgeInsets.all(10)),
+              FutureBuilder(
+                future: gRef,
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: EdgeInsets.all(30),
+                      child: Text("No 7 things set"),
+                    );
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if(snapshot.data != null && snapshot.data.docs.length > 0) {
+                      Map<String, dynamic> goals = snapshot.data.docs.last.data();
+                      var toShow = [];
+                      goals.forEach((k, v) {
+                        if (k != 'targetLCI') {
+                          if (v['selected']) {
+                            toShow.add(v['q3']);
+                          }
+                        }
+                      });
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: toShow.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                toShow[index],
+                                style: TextStyle(fontSize: 17),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  _newSevenThings.text = toShow[index];
+                                  if (contentOrder.contains("")) {
+                                    showDialog<String>(
+                                      context: context,
+                                      builder: (c) {
+                                        return PrimaryDialog(
+                                          title: Text('Add Seven Things'),
+                                          content: TextField(
+                                            controller: _newSevenThings,
+                                            style: TextStyle(fontSize: 16),
+                                            maxLines: 1,
+                                            textCapitalization: TextCapitalization.sentences,
+                                            decoration: InputDecoration(
+                                              hintText: 'Enter something here',
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () {
+                                                if (_newSevenThings.text.isNotEmpty) {
+                                                  Navigator.of(context).pop(_newSevenThings.text);
+                                                }
+                                              },
+                                              child: Text('Confirm'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ).then((value) async {
+                                      if (value != null) {
+                                        showLoading();
+                                        var type;
+                                        if (contentOrder.contains(value)) {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                                        } else {
+                                          for (var i = 0; i < contentOrder.length; i++) {
+                                            var k = contentOrder[i];
+                                            if (i > 3) {
+                                              type = "Secondary";
+                                            } else {
+                                              type = "Primary";
+                                            }
+                                            if (k.isEmpty) {
+                                              setState(() {
+                                                contentOrder[i] = value;
+                                                if (sevenThings == null || sevenThings['content'] == null) {
+                                                  sevenThings = {
+                                                    "content": {},
+                                                    "status": {},
+                                                  };
+                                                  sevenThings['content'][value] = {
+                                                    "status": false,
+                                                    "type": type,
+                                                  };
+                                                  sevenThings['content'] = sevenThings['content'];
+                                                } else {
+                                                  sevenThings['content'][value] = {
+                                                    "status": false,
+                                                    "type": type,
+                                                  };
+                                                }
+                                              });
+                                              break;
+                                            }
+                                          }
+                                          await FirebaseFirestore.instance
+                                              .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                              .set(sevenThings)
+                                              .then((value) {
+                                            Navigator.of(context).pop();
+                                            _newSevenThings.text = "";
+                                            progressPercent = getProgress();
+                                          }).catchError((error) {
+                                            print(error);
+                                            Navigator.of(context).pop();
+                                            _newSevenThings.text = "";
+                                          });
+                                        }
+                                      }
+                                    });
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is full")));
+                                  }
+                                },
+                                child: Text(
+                                  'Add',
+                                  style: TextStyle(fontSize: 17),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      return Padding(
+                        padding: EdgeInsets.all(30),
+                        child: Text("No goals set"),
+                      );
+                    }
+                  }
+
+                  return Padding(
+                    padding: EdgeInsets.all(30),
+                    child: CircularProgressIndicator(),
+                  );
+                },
+              ),
             ],
           ),
-        ),
-      ),
+        ) : SizedBox.shrink(),
+        Padding(padding: EdgeInsets.all(30)),
+      ],
     );
   }
+}
+
+enum Status {
+  LOCK_EDIT,
+  LOCK,
+  NORMAL,
 }

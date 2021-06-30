@@ -20,6 +20,7 @@ class InputBox extends StatelessWidget {
   final BorderRadiusGeometry borderRadius;
   final TextAlign textAlign;
   final bool readOnly;
+  final Color color;
 
   const InputBox({
     this.focusNode,
@@ -31,6 +32,7 @@ class InputBox extends StatelessWidget {
     this.borderRadius,
     this.textAlign = TextAlign.left,
     this.readOnly = false,
+    this.color = Colors.transparent,
   });
 
   Widget build(BuildContext context) {
@@ -69,7 +71,7 @@ class InputBox extends StatelessWidget {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
-          fillColor: Color(0xFFF2F2F2),
+          fillColor: color == Colors.transparent ? Color(0xFFF2F2F2) : Colors.white,
           filled: true,
           hintStyle: TextStyle(
             color: Color(0xFFB4B4B4),
@@ -77,12 +79,12 @@ class InputBox extends StatelessWidget {
           enabledBorder: OutlineInputBorder(
               borderRadius: bRadius,
               borderSide: BorderSide(
-                color: Colors.transparent,
+                color: color,
               )),
           focusedBorder: OutlineInputBorder(
             borderRadius: bRadius,
             borderSide: BorderSide(
-              color: Color(0xFFF7DABFB),
+              color: color == Colors.transparent ? Color(0xFFF7DABFB) : color,
             ),
           ),
         ),
@@ -285,13 +287,6 @@ class _FacebookSignInButtonState extends State<FacebookSignInButton> {
     final FacebookAccessToken accessToken = result.accessToken;
     AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
     var a = await _auth.signInWithCredential(credential);
-    if (a.user != null) {
-      // Navigator.pushReplacement(
-      //     context, MaterialPageRoute(builder: (context) => GetUserData()));
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("logged in success!"),
-      ));
-    }
   }
 
   Widget build(BuildContext build) {
@@ -434,51 +429,54 @@ class PageHeadings extends StatelessWidget {
   final String text;
   final String metaText;
   final bool popAvailable;
+  final EdgeInsets padding;
 
-  PageHeadings({this.text = "", this.metaText = "", this.popAvailable = false});
+  PageHeadings({this.text = "", this.metaText = "", this.popAvailable = false, this.padding = const EdgeInsets.fromLTRB(5, 20, 20, 20)});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: metaText.isNotEmpty ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-      children: [
-        popAvailable
-            ? GestureDetector(
-                onTap: () {
-                  Navigator.of(context).maybePop();
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-                  child: SvgPicture.asset(
-                    'assets/back.svg',
-                    height: 26,
-                    width: 26,
+    return Container(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: metaText.isNotEmpty ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          popAvailable
+              ? GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).maybePop();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    child: SvgPicture.asset(
+                      'assets/back.svg',
+                      height: 26,
+                      width: 26,
+                    ),
                   ),
+                )
+              : SizedBox.shrink(),
+          Container(
+            width: MediaQuery.of(context).size.width - 66.5 - 38,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  text,
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
                 ),
-              )
-            : SizedBox.shrink(),
-        Container(
-          margin: popAvailable && metaText.isNotEmpty ? EdgeInsets.only(top: 20) : EdgeInsets.zero,
-          width: MediaQuery.of(context).size.width - 66.5,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                text,
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
-              ),
-              metaText.isNotEmpty
-                  ? Text(
-                      metaText,
-                      style: TextStyle(
-                        color: Color(0xFF878787),
-                      ),
-                    )
-                  : SizedBox.shrink(),
-            ],
+                metaText.isNotEmpty
+                    ? Text(
+                        metaText,
+                        style: TextStyle(
+                          color: Color(0xFF878787),
+                        ),
+                      )
+                    : SizedBox.shrink(),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -844,6 +842,21 @@ class _VideoPlayerState extends State<VideoPlayer> {
       content: YoutubePlayerControllerProvider(
         controller: _controller,
         child: YoutubePlayerIFrame(),
+      ),
+    );
+  }
+}
+
+class LoadingOverlay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () => Future.value(false),
+      child: AlertDialog(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+        content: Center(child: CircularProgressIndicator(backgroundColor: Colors.transparent)),
       ),
     );
   }

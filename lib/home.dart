@@ -66,6 +66,17 @@ class _HomeState extends State<Home> {
         )));
   }
 
+  Future<void> infoVideo() {
+    return showDialog<void>(
+      context: context,
+      builder: (c) {
+        return VideoPlayer(
+          url: Video.VIDEO_1,
+        );
+      },
+    );
+  }
+
   Widget build(BuildContext context) {
     var goalDetails = GoalsDetails();
 
@@ -88,21 +99,21 @@ class _HomeState extends State<Home> {
       setState(() {
         sevenThings = primary;
       });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+          if(!value.get('viewedHome')) {
+            infoVideo();
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+              "viewedHome" : true,
+            });
+          }
+        });
+      });
     }
 
     if (sevenThings != null) {
       arrangeSevenThings();
-    }
-
-    Future<void> infoVideo() {
-      return showDialog<void>(
-        context: context,
-        builder: (c) {
-          return VideoPlayer(
-            url: Video.VIDEO_1,
-          );
-        },
-      );
     }
 
     return Scaffold(
@@ -119,26 +130,7 @@ class _HomeState extends State<Home> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      PageHeadings(text: 'Home'),
-                      GestureDetector(
-                        onTap: () {
-                          infoVideo();
-                        },
-                        child: SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: SvgPicture.asset(
-                            'assets/info.svg',
-                            height: 14,
-                            width: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  PageHeadings(text: 'Home', padding: EdgeInsets.zero),
                   Container(
                     margin: EdgeInsets.only(top: 20),
                     child: Column(
@@ -338,7 +330,7 @@ class _HomeState extends State<Home> {
                             ClickablePrimaryCard(
                               padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
                               onClickFunction: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => GetSevenThings()));
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SevenThingsMain()));
                               },
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -372,11 +364,7 @@ class _HomeState extends State<Home> {
                                                             activeColor: Color(0xFFF48A1D),
                                                             checkColor: Colors.white,
                                                             value: sevenThings[key]['status'],
-                                                            onChanged: (value) {
-                                                              setState(() {
-                                                                sevenThings[key]['status'] = value;
-                                                              });
-                                                            },
+                                                            onChanged: (value) {},
                                                           ),
                                                         ),
                                                         Padding(padding: EdgeInsets.all(7.5)),
@@ -406,10 +394,7 @@ class _HomeState extends State<Home> {
                                               color: Color(0xFF7A90FE),
                                               textColor: Colors.white,
                                               onClickFunction: () {
-                                                Navigator.of(context).push(MaterialPageRoute(
-                                                    builder: (context) => Lci(
-                                                          userdata: userdata,
-                                                        )));
+                                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SevenThingsMain()));
                                               },
                                             ),
                                           ],
@@ -433,11 +418,18 @@ class _HomeState extends State<Home> {
 }
 
 class GetUserData extends StatefulWidget {
-  _GetUserDataState createState() => _GetUserDataState();
+  final point;
+
+  const GetUserData({Key key, this.point}) : super(key: key);
+
+  _GetUserDataState createState() => _GetUserDataState(point);
 }
 
 class _GetUserDataState extends State<GetUserData> {
+  final point;
   var toSearch;
+
+  _GetUserDataState(this.point);
 
   Future<DateTime> getNetworkTime() async {
     DateTime _myTime;
@@ -482,7 +474,9 @@ class _GetUserDataState extends State<GetUserData> {
             if (snapshot.data[3].docs.length != 0) {
               goals = snapshot.data[3].docs.last.data();
             }
-            sevenThings = snapshot.data[1].data();
+            if(snapshot.data[1].data() != null) {
+              sevenThings = snapshot.data[1].data()['content'];
+            }
             userdata.name = snapshot.data[0].get('name');
             userdata.gender = snapshot.data[0].get('gender');
             userdata.country = snapshot.data[0].get('country');
@@ -496,7 +490,8 @@ class _GetUserDataState extends State<GetUserData> {
             }
             userdata.email = FirebaseAuth.instance.currentUser.email;
 
-            return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals);
+
+            return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals, point: point);
           } else {
             var userdata = UserData();
             var sso = true;
@@ -505,7 +500,7 @@ class _GetUserDataState extends State<GetUserData> {
           }
         }
 
-        return Scaffold(body: CircularProgressIndicator());
+        return Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
@@ -516,21 +511,42 @@ class HomeBase extends StatefulWidget {
   final LCIScore wheeldata;
   final sevenThings;
   final goals;
+  final point;
+  final isViewed;
 
-  const HomeBase({this.userdata, this.wheeldata, this.sevenThings, this.goals});
+  const HomeBase({this.userdata, this.wheeldata, this.sevenThings, this.goals, this.point, this.isViewed});
 
-  _HomeBaseState createState() => _HomeBaseState(userdata, wheeldata, sevenThings, goals);
+  _HomeBaseState createState() => _HomeBaseState(userdata, wheeldata, sevenThings, goals, point, isViewed);
 }
 
 class _HomeBaseState extends State<HomeBase> {
+  final point;
+  final isViewed;
   UserData userdata;
   LCIScore wheelData;
   var sevenThings;
   var goals;
 
+  var campaignPage;
+
   int index = 0;
 
-  _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals);
+  _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals, this.point, this.isViewed);
+
+  @override
+  void initState() {
+    super.initState();
+    campaignPage = userdata.currentEnrolledCampaign.isNotEmpty
+        ? LoadCampaign(userdata: userdata)
+        : CampaignNew(
+            userdata: userdata,
+          );
+    if (point != null) {
+      setState(() {
+        index = point;
+      });
+    }
+  }
 
   void onTap(int i) {
     setState(() {
@@ -542,11 +558,7 @@ class _HomeBaseState extends State<HomeBase> {
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
       Home(userdata: userdata, wheelData: wheelData, sevenThings: sevenThings, goals: goals),
-      userdata.currentEnrolledCampaign.isNotEmpty
-          ? LoadCampaign(userdata: userdata)
-          : CampaignNew(
-              userdata: userdata,
-            ),
+      campaignPage,
       Profile(userdata: userdata),
     ];
     return Scaffold(

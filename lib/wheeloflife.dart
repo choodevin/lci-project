@@ -6,6 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spider_chart/spider_chart.dart';
 
+import 'entity/Video.dart';
+
 class LoadWheelOfLife extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,33 @@ class _WheelOfLife extends State<WheelOfLife> {
   bool isAverage = false;
 
   _WheelOfLife(this.scoreBundle);
+
+  Future<void> infoVideo() {
+    return showDialog<void>(
+      context: context,
+      builder: (c) {
+        return VideoPlayer(
+          url: Video.VIDEO_1,
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+        if(!value.get('viewedWheelOfLife')) {
+          infoVideo();
+          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+            "viewedWheelOfLife" : true,
+          });
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,3 @@
 class Video {
-  static const VIDEO_1 = 'ltlyW10wAd8';
+  static const VIDEO_1 = 'asd';
 }

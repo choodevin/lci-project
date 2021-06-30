@@ -130,7 +130,7 @@ class _LoginFormState extends State<LoginForm> {
               onClickFunction: () async {
                 if (_emailController.text.isEmpty ||
                     _passwordController.text.isEmpty) {
-                  Scaffold.of(context).showSnackBar(SnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text("Please fill in all the credentials.")));
                 } else {
                   FocusScope.of(context).unfocus();
@@ -144,7 +144,7 @@ class _LoginFormState extends State<LoginForm> {
                           MaterialPageRoute(builder: (context) => GetUserData()));
                     }
                   } on FirebaseAuthException {
-                    Scaffold.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Invalid email or password")));
                   }
                 }

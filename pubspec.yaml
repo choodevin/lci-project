@@ -39,6 +39,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.0
   youtube_player_iframe: ^2.1.0
+  scrollable_positioned_list: ^0.1.10
+  collection: ^1.15.0
+  radar_chart: ^2.0.1
 
 dev_dependencies:
   flutter_test:

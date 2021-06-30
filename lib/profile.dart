@@ -1,6 +1,5 @@
 import 'package:LCI/custom-components.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +31,7 @@ class _ProfileState extends State<Profile> {
               children: [
                 PageHeadings(
                   text: 'Your Profile',
+                  padding: EdgeInsets.zero,
                 ),
                 Padding(padding: EdgeInsets.all(10)),
                 PrimaryCard(

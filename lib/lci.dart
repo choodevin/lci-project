@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,7 +10,8 @@ import 'package:syncfusion_flutter_sliders/sliders.dart';
 
 import 'custom-components.dart';
 import 'entity/LCIScore.dart';
-import 'entity/UserData.dart';
+import 'entity/Video.dart';
+import 'home.dart';
 
 class Lci extends StatelessWidget {
   final userdata;
@@ -22,8 +20,32 @@ class Lci extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var lciRules = ['Any Rules can state here'];
-
+    Future<void> infoVideo() {
+      return showDialog<void>(
+        context: context,
+        builder: (c) {
+          return VideoPlayer(
+            url: Video.VIDEO_1,
+          );
+        },
+      );
+    }
+    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+      if(!value.get('viewedLCI')) {
+        infoVideo();
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+          "viewedLCI" : true,
+        });
+      }
+    });
+    var lciRules = "Life Compass Inventory (LCI) is a tool that quantify 10 areas in your life, and therefore able to visually understand your current life’s condition.\n\n" +
+    "Imagine today you would like to understand your body health condition, you will go to hospital or clinic to do some test like blood test, urine test and etc. And the function of all these tests is to transform your body condition to a readable number, so that you can understand your body condition. LCI does the same for your life.\n\n" +
+    "It is an inventory that helps individual to explore and aware of different areas in life in a deeper level, by transforming the result to a readable quantification. It gives a deeper understanding to each area of life.\n\n" +
+    "To do this, we will recommend you do the LCI under these conditions:\n" +
+    "First, find a place that you can focus and will not be disturb for 10 minutes \n" +
+    "Secondly, clear your mind, take few deep breath\n" +
+    "Third, there will be 50 questions, try to answer with your first impression, there is no right or wrong\n\n" +
+    "You will need to choose if you are Single or In Relationship/Engage before you start. Once you complete, you will get a chart that shows your wheel of life. You can do it once a month or two to keep track your progress. Enjoy!";
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -35,7 +57,7 @@ class Lci extends StatelessWidget {
                 popAvailable: true,
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
+                padding: EdgeInsets.fromLTRB(20, 25, 25, 25),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -48,12 +70,10 @@ class Lci extends StatelessWidget {
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           Padding(padding: EdgeInsets.all(10)),
-                          for (var i = 0; i < lciRules.length; i++)
                             Text(
-                              (i + 1).toString() + '. ' + lciRules[i],
+                              lciRules,
                               style: TextStyle(
-                                fontSize: 17,
-                                color: Color(0xFF5D88FF),
+                                fontSize: 16,
                               ),
                             ),
                         ],
@@ -446,11 +466,12 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
       list.add(i.toString());
       var x = i;
       var f = x % 5;
-      if(x == 0) {
+      if (f == 0) {
         f = 5;
       }
       subList.add(f.toString());
     }
+    print(subList);
     list.shuffle();
     getNetworkTime().then((value) {
       setState(() {
@@ -469,7 +490,6 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
           .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
           .set(score)
           .then((value) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
       });
     }
@@ -592,88 +612,89 @@ class LciResult extends StatelessWidget {
     var subScore = scoreObj.subScore();
     var colors = scoreObj.colors();
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
-            ),
-            padding: EdgeInsets.fromLTRB(25, 35, 25, 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                PageHeadings(text: 'Your LCI Result'),
-                Container(
-                  height: 300,
-                  child: SpiderChart(
-                    data: [
-                      subScore['Spiritual Life'],
-                      subScore['Romance Relationship'],
-                      subScore['Family'],
-                      subScore['Social Life'],
-                      subScore['Health & Fitness'],
-                      subScore['Hobby & Leisure'],
-                      subScore['Physical Environment'],
-                      subScore['Self-Development'],
-                      subScore['Career or Study'],
-                      subScore['Finance']
-                    ],
-                    maxValue: 10,
-                    colors: [
-                      Color(0xFF7C0E6F),
-                      Color(0xFF6EC8F4),
-                      Color(0xFFC4CF54),
-                      Color(0xFFE671A8),
-                      Color(0xFF003989),
-                      Color(0xFFF27C00),
-                      Color(0xFFFFE800),
-                      Color(0xFF00862F),
-                      Color(0xFFD9000D),
-                      Color(0xFF8C8B8B),
-                    ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => GetUserData(point: 0)));
+        return true;
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PageHeadings(text: 'Your LCI Result', padding: EdgeInsets.zero),
+                  Padding(padding: EdgeInsets.all(10)),
+                  Container(
+                    height: 300,
+                    child: SpiderChart(
+                      data: [
+                        subScore['Spiritual Life'],
+                        subScore['Romance Relationship'],
+                        subScore['Family'],
+                        subScore['Social Life'],
+                        subScore['Health & Fitness'],
+                        subScore['Hobby & Leisure'],
+                        subScore['Physical Environment'],
+                        subScore['Self-Development'],
+                        subScore['Career or Study'],
+                        subScore['Finance']
+                      ],
+                      maxValue: 10,
+                      colors: [
+                        Color(0xFF7C0E6F),
+                        Color(0xFF6EC8F4),
+                        Color(0xFFC4CF54),
+                        Color(0xFFE671A8),
+                        Color(0xFF003989),
+                        Color(0xFFF27C00),
+                        Color(0xFFFFE800),
+                        Color(0xFF00862F),
+                        Color(0xFFD9000D),
+                        Color(0xFF8C8B8B),
+                      ],
+                    ),
                   ),
-                ),
-                Padding(padding: EdgeInsets.all(20)),
-                Text(
-                  'Your top 3 focused fields',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
+                  Padding(padding: EdgeInsets.all(10)),
+                  Column(
+                    children: subScore.keys.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              e,
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                            ),
+                            Padding(padding: EdgeInsets.all(5)),
+                            RoundedLinearProgress(
+                              color: colors[e],
+                              value: subScore[e] / 10,
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
-                Padding(padding: EdgeInsets.all(20)),
-                Column(
-                  children: subScore.keys.map((e) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 40),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            e,
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-                          ),
-                          Padding(padding: EdgeInsets.all(5)),
-                          RoundedLinearProgress(
-                            color: colors[e],
-                            value: subScore[e] / 10,
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-                Padding(padding: EdgeInsets.all(20)),
-                PrimaryButton(
-                  text: 'Back to home',
-                  textColor: Colors.white,
-                  color: Color(0xFF170E9A),
-                  onClickFunction: () {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
-                ),
-              ],
+                  Padding(padding: EdgeInsets.all(20)),
+                  PrimaryButton(
+                    text: 'Back to home',
+                    textColor: Colors.white,
+                    color: Color(0xFF170E9A),
+                    onClickFunction: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => GetUserData(point: 0)));
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

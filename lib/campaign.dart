@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:LCI/custom-components.dart';
+import 'package:LCI/home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +12,7 @@ import 'entity/CampaignData.dart';
 import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
+import 'entity/Video.dart';
 import 'goal.dart';
 
 class LoadCampaign extends StatelessWidget {
@@ -41,10 +43,10 @@ class LoadCampaign extends StatelessWidget {
           campaign.sevenThingsPenaltyDecision = snapshot.data.docs.last.get('sevenThingsPenaltyDecision');
           campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
           campaign.startDate = snapshot.data.docs.last.get('startDate');
-          return CampaignMain(campaign: campaign);
+          return CampaignMain(campaign: campaign, userdata: userdata);
         }
 
-        return Scaffold(body: CircularProgressIndicator());
+        return Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
@@ -67,6 +69,7 @@ class CampaignNew extends StatelessWidget {
               PageHeadings(
                 text: 'Campaign',
                 metaText: 'Haven\'t join any Campaign yet?',
+                padding: EdgeInsets.zero,
               ),
               Padding(padding: EdgeInsets.all(25)),
               PrimaryButton(
@@ -74,7 +77,10 @@ class CampaignNew extends StatelessWidget {
                 color: Color(0xFF299E45),
                 textColor: Colors.white,
                 onClickFunction: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaign(userdata: userdata,)));
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => SetupCampaign(
+                            userdata: userdata,
+                          )));
                 },
               ),
               Padding(padding: EdgeInsets.all(20)),
@@ -105,13 +111,22 @@ class CampaignNew extends StatelessWidget {
 }
 
 class JoinCampaign extends StatefulWidget {
-  _JoinCampaignState createState() => _JoinCampaignState();
+  final userdata;
+
+  const JoinCampaign({Key key, this.userdata}) : super(key: key);
+
+  _JoinCampaignState createState() => _JoinCampaignState(userdata);
 }
 
 class _JoinCampaignState extends State<JoinCampaign> {
+  UserData userdata;
+
+
   FocusNode _campaignCodeNode;
   var _campaignCodeController = new TextEditingController();
   var loading = false;
+
+  _JoinCampaignState(this.userdata);
 
   @override
   void initState() {
@@ -183,7 +198,9 @@ class _JoinCampaignState extends State<JoinCampaign> {
         return 'No campaign found';
       } else {
         await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({'currentEnrolledCampaign': _campaignCodeController.text});
-        return 'You have been enrolled into the campaign, you can now head to the campaign page';
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
+        return "Campaign found and enrolled";
       }
     });
   }
@@ -843,16 +860,18 @@ class SetupCampaignFinal extends StatelessWidget {
 
 class CampaignMain extends StatefulWidget {
   final campaign;
+  final userdata;
 
-  const CampaignMain({Key key, this.campaign}) : super(key: key);
+  const CampaignMain({Key key, this.campaign, this.userdata}) : super(key: key);
 
-  _CampaignMainState createState() => _CampaignMainState(campaign);
+  _CampaignMainState createState() => _CampaignMainState(campaign,userdata);
 }
 
 class _CampaignMainState extends State<CampaignMain> {
   final CampaignData campaign;
+  UserData userdata;
 
-  _CampaignMainState(this.campaign);
+  _CampaignMainState(this.campaign, this.userdata);
 
   DocumentSnapshot selectedUser;
 
@@ -860,11 +879,48 @@ class _CampaignMainState extends State<CampaignMain> {
     return showDialog<void>(
       context: context,
       builder: (c) {
-        return AlertDialog(
-
+        return PrimaryDialog(
+          title: Text("Are you sure you want to un-enroll?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'currentEnrolledCampaign': ""});
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
+              },
+              child: Text('Yes'),
+            ),
+          ],
         );
       },
     );
+  }
+
+  Future<void> infoVideo() {
+    return showDialog<void>(
+      context: context,
+      builder: (c) {
+        return VideoPlayer(
+          url: Video.VIDEO_1,
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+        if(!value.get('viewedCampaign')) {
+          infoVideo();
+          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+            "viewedCampaign" : true,
+          });
+        }
+      });
+    });
   }
 
   @override
@@ -882,6 +938,7 @@ class _CampaignMainState extends State<CampaignMain> {
                   children: [
                     PageHeadings(
                       text: 'Campaign',
+                      padding: EdgeInsets.zero,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -891,9 +948,10 @@ class _CampaignMainState extends State<CampaignMain> {
                         height: 24,
                         width: 24,
                         child: SvgPicture.asset(
-                          'assets/info.svg',
+                          'assets/times-circle.svg',
                           height: 14,
                           width: 14,
+                          color: Color(0xFFFF0000)
                         ),
                       ),
                     ),
@@ -1083,9 +1141,8 @@ class _CampaignMainState extends State<CampaignMain> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           users = snapshot.data;
-          if(users.docs.length == 1) {
+          if (users.docs.length == 1) {
             return Container(
-
               height: 50,
               child: Align(
                 alignment: Alignment.center,
@@ -1278,6 +1335,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                                   PrimaryCard(
                                     padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
                                     child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         TextWithIcon(
                                           assetColor: goalDetails.getColor(key),
@@ -1371,6 +1429,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data = snapshot.data.data();
+          data = data['content'];
           return SizedBox(
             child: Column(
               children: [
@@ -1426,7 +1485,10 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
           );
         }
 
-        return SizedBox.shrink();
+        return Padding(
+          padding: EdgeInsets.all(30),
+          child: CircularProgressIndicator(),
+        );
       },
     );
   }

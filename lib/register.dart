@@ -139,10 +139,15 @@ class _RegisterState extends State<Register> {
                                 if (_passwordController.text != _confirmPasswordController.text) {
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password doesn\'t match')));
                                 } else {
-                                  final user = UserData();
-                                  user.email = _emailController.text;
-                                  user.password = _passwordController.text;
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
+                                  var reg = RegExp(r"^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=_]).*");
+                                  if (reg.hasMatch(_passwordController.text)) {
+                                    final user = UserData();
+                                    user.email = _emailController.text;
+                                    user.password = _passwordController.text;
+                                    Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid password format')));
+                                  }
                                 }
                               }
                             },
@@ -207,7 +212,9 @@ class _RegisterDetailsState extends State<RegisterDetails> {
 
     List<String> generateDayList() {
       List<String> result = <String>[];
-      var month = DateFormat('MMM').parse(selectedMonth).month;
+      var month = DateFormat('MMM')
+          .parse(selectedMonth)
+          .month;
       var totalDays = DateUtils.getDaysInMonth(int.parse(selectedYear), month);
       for (var i = 1; i <= totalDays; i++) {
         result.add(i.toString());
@@ -232,7 +239,16 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                 ),
                 Container(
                   constraints: BoxConstraints(
-                    minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                    minHeight: MediaQuery
+                        .of(context)
+                        .size
+                        .height - MediaQuery
+                        .of(context)
+                        .padding
+                        .top - MediaQuery
+                        .of(context)
+                        .padding
+                        .bottom,
                   ),
                   padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
                   child: Column(
@@ -285,7 +301,10 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      width: MediaQuery.of(context).size.width / 2.5,
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width / 2.5,
                                       child: PrimaryCard(
                                         child: Container(
                                           height: 90,
@@ -364,7 +383,10 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                       ),
                                     ),
                                     Container(
-                                      width: MediaQuery.of(context).size.width / 2.3,
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width / 2.3,
                                       child: PrimaryCard(
                                         child: Container(
                                           height: 90,
@@ -491,7 +513,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                           }).toList(),
                                                           onChanged: (String newValue) {
                                                             setState(
-                                                              () {
+                                                                  () {
                                                                 selectedYear = newValue;
                                                               },
                                                             );
@@ -548,7 +570,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                           }).toList(),
                                                           onChanged: (String newValue) {
                                                             setState(
-                                                              () {
+                                                                  () {
                                                                 selectedMonth = newValue;
                                                               },
                                                             );
@@ -609,7 +631,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                           }).toList(),
                                                           onChanged: (String newValue) {
                                                             setState(
-                                                              () {
+                                                                  () {
                                                                 selectedDay = newValue;
                                                               },
                                                             );
@@ -707,7 +729,16 @@ class _RegisterTCState extends State<RegisterTC> {
               ),
               Container(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  minHeight: MediaQuery
+                      .of(context)
+                      .size
+                      .height - MediaQuery
+                      .of(context)
+                      .padding
+                      .top - MediaQuery
+                      .of(context)
+                      .padding
+                      .bottom,
                 ),
                 padding: EdgeInsets.fromLTRB(25, 25, 25, 35),
                 child: Column(
@@ -743,8 +774,8 @@ class _RegisterTCState extends State<RegisterTC> {
                           color: (isAccept ? Color(0xFF299E45) : Color(0xFFAFAFAF)),
                           onClickFunction: (isAccept
                               ? () {
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterTC(), builder: (context) => RegisterKnowMore(user: user)));
-                                }
+                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterTC(), builder: (context) => RegisterKnowMore(user: user)));
+                          }
                               : null),
                         ),
                       ],
@@ -800,7 +831,16 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
               ),
               Container(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  minHeight: MediaQuery
+                      .of(context)
+                      .size
+                      .height - MediaQuery
+                      .of(context)
+                      .padding
+                      .top - MediaQuery
+                      .of(context)
+                      .padding
+                      .bottom,
                 ),
                 padding: EdgeInsets.fromLTRB(25, 20, 25, 35),
                 child: Column(
@@ -987,8 +1027,8 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                           color: (isComplete ? Color(0xFF299E45) : Color(0xFFAFAFAF)),
                           onClickFunction: (isComplete
                               ? () {
-                                  Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterPlan(user: user)));
-                                }
+                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterPlan(user: user)));
+                          }
                               : null),
                         ),
                       ],
@@ -1109,7 +1149,10 @@ class _RegisterPlanState extends State<RegisterPlan> {
                     Padding(padding: EdgeInsets.all(30)),
                     Container(
                       height: 110,
-                      width: MediaQuery.of(context).size.width,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width,
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -1186,7 +1229,10 @@ class _RegisterPlanState extends State<RegisterPlan> {
                     Padding(padding: EdgeInsets.all(7.5)),
                     Container(
                       height: 110,
-                      width: MediaQuery.of(context).size.width,
+                      width: MediaQuery
+                          .of(context)
+                          .size
+                          .width,
                       child: GestureDetector(
                         onTap: () {
                           setState(() {
@@ -1306,9 +1352,10 @@ class _RegisterPlanState extends State<RegisterPlan> {
                           }).then((value) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData()));
-                          }).catchError((error) => () async {
-                                await FirebaseAuth.instance.currentUser.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
-                              });
+                          }).catchError((error) =>
+                              () async {
+                            await FirebaseAuth.instance.currentUser.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
+                          });
                         }
                       },
                       color: Color(0xFF5D88FF),
