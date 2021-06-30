@@ -70,7 +70,7 @@ class _HomeState extends State<Home> {
     return showDialog<void>(
       context: context,
       builder: (c) {
-        return VideoPlayer(
+        return PopupPlayer(
           url: Video.VIDEO_1,
         );
       },

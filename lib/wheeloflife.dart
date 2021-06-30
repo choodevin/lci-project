@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:spider_chart/spider_chart.dart';
 
 import 'entity/Video.dart';
+import 'lci.dart';
 
 class LoadWheelOfLife extends StatelessWidget {
   @override
@@ -33,26 +35,28 @@ class LoadWheelOfLife extends StatelessWidget {
 
 class WheelOfLife extends StatefulWidget {
   final scoreBundle;
+  final getSpecific;
 
-  const WheelOfLife({Key key, this.scoreBundle}) : super(key: key);
+  const WheelOfLife({Key key, this.scoreBundle, this.getSpecific}) : super(key: key);
 
-  _WheelOfLife createState() => _WheelOfLife(scoreBundle);
+  _WheelOfLife createState() => _WheelOfLife(scoreBundle, getSpecific);
 }
 
 class _WheelOfLife extends State<WheelOfLife> {
-  QuerySnapshot scoreBundle;
+  final scoreBundle;
+  final getSpecific;
 
   bool isCurrentYear = false;
   bool isLastYear = false;
   bool isAverage = false;
 
-  _WheelOfLife(this.scoreBundle);
+  _WheelOfLife(this.scoreBundle, this.getSpecific);
 
   Future<void> infoVideo() {
     return showDialog<void>(
       context: context,
       builder: (c) {
-        return VideoPlayer(
+        return PopupPlayer(
           url: Video.VIDEO_1,
         );
       },
@@ -65,10 +69,10 @@ class _WheelOfLife extends State<WheelOfLife> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
-        if(!value.get('viewedWheelOfLife')) {
+        if (!value.get('viewedWheelOfLife')) {
           infoVideo();
           await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
-            "viewedWheelOfLife" : true,
+            "viewedWheelOfLife": true,
           });
         }
       });
@@ -77,7 +81,12 @@ class _WheelOfLife extends State<WheelOfLife> {
 
   @override
   Widget build(BuildContext context) {
-    var score = scoreBundle.docs.last.data();
+    var score;
+    if (getSpecific != null && getSpecific) {
+      score = scoreBundle;
+    } else {
+      score = scoreBundle.docs.last.data();
+    }
     LCIScore scoreObj = new LCIScore(score);
     var subScore = scoreObj.subScore();
     var colors = scoreObj.colors();
@@ -97,6 +106,7 @@ class _WheelOfLife extends State<WheelOfLife> {
                 ),
                 padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
                       height: 300,
@@ -242,6 +252,15 @@ class _WheelOfLife extends State<WheelOfLife> {
                         );
                       }).toList(),
                     ),
+                    PrimaryButton(
+                      text: "LCI Tests",
+                      textColor: Colors.white,
+                      color: Color(0xFFBC7AFE),
+                      onClickFunction: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LCIMain()));
+                      },
+                    ),
+                    Padding(padding: EdgeInsets.all(10)),
                   ],
                 ),
               )

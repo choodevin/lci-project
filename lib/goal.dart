@@ -118,7 +118,7 @@ class _GoalsState extends State<Goals> {
     return showDialog<void>(
       context: context,
       builder: (c) {
-        return VideoPlayer(
+        return PopupPlayer(
           url: Video.VIDEO_1,
         );
       },

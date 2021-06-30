@@ -46,7 +46,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
     return showDialog<void>(
       context: context,
       builder: (c) {
-        return VideoPlayer(
+        return PopupPlayer(
           url: Video.VIDEO_1,
         );
       },

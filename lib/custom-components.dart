@@ -793,18 +793,18 @@ class PrimaryDialog extends StatelessWidget {
   }
 }
 
-class VideoPlayer extends StatefulWidget {
+class PopupPlayer extends StatefulWidget {
   final url;
 
-  const VideoPlayer({Key key, this.url}) : super(key: key);
+  const PopupPlayer({Key key, this.url}) : super(key: key);
 
-  _VideoPlayerState createState() => _VideoPlayerState(url);
+  _PopupPlayerState createState() => _PopupPlayerState(url);
 }
 
-class _VideoPlayerState extends State<VideoPlayer> {
+class _PopupPlayerState extends State<PopupPlayer> {
   final url;
 
-  _VideoPlayerState(this.url);
+  _PopupPlayerState(this.url);
 
   var _controller;
 
@@ -846,6 +846,57 @@ class _VideoPlayerState extends State<VideoPlayer> {
     );
   }
 }
+
+class VideoPlayer extends StatefulWidget {
+  final url;
+
+  const VideoPlayer({Key key, this.url}) : super(key: key);
+
+  _VideoPlayerState createState() => _VideoPlayerState(url);
+}
+
+class _VideoPlayerState extends State<VideoPlayer> {
+  final url;
+
+  _VideoPlayerState(this.url);
+
+  var _controller;
+
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId: Video.VIDEO_1,
+      params: YoutubePlayerParams(
+        showControls: true,
+        showFullscreenButton: true,
+        desktopMode: true,
+      ),
+    );
+    _controller.onEnterFullscreen = () {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    };
+  }
+
+  void dispose() {
+    _controller.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: YoutubePlayerControllerProvider(
+        controller: _controller,
+        child: YoutubePlayerIFrame(),
+      ),
+    );
+  }
+}
+
+
 
 class LoadingOverlay extends StatelessWidget {
   @override
