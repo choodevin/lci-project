@@ -42,6 +42,7 @@ dependencies:
   scrollable_positioned_list: ^0.1.10
   collection: ^1.15.0
   radar_chart: ^2.0.1
+  flutter_launcher_icons: ^0.9.0
 
 dev_dependencies:
   flutter_test:
@@ -51,9 +52,9 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  image_path: "assets/crown.svg"
+  image_path: "assets/4wardLC Logo.png"
 
 # The following section is specific to Flutter.
 flutter:

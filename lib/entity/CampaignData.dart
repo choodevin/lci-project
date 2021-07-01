@@ -10,6 +10,7 @@ class CampaignData {
   String sevenThingsPenalty;
   String invitationCode;
   String campaignAdmin;
+  List<dynamic> campaignModerator;
   int selectedGoalReview;
   String rules;
 
@@ -23,6 +24,7 @@ class CampaignData {
       this.sevenThingsPenalty,
       this.invitationCode,
       this.campaignAdmin,
+      this.campaignModerator,
       this.selectedGoalReview,
       this.rules});
 }

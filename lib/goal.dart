@@ -220,10 +220,10 @@ class _GoalsState extends State<Goals> {
                                 value: goals[key]['selected'],
                                 assetPath: goalDetails.getAssetPath(key),
                                 callBack: (bool newValue) {
-                                  goals[key]['selected'] = newValue;
-                                  setState(() {
-                                    newValue ? totalSelected++ : totalSelected--;
-                                  });
+                                    goals[key]['selected'] = newValue;
+                                    setState(() {
+                                      newValue ? totalSelected++ : totalSelected--;
+                                    });
                                 },
                               ),
                               Padding(padding: EdgeInsets.all(5)),
@@ -236,7 +236,7 @@ class _GoalsState extends State<Goals> {
                     ),
                     Padding(padding: EdgeInsets.all(30)),
                     Text(
-                      totalSelected.toString() + '/10 Goals Selected',
+                      totalSelected.toString() + '/3 Goals Selected',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
@@ -251,6 +251,8 @@ class _GoalsState extends State<Goals> {
                       onClickFunction: () {
                         if (totalSelected == 0) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select at least one goal')));
+                        }  else if (totalSelected > 3) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select only 3 goals')));
                         } else {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals)));
                         }

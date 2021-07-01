@@ -102,16 +102,7 @@ class _PartOne extends State<PartOne> {
               ),
               Container(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery
-                      .of(context)
-                      .size
-                      .height - MediaQuery
-                      .of(context)
-                      .padding
-                      .top - MediaQuery
-                      .of(context)
-                      .padding
-                      .bottom - 86,
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 86,
                 ),
                 padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
                 child: Column(
@@ -171,10 +162,7 @@ class _PartOne extends State<PartOne> {
                                 });
                               },
                               child: Container(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width / 3,
+                                width: MediaQuery.of(context).size.width / 3,
                                 padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
                                 decoration: BoxDecoration(
                                   color: selected == "Engaged" ? Color(0xFF170E9A) : Colors.white,
@@ -210,10 +198,9 @@ class _PartOne extends State<PartOne> {
                       onClickFunction: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) =>
-                                PartTwo(
-                                  selected: selected,
-                                ),
+                            builder: (context) => PartTwo(
+                              selected: selected,
+                            ),
                           ),
                         );
                       },
@@ -492,115 +479,116 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
 
     return !loading
         ? FutureBuilder(
-      future: _getAllQuestions,
-      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: SafeArea(
-              child: Text('Something went wrong'),
-            ),
-          );
-        }
+            future: _getAllQuestions,
+            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Scaffold(
+                  body: SafeArea(
+                    child: Text('Something went wrong'),
+                  ),
+                );
+              }
 
-        if (snapshot.connectionState == ConnectionState.done) {
-          var questions = snapshot.data;
-          return Scaffold(
-            body: SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    PageHeadings(
-                      text: 'Part 3',
-                      metaText: 'LCI Test',
-                      popAvailable: true,
-                    ),
-                    Container(
-                      padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+              if (snapshot.connectionState == ConnectionState.done) {
+                var questions = snapshot.data;
+                return Scaffold(
+                  body: SafeArea(
+                    child: SingleChildScrollView(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          for (var q in list)
-                            Column(
+                          PageHeadings(
+                            text: 'Part 3',
+                            metaText: 'LCI Test',
+                            popAvailable: true,
+                          ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                PrimaryCard(
-                                  padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-                                  child: Column(
+                                for (var q in list)
+                                  Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
-                                      Text(
-                                        questions.get(q)['title'],
-                                        style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                                      PrimaryCard(
+                                        padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              questions.get(q)['title'],
+                                              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+                                            ),
+                                            SfSlider(
+                                              min: 1.0,
+                                              max: 10.0,
+                                              interval: 1.0,
+                                              showTicks: true,
+                                              showLabels: true,
+                                              stepSize: 1.0,
+                                              value: score[questions.get(q)['type']][subList[int.parse(q) - 1]],
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  score[questions.get(q)['type']][subList[int.parse(q) - 1]] = value;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      SfSlider(
-                                        min: 1.0,
-                                        max: 10.0,
-                                        interval: 1.0,
-                                        showTicks: true,
-                                        showLabels: true,
-                                        stepSize: 1.0,
-                                        value: score[questions.get(q)['type']][subList[int.parse(q) - 1]],
-                                        onChanged: (value) {
-                                          setState(() {
-                                            score[questions.get(q)['type']][subList[int.parse(q) - 1]] = value;
-                                          });
-                                        },
-                                      ),
+                                      Padding(padding: EdgeInsets.all(10)),
                                     ],
                                   ),
+                                PrimaryButton(
+                                  text: 'Next',
+                                  color: Color(0xFF299E45),
+                                  textColor: Colors.white,
+                                  onClickFunction: () async {
+                                    for (var q in list) {
+                                      if (questions.get(q)['reverse']) {
+                                        score[questions.get(q)['type']][subList[int.parse(q) - 1]] = 11.0 - score[questions.get(q)['type']][subList[int.parse(q) - 1]];
+                                      }
+                                    }
+                                    setState(() {
+                                      loading = true;
+                                    });
+                                    await setScore();
+                                  },
                                 ),
-                                Padding(padding: EdgeInsets.all(10)),
                               ],
                             ),
-                          PrimaryButton(
-                            text: 'Next',
-                            color: Color(0xFF299E45),
-                            textColor: Colors.white,
-                            onClickFunction: () async {
-                              for (var q in list) {
-                                if (questions.get(q)['reverse']) {
-                                  score[questions.get(q)['type']][subList[int.parse(q) - 1]] = 11.0 - score[questions.get(q)['type']][subList[int.parse(q) - 1]];
-                                }
-                              }
-                              setState(() {
-                                loading = true;
-                              });
-                              await setScore();
-                            },
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                );
+              }
+
+              return Scaffold(
+                body: SafeArea(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 ),
+              );
+            },
+          )
+        : Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
             ),
           );
-        }
-
-        return Scaffold(
-          body: SafeArea(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        );
-      },
-    )
-        : Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
-    );
   }
 }
 
 class LciResult extends StatelessWidget {
   final score;
+  final view;
 
-  const LciResult({Key key, this.score}) : super(key: key);
+  const LciResult({Key key, this.score, this.view}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -610,8 +598,10 @@ class LciResult extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => GetUserData(point: 0)));
+        if (view == null && !view) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => GetUserData(point: 0)));
+        }
         return true;
       },
       child: Scaffold(
@@ -619,16 +609,7 @@ class LciResult extends StatelessWidget {
           child: SingleChildScrollView(
             child: Container(
               constraints: BoxConstraints(
-                minHeight: MediaQuery
-                    .of(context)
-                    .size
-                    .height - MediaQuery
-                    .of(context)
-                    .padding
-                    .top - MediaQuery
-                    .of(context)
-                    .padding
-                    .bottom,
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
               ),
               padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
               child: Column(
@@ -667,18 +648,98 @@ class LciResult extends StatelessWidget {
                     ),
                   ),
                   Padding(padding: EdgeInsets.all(10)),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
+                    child: Text(
+                      scoreObj.firstDisplay(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Padding(padding: EdgeInsets.all(10)),
+                  view != null ?Text(
+                    "Your top 3 focused fields",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ) : SizedBox.shrink(),
+                  Padding(padding: EdgeInsets.all(10)),
+                  view != null
+                      ? FutureBuilder(
+                          future: FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').get(),
+                          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.hasError) {
+                              return Padding(
+                                padding: EdgeInsets.all(30),
+                                child: Center(
+                                  child: Text("Something went wrong"),
+                                ),
+                              );
+                            }
+
+                            if (snapshot.connectionState == ConnectionState.done) {
+                              Map<String, dynamic> goal = snapshot.data.docs.last.data();
+                              return ListView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: goal.length,
+                                  itemBuilder: (c, i) {
+                                    if (goal.entries.elementAt(i).key != "targetLCI" && goal.entries.elementAt(i).value['selected']) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(bottom: 30),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              goal.entries.elementAt(i).key,
+                                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                            ),
+                                            Padding(padding: EdgeInsets.all(3)),
+                                            RoundedLinearProgress(
+                                              color: colors[goal.entries.elementAt(i).key],
+                                              value: subScore[goal.entries.elementAt(i).key] / 10,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      return SizedBox.shrink();
+                                    }
+                                  });
+                            }
+                            return Padding(
+                              padding: EdgeInsets.all(30),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                        )
+                      : SizedBox.shrink(),
+                  Text(
+                    view != null ? "Other fields" : "Overview",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Padding(padding: EdgeInsets.all(10)),
                   Column(
                     children: subScore.keys.map((e) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 40),
+                        padding: const EdgeInsets.only(bottom: 30),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
                               e,
-                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                             ),
-                            Padding(padding: EdgeInsets.all(5)),
+                            Padding(padding: EdgeInsets.all(3)),
                             RoundedLinearProgress(
                               color: colors[e],
                               value: subScore[e] / 10,
@@ -779,24 +840,25 @@ class _LCIMainState extends State<LCIMain> {
                             scrollDirection: Axis.vertical,
                             itemCount: data.length,
                             itemBuilder: (context, index) {
-                              var val = data[index].data();
                               var id = data[index].id.split("-");
                               var day = int.parse(id[0]);
                               var month = int.parse(id[1]);
                               var year = int.parse(id[2]);
                               var displayDate = DateFormat('MMMM y - d/M/y').format(DateTime(year, month, day));
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).popUntil((route) => route.isFirst);
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => WheelOfLife(scoreBundle: val, getSpecific: true)));
-                                },
-                                child: PrimaryCard(
-                                  child: Text(
-                                    displayDate,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
+                                  },
+                                  child: PrimaryCard(
+                                    child: Text(
+                                      displayDate,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),

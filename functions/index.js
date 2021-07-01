@@ -1,11 +1,9 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
-admin.initializeApp({
-    credential: admin.credential.applicationDefault()
-});
+admin.initializeApp();
 
-exports.scheduledFunction = functions.pubsub.schedule('0 * * * *').onRun((context) => {
+exports.sevenThingsScheduler = functions.region('asia-southeast1').pubsub.schedule('0 * * * *').onRun((context) => {
     var now = new Date().getHours();
     now = now + ':00';
     var previousDate = new Date();
@@ -89,6 +87,9 @@ exports.scheduledFunction = functions.pubsub.schedule('0 * * * *').onRun((contex
                                 if (snapshot.exists) {
                                     if (snapshot.data()['content'] !== null && Object.entries(snapshot.data()['content']).length > 0) {
                                         var content = Object.entries(snapshot.data()['content']);
+                                        if (content.length < 7) {
+                                            noContentToday = true;
+                                        }
                                         for (const [key, value] of content) {
                                             if (!value['status']) {
                                                 noContentToday = true;
@@ -106,6 +107,11 @@ exports.scheduledFunction = functions.pubsub.schedule('0 * * * *').onRun((contex
                                     admin.firestore().collection('UserData/' + userData.id + '/SevenThings').doc(today).update({
                                         "status": {
                                             "penalty": true,
+                                        }
+                                    });
+                                } else {
+                                    admin.firestore().collection('UserData/' + userData.id + '/SevenThings').doc(today).update({
+                                        "status": {
                                             "lockEdit": true,
                                         }
                                     });
