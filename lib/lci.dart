@@ -681,35 +681,44 @@ class LciResult extends StatelessWidget {
                             }
 
                             if (snapshot.connectionState == ConnectionState.done) {
-                              Map<String, dynamic> goal = snapshot.data.docs.last.data();
-                              return ListView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  scrollDirection: Axis.vertical,
-                                  itemCount: goal.length,
-                                  itemBuilder: (c, i) {
-                                    if (goal.entries.elementAt(i).key != "targetLCI" && goal.entries.elementAt(i).value['selected']) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(bottom: 30),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            Text(
-                                              goal.entries.elementAt(i).key,
-                                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                                            ),
-                                            Padding(padding: EdgeInsets.all(3)),
-                                            RoundedLinearProgress(
-                                              color: colors[goal.entries.elementAt(i).key],
-                                              value: subScore[goal.entries.elementAt(i).key] / 10,
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    } else {
-                                      return SizedBox.shrink();
-                                    }
-                                  });
+                              if(snapshot.data.size != 0) {
+                                Map<String, dynamic> goal = snapshot.data.docs.last.data();
+                                return ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.vertical,
+                                    itemCount: goal.length,
+                                    itemBuilder: (c, i) {
+                                      if (goal.entries.elementAt(i).key != "targetLCI" && goal.entries.elementAt(i).value['selected']) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 30),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              Text(
+                                                goal.entries.elementAt(i).key,
+                                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                              ),
+                                              Padding(padding: EdgeInsets.all(3)),
+                                              RoundedLinearProgress(
+                                                color: colors[goal.entries.elementAt(i).key],
+                                                value: subScore[goal.entries.elementAt(i).key] / 10,
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else {
+                                        return SizedBox.shrink();
+                                      }
+                                    });
+                              } else {
+                                return Padding(
+                                  padding: EdgeInsets.all(30),
+                                  child: Center(
+                                    child: Text('No goals setted'),
+                                  ),
+                                );
+                              }
                             }
                             return Padding(
                               padding: EdgeInsets.all(30),

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ntp/ntp.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
 import 'entity/Video.dart';
 
 class SevenThingsMain extends StatefulWidget {
@@ -375,6 +374,10 @@ class _SevenThingListState extends State<SevenThingList> {
     if (sevenThings == null || sevenThings['content'] == null || sevenThings['content'].length == 0) {
       progressPercent = 0.0;
       contentOrder = ["", "", "", "", "", "", ""];
+      sevenThings = {
+        "content" : {},
+        "status" : {},
+      };
     } else {
       if (sevenThings['status']['lockEdit'] != null) {
         if (sevenThings['status']['lockEdit']) {
@@ -455,6 +458,7 @@ class _SevenThingListState extends State<SevenThingList> {
                 showLoading();
                 var type;
                 if (contentOrder.contains(value)) {
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                 } else {
                   for (var i = 0; i < contentOrder.length; i++) {
@@ -511,6 +515,93 @@ class _SevenThingListState extends State<SevenThingList> {
 
   @override
   Widget build(BuildContext context) {
+    var addCallBackFunction =() async {
+      if (state == Status.NORMAL) {
+        if (contentOrder.contains("")) {
+          showDialog<String>(
+            context: context,
+            builder: (c) {
+              return PrimaryDialog(
+                title: Text('Add Seven Things'),
+                content: TextField(
+                  controller: _newSevenThings,
+                  style: TextStyle(fontSize: 16),
+                  maxLines: 1,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: 'Enter something here',
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      if (_newSevenThings.text.isNotEmpty) {
+                        Navigator.of(context).pop(_newSevenThings.text);
+                      }
+                    },
+                    child: Text('Confirm'),
+                  ),
+                ],
+              );
+            },
+          ).then((value) async {
+            if (value != null) {
+              showLoading();
+              var type;
+              if (contentOrder.contains(value)) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+              } else {
+                for (var i = 0; i < contentOrder.length; i++) {
+                  var k = contentOrder[i];
+                  if (i > 3) {
+                    type = "Secondary";
+                  } else {
+                    type = "Primary";
+                  }
+                  if (k.isEmpty) {
+                    setState(() {
+                      contentOrder[i] = value;
+                      if (sevenThings['content'] == null) {
+                        sevenThings = {
+                          "content": {},
+                          "status": {},
+                        };
+                        sevenThings['content'][value] = {
+                          "status": false,
+                          "type": type,
+                        };
+                        sevenThings['content'] = sevenThings['content'];
+                      } else {
+                        sevenThings['content'][value] = {
+                          "status": false,
+                          "type": type,
+                        };
+                      }
+                    });
+                    break;
+                  }
+                }
+                await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                  Navigator.of(context).pop();
+                  _newSevenThings.text = "";
+                  progressPercent = getProgress();
+                }).catchError((error) {
+                  print(error);
+                  Navigator.of(context).pop();
+                  _newSevenThings.text = "";
+                });
+              }
+            }
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is full")));
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+      }
+    };
+
     Function recallFunction = (type) async {
       if (type == 0) {
         showLoading();
@@ -534,6 +625,7 @@ class _SevenThingListState extends State<SevenThingList> {
           Navigator.of(context).pop();
         });
         editingCallBack(false, () {});
+        addCallBack(addCallBackFunction);
       }
     };
 
@@ -650,6 +742,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                             }
                                                           }
                                                           if (occurrence > 1) {
+                                                            Navigator.of(context).pop();
                                                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                                           } else {
                                                             setState(() {
@@ -874,6 +967,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                         showLoading();
                                         var type;
                                         if (contentOrder.contains(value)) {
+                                          Navigator.of(context).pop();
                                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                         } else {
                                           for (var i = 0; i < contentOrder.length; i++) {

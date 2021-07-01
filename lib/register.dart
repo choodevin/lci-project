@@ -120,7 +120,7 @@ class _RegisterState extends State<Register> {
                             padding: EdgeInsets.all(10),
                           ),
                           Text(
-                            'The password must comply with:\n1. 8 to 20 characters\n2. At least one uppercase letter\n3. At least one lower case letter\n4. At least a digit\n5. At least a special character (Eg: !,@,#,\$,_)',
+                            'Password must be at least 6 characters',
                             style: TextStyle(
                               color: Color(0xFF929292),
                               fontSize: 12,
@@ -139,14 +139,13 @@ class _RegisterState extends State<Register> {
                                 if (_passwordController.text != _confirmPasswordController.text) {
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password doesn\'t match')));
                                 } else {
-                                  var reg = RegExp(r"^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=_]).*");
-                                  if (reg.hasMatch(_passwordController.text)) {
+                                  if (_passwordController.text.length > 6) {
                                     final user = UserData();
                                     user.email = _emailController.text;
                                     user.password = _passwordController.text;
                                     Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invalid password format')));
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password must be atleast 6 characters')));
                                   }
                                 }
                               }

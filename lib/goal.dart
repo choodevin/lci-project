@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'campaign.dart';
 import 'entity/Video.dart';
+import 'home.dart';
 import 'lci.dart';
 
 class LoadGoals extends StatelessWidget {
@@ -77,7 +78,7 @@ class GetScoreFromGoals extends StatelessWidget {
       future: ref.get(),
       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Scaffold(body: Text("Something went wrong"));
+          return Scaffold(body: Center(child: Text("Something went wrong")));
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
@@ -89,7 +90,7 @@ class GetScoreFromGoals extends StatelessWidget {
           }
         }
 
-        return Scaffold(body: CircularProgressIndicator());
+        return Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }
@@ -220,10 +221,12 @@ class _GoalsState extends State<Goals> {
                                 value: goals[key]['selected'],
                                 assetPath: goalDetails.getAssetPath(key),
                                 callBack: (bool newValue) {
-                                    goals[key]['selected'] = newValue;
-                                    setState(() {
+                                  goals[key]['selected'] = newValue;
+                                  setState(
+                                    () {
                                       newValue ? totalSelected++ : totalSelected--;
-                                    });
+                                    },
+                                  );
                                 },
                               ),
                               Padding(padding: EdgeInsets.all(5)),
@@ -251,10 +254,10 @@ class _GoalsState extends State<Goals> {
                       onClickFunction: () {
                         if (totalSelected == 0) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select at least one goal')));
-                        }  else if (totalSelected > 3) {
+                        } else if (totalSelected > 3) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select only 3 goals')));
                         } else {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals)));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals, edit: edit)));
                         }
                       },
                     ),
@@ -272,8 +275,9 @@ class _GoalsState extends State<Goals> {
 class LoadScore extends StatelessWidget {
   final userdata;
   final goals;
+  final edit;
 
-  const LoadScore({Key key, this.userdata, this.goals}) : super(key: key);
+  const LoadScore({Key key, this.userdata, this.goals, this.edit}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +304,7 @@ class LoadScore extends StatelessWidget {
                 score = e;
               }
             });
-            return GoalSetting(userdata: userdata, score: score, goals: goals);
+            return GoalSetting(userdata: userdata, score: score, goals: goals, edit: edit);
           }
         }
 
@@ -360,15 +364,17 @@ class GoalSetting extends StatefulWidget {
   final score;
   final goals;
   final displayedList;
+  final edit;
 
-  const GoalSetting({Key key, this.userdata, this.score, this.goals, this.displayedList}) : super(key: key);
+  const GoalSetting({Key key, this.userdata, this.score, this.goals, this.displayedList, this.edit}) : super(key: key);
 
-  _GoalSettingState createState() => _GoalSettingState(userdata, score, goals, displayedList);
+  _GoalSettingState createState() => _GoalSettingState(userdata, score, goals, displayedList, edit);
 }
 
 class _GoalSettingState extends State<GoalSetting> {
   final userdata;
   final score;
+  final edit;
   final _targetController = new TextEditingController();
   final _qOneController = new TextEditingController();
   final _qTwoController = new TextEditingController();
@@ -390,7 +396,7 @@ class _GoalSettingState extends State<GoalSetting> {
   var questionStyle;
   var scoreObj;
 
-  _GoalSettingState(this.userdata, this.score, this.goals, this.displayedList);
+  _GoalSettingState(this.userdata, this.score, this.goals, this.displayedList, this.edit);
 
   void initState() {
     super.initState();
@@ -658,6 +664,7 @@ class _GoalSettingState extends State<GoalSetting> {
                                   score: score,
                                   goals: goals,
                                   displayedList: displayedList,
+                                  edit: edit,
                                 ),
                               ),
                             );
@@ -685,6 +692,7 @@ class _GoalSettingState extends State<GoalSetting> {
                                   score: score,
                                   goals: goals,
                                   goalDate: DateTime(dateNow.year, dateNow.month, dateNow.day).toString(),
+                                  edit: edit,
                                 ),
                               ),
                             );
@@ -712,8 +720,9 @@ class GoalStatus extends StatelessWidget {
   final goals;
   final goalDate;
   final score;
+  final edit;
 
-  const GoalStatus({Key key, this.goals, this.score, this.goalDate}) : super(key: key);
+  const GoalStatus({Key key, this.goals, this.score, this.goalDate, this.edit}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -735,130 +744,141 @@ class GoalStatus extends StatelessWidget {
     Map<String, dynamic> goalsTemp = getSelected();
     Map<String, dynamic> subScore = scoreObj.subScore();
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: "Milestone Goals",
-                popAvailable: true,
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Column(
-                      children: goalsTemp.keys.map((key) {
-                        return Column(
-                          children: [
-                            PrimaryCard(
-                              padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  TextWithIcon(
-                                    assetColor: goalDetails.getColor(key),
-                                    assetPath: goalDetails.getAssetPath(key),
-                                    text: key,
-                                    textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(7.5)),
-                                  MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target']) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
-                                  Padding(padding: EdgeInsets.all(15)),
-                                  Text(
-                                    "Definition of Success/Goal",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(2)),
-                                  Text(
-                                    goalsTemp[key]['q1'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(15)),
-                                  Text(
-                                    "Achivemenet within this month",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(2)),
-                                  Text(
-                                    goalsTemp[key]['q2'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(15)),
-                                  Text(
-                                    "Weekly tasks to achieve",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(2)),
-                                  Text(
-                                    goalsTemp[key]['q3'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: goalDetails.getColor(key),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(padding: EdgeInsets.all(30)),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Goal Setting Date:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Text(
-                          DateFormat('d/M/y').format(DateTime.parse(goalDate)),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(30)),
-                    PrimaryButton(
-                      text: "Review / Revise Goals",
-                      color: Color(0xFF170E9A),
-                      textColor: Colors.white,
-                      onClickFunction: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(goals: goals, edit: true)));
-                      },
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        if (edit != null && edit) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData()));
+        } else {
+          Navigator.of(context).pop();
+        }
+        return true;
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: "Milestone Goals",
+                  popAvailable: true,
                 ),
-              ),
-            ],
+                Container(
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Column(
+                        children: goalsTemp.keys.map((key) {
+                          return Column(
+                            children: [
+                              PrimaryCard(
+                                padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    TextWithIcon(
+                                      assetColor: goalDetails.getColor(key),
+                                      assetPath: goalDetails.getAssetPath(key),
+                                      text: key,
+                                      textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(7.5)),
+                                    MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                    Padding(padding: EdgeInsets.all(15)),
+                                    Text(
+                                      "Definition of Success/Goal",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(2)),
+                                    Text(
+                                      goalsTemp[key]['q1'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(15)),
+                                    Text(
+                                      "Achivemenet within this month",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(2)),
+                                    Text(
+                                      goalsTemp[key]['q2'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(15)),
+                                    Text(
+                                      "Weekly tasks to achieve",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(2)),
+                                    Text(
+                                      goalsTemp[key]['q3'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: goalDetails.getColor(key),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(padding: EdgeInsets.all(30)),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Goal Setting Date:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('d/M/y').format(DateTime.parse(goalDate)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(padding: EdgeInsets.all(30)),
+                      PrimaryButton(
+                        text: "Review / Revise Goals",
+                        color: Color(0xFF170E9A),
+                        textColor: Colors.white,
+                        onClickFunction: () {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(goals: goals, edit: true)));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

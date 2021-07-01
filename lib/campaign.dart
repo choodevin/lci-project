@@ -43,9 +43,7 @@ class LoadCampaign extends StatelessWidget {
           campaign.sevenThingsPenaltyDecision = snapshot.data.docs.last.get('sevenThingsPenaltyDecision');
           campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
           campaign.startDate = snapshot.data.docs.last.get('startDate');
-          if (snapshot.data.docs.last.get('campaignModerator') != null) {
-            campaign.campaignModerator = snapshot.data.docs.last.get('campaignModerator');
-          }
+          campaign.campaignModerator = snapshot.data.docs.last.get('campaignModerator');
           return CampaignMain(campaign: campaign, userdata: userdata, campaignId: snapshot.data.docs.last.id);
         }
 
@@ -772,7 +770,8 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
                           'campaignAdmin': campaignData.campaignAdmin,
                           'invitationCode': campaignData.invitationCode,
                           'selectedGoalReview': campaignData.selectedGoalReview,
-                          'rules': campaignData.rules
+                          'rules': campaignData.rules,
+                          'campaignModerator' : [],
                         });
                         Navigator.of(context).popUntil((route) => route.isFirst);
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignFinal(campaignData: campaignData, userdata: userdata)));
@@ -1430,7 +1429,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                                     textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
                                   ),
                                   Padding(padding: EdgeInsets.all(7.5)),
-                                  MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target']) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                  MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
                                   Padding(padding: EdgeInsets.all(15)),
                                   Text(
                                     "Definition of Success/Goal",
@@ -1636,6 +1635,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
     } else {
       goalDecision = false;
     }
+
+    if(campaignData.sevenThingsPenaltyDecision) {
+      _scorePenaltyController.text = campaignData.sevenThingsPenalty;
+    }
   }
 
   Future<void> leaveCampaign() {
@@ -1702,12 +1705,20 @@ class _CampaignSettingsState extends State<CampaignSettings> {
     return WillPopScope(
       onWillPop: () async {
         showLoading();
-        if(int.parse(_scorePenaltyController.text) > 100) {
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("7 Things score penalty cannot be greater than 100%")));
-          return false;
-        } else {
-          campaignData.sevenThingsPenalty = _scorePenaltyController.text;
+        if(campaignData.sevenThingsPenaltyDecision) {
+          if(_scorePenaltyController.text.isNotEmpty) {
+            if(int.parse(_scorePenaltyController.text) > 100) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("7 Things score penalty cannot be greater than 100%")));
+              return false;
+            } else {
+              campaignData.sevenThingsPenalty = _scorePenaltyController.text;
+            }
+          } else {
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("7 Things score penalty cannot be empty")));
+            return false;
+          }
         }
         await FirebaseFirestore.instance.collection("CampaignData").doc(campaignId).update({
           'name': campaignData.name,
@@ -2006,6 +2017,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                     controller: _scorePenaltyController,
                                     textAlign: TextAlign.center,
                                     readOnly: !campaignData.sevenThingsPenaltyDecision,
+                                    keyboardType: TextInputType.number,
                                   ),
                                 ),
                               ],
