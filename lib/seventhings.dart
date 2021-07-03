@@ -1,13 +1,16 @@
+import 'dart:convert';
+
 import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:ntp/ntp.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'entity/Video.dart';
+import 'package:http/http.dart' as http;
 
 class SevenThingsMain extends StatefulWidget {
   final date;
@@ -36,9 +39,10 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
   var isEdit = false;
 
   Future<DateTime> getNetworkTime() async {
-    DateTime _myTime;
-    _myTime = await NTP.now();
-    return _myTime;
+    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
+    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
+    date = DateTime(date.year, date.month, date.day);
+    return date;
   }
 
   Future<void> infoVideo() {
@@ -115,7 +119,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FloatingActionButton(
-                  child: isEdit ? Icon(Icons.check) : Icon(Icons.add),
+                  child: isEdit ? SvgPicture.asset('assets/check.svg', color: Colors.white, height: 16, width: 16) : SvgPicture.asset('assets/plus.svg', color: Colors.white, height: 16, width: 16),
                   backgroundColor: isEdit ? Color(0xFF299E45) : Color(0xFF170E9A),
                   onPressed: isEdit
                       ? () {
@@ -824,7 +828,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                     child: SizedBox(
                                                       width: 16,
                                                       height: 16,
-                                                      child: Icon(Icons.drag_indicator),
+                                                      child: SvgPicture.asset('assets/grip-lines.svg', color: Colors.black),
                                                     ),
                                                   ),
                                                 ),

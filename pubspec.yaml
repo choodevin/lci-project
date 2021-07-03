@@ -43,6 +43,8 @@ dependencies:
   collection: ^1.15.0
   radar_chart: ^2.0.1
   flutter_launcher_icons: ^0.9.0
+  http: ^0.13.3
+  flutter_facebook_login_web: ^0.2.1+1
 
 dev_dependencies:
   flutter_test:

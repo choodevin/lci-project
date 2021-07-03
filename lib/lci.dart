@@ -1,13 +1,14 @@
-import 'package:LCI/wheeloflife.dart';
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-import 'package:ntp/ntp.dart';
 import 'package:spider_chart/spider_chart.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:http/http.dart' as http;
 
 import 'custom-components.dart';
 import 'entity/LCIScore.dart';
@@ -436,9 +437,10 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
   DateTime dateNow;
 
   Future<DateTime> getNetworkTime() async {
-    DateTime _myTime;
-    _myTime = await NTP.now();
-    return _myTime;
+    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
+    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
+    date = DateTime(date.year, date.month, date.day);
+    return date;
   }
 
   @override

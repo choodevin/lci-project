@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:LCI/custom-components.dart';
 import 'package:LCI/entity/GoalsDetails.dart';
 import 'package:LCI/entity/Video.dart';
@@ -12,8 +14,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:ntp/ntp.dart';
 import 'package:spider_chart/spider_chart.dart';
+import 'package:http/http.dart' as http;
 
 import 'campaign.dart';
 import 'entity/LCIScore.dart';
@@ -45,9 +47,10 @@ class _HomeState extends State<Home> {
   DateTime toChange;
 
   Future<DateTime> getNetworkTime() async {
-    DateTime _myTime;
-    _myTime = await NTP.now();
-    return _myTime;
+    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
+    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
+    date = DateTime(date.year, date.month, date.day);
+    return date;
   }
 
   @override
@@ -58,12 +61,6 @@ class _HomeState extends State<Home> {
         toChange = DateTime(value.year, value.month, value.day);
       });
     });
-  }
-
-  Future<void> updateSevenThings() {
-    return user.doc(toChange.toString()).set(sevenThings).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('There was an error inserting the item, please try again.'),
-        )));
   }
 
   Future<void> infoVideo() {
@@ -343,39 +340,31 @@ class _HomeState extends State<Home> {
                                   sevenThings != null && sevenThings.length > 0
                                       ? Column(
                                           children: sevenThings.keys.map((key) {
-                                            return GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  sevenThings[key]['status'] = !sevenThings[key]['status'];
-                                                  updateSevenThings();
-                                                });
-                                              },
-                                              child: Padding(
-                                                padding: EdgeInsets.only(top: 5, bottom: 5),
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      children: [
-                                                        SizedBox(
-                                                          height: 20,
-                                                          width: 20,
-                                                          child: Checkbox(
-                                                            activeColor: Color(0xFFF48A1D),
-                                                            checkColor: Colors.white,
-                                                            value: sevenThings[key]['status'],
-                                                            onChanged: (value) {},
-                                                          ),
+                                            return Padding(
+                                              padding: EdgeInsets.only(top: 5, bottom: 5),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 20,
+                                                        width: 20,
+                                                        child: Checkbox(
+                                                          activeColor: Color(0xFFF48A1D),
+                                                          checkColor: Colors.white,
+                                                          value: sevenThings[key]['status'],
+                                                          onChanged: (value) {},
                                                         ),
-                                                        Padding(padding: EdgeInsets.all(7.5)),
-                                                        Text(
-                                                          key,
-                                                          style: TextStyle(fontSize: 17),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
+                                                      ),
+                                                      Padding(padding: EdgeInsets.all(7.5)),
+                                                      Text(
+                                                        key,
+                                                        style: TextStyle(fontSize: 17),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
                                             );
                                           }).toList(),
@@ -432,11 +421,11 @@ class _GetUserDataState extends State<GetUserData> {
   _GetUserDataState(this.point);
 
   Future<DateTime> getNetworkTime() async {
-    DateTime _myTime;
-    _myTime = await NTP.now();
-    return _myTime;
+    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
+    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
+    date = DateTime(date.year, date.month, date.day);
+    return date;
   }
-
   @override
   void initState() {
     super.initState();

@@ -208,7 +208,7 @@ class _GoalsState extends State<Goals> {
                         ),
                       ],
                     ),
-                    Padding(padding: EdgeInsets.all(5)),
+                    Padding(padding: EdgeInsets.all(6)),
                     Column(
                       children: goals.keys.map((key) {
                         if (key != "targetLCI") {
@@ -229,7 +229,7 @@ class _GoalsState extends State<Goals> {
                                   );
                                 },
                               ),
-                              Padding(padding: EdgeInsets.all(5)),
+                              Padding(padding: EdgeInsets.all(6)),
                             ],
                           );
                         } else {

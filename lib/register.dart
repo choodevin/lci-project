@@ -17,7 +17,6 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
-  final globalKey = GlobalKey<ScaffoldState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -51,11 +50,10 @@ class _RegisterState extends State<Register> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      key: globalKey,
       body: SafeArea(
-        bottom: false,
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               PageHeadings(
                 text: 'Create New Account',
@@ -64,97 +62,92 @@ class _RegisterState extends State<Register> {
               ),
               Container(
                 padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 20, bottom: 5),
-                            child: Text(
-                              'Email ID',
-                              style: TextStyle(
-                                color: Color(0xFF878787),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 20, bottom: 5),
+                        child: Text(
+                          'Email ID',
+                          style: TextStyle(
+                            color: Color(0xFF878787),
+                            fontWeight: FontWeight.w600,
                           ),
-                          InputBox(
-                            focusNode: focusNodeEmail,
-                            focusNodeNext: focusNodePassword,
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 60, bottom: 5),
-                            child: Text(
-                              'Password',
-                              style: TextStyle(
-                                color: Color(0xFF878787),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          PasswordBox(
-                            focusNode: focusNodePassword,
-                            focusNodeNext: focusNodeCfmPassword,
-                            controller: _passwordController,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 20, bottom: 5),
-                            child: Text(
-                              'Confirm Password',
-                              style: TextStyle(
-                                color: Color(0xFF878787),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          PasswordBox(
-                            focusNode: focusNodeCfmPassword,
-                            controller: _confirmPasswordController,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(10),
-                          ),
-                          Text(
-                            'Password must be at least 6 characters',
-                            style: TextStyle(
-                              color: Color(0xFF929292),
-                              fontSize: 12,
-                              height: 1.5,
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(15)),
-                          PrimaryButton(
-                            text: 'NEXT',
-                            textColor: Colors.white,
-                            color: Color(0xFF299E45),
-                            onClickFunction: () {
-                              if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please fill in all the credentials')));
-                              } else {
-                                if (_passwordController.text != _confirmPasswordController.text) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password doesn\'t match')));
-                                } else {
-                                  if (_passwordController.text.length > 6) {
-                                    final user = UserData();
-                                    user.email = _emailController.text;
-                                    user.password = _passwordController.text;
-                                    Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password must be atleast 6 characters')));
-                                  }
-                                }
-                              }
-                            },
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      InputBox(
+                        focusNode: focusNodeEmail,
+                        focusNodeNext: focusNodePassword,
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 60, bottom: 5),
+                        child: Text(
+                          'Password',
+                          style: TextStyle(
+                            color: Color(0xFF878787),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      PasswordBox(
+                        focusNode: focusNodePassword,
+                        focusNodeNext: focusNodeCfmPassword,
+                        controller: _passwordController,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 20, bottom: 5),
+                        child: Text(
+                          'Confirm Password',
+                          style: TextStyle(
+                            color: Color(0xFF878787),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      PasswordBox(
+                        focusNode: focusNodeCfmPassword,
+                        controller: _confirmPasswordController,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10),
+                      ),
+                      Text(
+                        'Password must be at least 6 characters',
+                        style: TextStyle(
+                          color: Color(0xFF929292),
+                          fontSize: 12,
+                          height: 1.5,
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(15)),
+                      PrimaryButton(
+                        text: 'NEXT',
+                        textColor: Colors.white,
+                        color: Color(0xFF299E45),
+                        onClickFunction: () {
+                          if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please fill in all the credentials')));
+                          } else {
+                            if (_passwordController.text != _confirmPasswordController.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password doesn\'t match')));
+                            } else {
+                              if (_passwordController.text.length > 6) {
+                                final user = UserData();
+                                user.email = _emailController.text;
+                                user.password = _passwordController.text;
+                                Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password must be atleast 6 characters')));
+                              }
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
