@@ -405,7 +405,7 @@ class PrimaryCard extends StatelessWidget {
 
   PrimaryCard({
     this.child,
-    this.padding = const EdgeInsets.fromLTRB(20, 15, 20, 15),
+    this.padding = const EdgeInsets.all(28),
     this.color = const Color(0xFFFFFFFF),
     this.borderSide = BorderSide.none,
     this.minHeight = 0.0,
@@ -421,9 +421,9 @@ class PrimaryCard extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(25)),
         boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.06),
-            blurRadius: 8,
-            offset: Offset(0, 8),
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            blurRadius: 6,
+            offset: Offset(0, 6),
           ),
         ],
       ),
@@ -824,7 +824,7 @@ class PrimaryDialog extends StatelessWidget {
       actions: actions,
       titlePadding: EdgeInsets.fromLTRB(20, 15, 20, 0),
       contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 0),
-      insetPadding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+      insetPadding: EdgeInsets.fromLTRB(20, 0, 20, 0),
     );
   }
 }

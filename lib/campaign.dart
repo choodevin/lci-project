@@ -1509,10 +1509,42 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
 
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data = snapshot.data.data();
-          if (data != null && data['content'] != null) {
-            data = data['content'];
+          List<dynamic> contentOrder = [];
+          if(data != null && data.isNotEmpty) {
+            if(data.containsKey('contentOrder')) {
+              contentOrder = data['contentOrder'];
+            } else {
+              var primaryCounter = 0;
+              var secondaryCounter = 0;
+
+              data['content'].forEach((k, v) {
+                if (v['type'] == 'Primary') {
+                  contentOrder.add(k);
+                  primaryCounter++;
+                }
+              });
+              if (primaryCounter < 3) {
+                while (primaryCounter < 3) {
+                  contentOrder.add("");
+                  primaryCounter++;
+                }
+              }
+
+              data['content'].forEach((k, v) {
+                if (v['type'] == 'Secondary') {
+                  contentOrder.add(k);
+                  secondaryCounter++;
+                }
+              });
+              if (secondaryCounter < 4) {
+                while (secondaryCounter < 4) {
+                  contentOrder.add("");
+                  secondaryCounter++;
+                }
+              }
+            }
           } else {
-            data = null;
+            contentOrder = [];
           }
           return SizedBox(
             child: Column(
@@ -1525,41 +1557,46 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                         assetPath: 'assets/tasks.svg',
                       ),
                       Padding(padding: EdgeInsets.all(5)),
-                      data == null || data.length == 0
+                      contentOrder.length == 0
                           ? Padding(
                               padding: const EdgeInsets.all(20),
                               child: Text('He/She has not set any 7 things for today.', style: TextStyle(color: Color(0xFF6E6E6E))),
                             )
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: data.keys.map((key) {
-                                return Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(right: 15),
-                                        height: 16,
-                                        width: 16,
-                                        child: Checkbox(
-                                          activeColor: Color(0xFFF48A1D),
-                                          checkColor: Colors.white,
-                                          value: data[key]['status'],
-                                          onChanged: null,
-                                        ),
-                                      ),
-                                      Text(
-                                        key,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
+                              children: [
+                                for (var i = 0; i < contentOrder.length; i++)
+                                  contentOrder[i].isNotEmpty
+                                      ? Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                margin: EdgeInsets.only(right: 15),
+                                                height: 16,
+                                                width: 16,
+                                                child: Checkbox(
+                                                  activeColor: Color(0xFFF48A1D),
+                                                  checkColor: Colors.white,
+                                                  value: data['content'][contentOrder[i]]['status'],
+                                                  onChanged: null,
+                                                ),
+                                              ),
+                                              Flexible(
+                                                child: Text(
+                                                  contentOrder[i],
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : SizedBox.shrink(),
+                              ],
                             ),
                     ],
                   ),

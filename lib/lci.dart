@@ -620,7 +620,7 @@ class LciResult extends StatelessWidget {
                   PageHeadings(text: 'Your LCI Result', padding: EdgeInsets.zero),
                   Padding(padding: EdgeInsets.all(10)),
                   Container(
-                    height: 300,
+                    height: 220,
                     child: SpiderChart(
                       data: [
                         subScore['Spiritual Life'],
@@ -651,16 +651,17 @@ class LciResult extends StatelessWidget {
                   ),
                   Padding(padding: EdgeInsets.all(10)),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
+                    padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
                     child: Text(
                       scoreObj.firstDisplay(),
+                      textAlign: TextAlign.justify,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  Padding(padding: EdgeInsets.all(10)),
+                  Padding(padding: EdgeInsets.all(30)),
                   view != null ?Text(
                     "Your top 3 focused fields",
                     style: TextStyle(
@@ -697,9 +698,18 @@ class LciResult extends StatelessWidget {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.stretch,
                                             children: [
-                                              Text(
-                                                goal.entries.elementAt(i).key,
-                                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    goal.entries.elementAt(i).key,
+                                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                                  ),
+                                                  Text(
+                                                    (subScore[goal.entries.elementAt(i).key]).toStringAsFixed(2) + "%",
+                                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                                  ),
+                                                ],
                                               ),
                                               Padding(padding: EdgeInsets.all(3)),
                                               RoundedLinearProgress(
@@ -731,8 +741,9 @@ class LciResult extends StatelessWidget {
                           },
                         )
                       : SizedBox.shrink(),
+                  Padding(padding: EdgeInsets.all(30)),
                   Text(
-                    view != null ? "Other fields" : "Overview",
+                    view != null ? "All fields" : "Overview",
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -746,9 +757,18 @@ class LciResult extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              e,
-                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  e,
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                ),
+                                Text(
+                                  subScore[e].toStringAsFixed(2) + "%",
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                ),
+                              ],
                             ),
                             Padding(padding: EdgeInsets.all(3)),
                             RoundedLinearProgress(

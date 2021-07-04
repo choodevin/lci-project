@@ -18,6 +18,12 @@ class LoggedInMain extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      builder: (context, child) {
+      return ScrollConfiguration(
+        behavior: NoGlowScroll(),
+        child: child,
+      );
+    },
       home: GetUserData(),
     );
   }
@@ -62,5 +68,13 @@ class BuildApp extends StatelessWidget {
         return SplashScreenMain();
       },
     );
+  }
+}
+
+class NoGlowScroll extends ScrollBehavior {
+  @override
+  Widget buildViewportChrome(
+      BuildContext context, Widget child, AxisDirection axisDirection) {
+    return child;
   }
 }

@@ -132,15 +132,21 @@ class _RegisterState extends State<Register> {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please fill in all the credentials')));
                           } else {
                             if (_passwordController.text != _confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password doesn\'t match')));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password and confirm password does not match')));
                             } else {
-                              if (_passwordController.text.length > 6) {
+                              if (_passwordController.text.length >= 6) {
                                 final user = UserData();
                                 user.email = _emailController.text;
                                 user.password = _passwordController.text;
-                                Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
+                                FirebaseAuth.instance.fetchSignInMethodsForEmail(_emailController.text).then((value) {
+                                  if(value.isNotEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Account exists, please login or reset your password.')));
+                                  } else {
+                                    Navigator.of(context).push(SlideLeftRoute(previousPage: Register(), builder: (context) => RegisterDetails(user: user)));
+                                  }
+                                });
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password must be atleast 6 characters')));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password must be at least 6 characters')));
                               }
                             }
                           }

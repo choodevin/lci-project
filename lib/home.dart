@@ -39,6 +39,7 @@ class _HomeState extends State<Home> {
   final wheelData;
   Map<String, dynamic> sevenThings;
   Map<String, dynamic> goals;
+  List<dynamic> contentOrder = [];
 
   _HomeState(this.userdata, this.wheelData, this.sevenThings, this.goals);
 
@@ -61,6 +62,44 @@ class _HomeState extends State<Home> {
         toChange = DateTime(value.year, value.month, value.day);
       });
     });
+
+    if (sevenThings != null && sevenThings.containsKey('contentOrder')) {
+      contentOrder = sevenThings['contentOrder'];
+    } else {
+      if (sevenThings == null) {
+        sevenThings = {'content': {}, 'status': {}, 'contentOrder': {}};
+        contentOrder = [];
+      } else {
+        var primaryCounter = 0;
+        var secondaryCounter = 0;
+
+        sevenThings['content'].forEach((k, v) {
+          if (v['type'] == 'Primary') {
+            contentOrder.add(k);
+            primaryCounter++;
+          }
+        });
+        if (primaryCounter < 3) {
+          while (primaryCounter < 3) {
+            contentOrder.add("");
+            primaryCounter++;
+          }
+        }
+
+        sevenThings['content'].forEach((k, v) {
+          if (v['type'] == 'Secondary') {
+            contentOrder.add(k);
+            secondaryCounter++;
+          }
+        });
+        if (secondaryCounter < 4) {
+          while (secondaryCounter < 4) {
+            contentOrder.add("");
+            secondaryCounter++;
+          }
+        }
+      }
+    }
   }
 
   Future<void> infoVideo() {
@@ -82,37 +121,6 @@ class _HomeState extends State<Home> {
       subScore = wheelData.subScore();
     }
 
-    arrangeSevenThings() {
-      Map<String, dynamic> primary = {};
-      Map<String, dynamic> secondary = {};
-      sevenThings.forEach((key, value) {
-        if (value['type'] == 'Primary') {
-          primary[key] = sevenThings[key];
-        } else {
-          secondary[key] = sevenThings[key];
-        }
-      });
-      primary.addAll(secondary);
-      setState(() {
-        sevenThings = primary;
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
-          if(!value.get('viewedHome')) {
-            infoVideo();
-            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
-              "viewedHome" : true,
-            });
-          }
-        });
-      });
-    }
-
-    if (sevenThings != null) {
-      arrangeSevenThings();
-    }
-
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () {
@@ -123,7 +131,7 @@ class _HomeState extends State<Home> {
           child: SingleChildScrollView(
             physics: ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+              padding: EdgeInsets.fromLTRB(32, 25, 32, 25),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -337,37 +345,37 @@ class _HomeState extends State<Home> {
                                     text: 'Today\'s 7 Things',
                                   ),
                                   Padding(padding: EdgeInsets.all(10)),
-                                  sevenThings != null && sevenThings.length > 0
+                                  contentOrder.length > 0 && sevenThings['content'].length > 0
                                       ? Column(
-                                          children: sevenThings.keys.map((key) {
-                                            return Padding(
-                                              padding: EdgeInsets.only(top: 5, bottom: 5),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 20,
-                                                        width: 20,
-                                                        child: Checkbox(
-                                                          activeColor: Color(0xFFF48A1D),
-                                                          checkColor: Colors.white,
-                                                          value: sevenThings[key]['status'],
-                                                          onChanged: (value) {},
-                                                        ),
+                                          children: [
+                                            for (var i = 0; i < contentOrder.length; i++)
+                                              contentOrder[i].isNotEmpty
+                                                  ? Padding(
+                                                      padding: EdgeInsets.only(top: 5, bottom: 5),
+                                                      child: Row(
+                                                        children: [
+                                                          SizedBox(
+                                                            height: 20,
+                                                            width: 20,
+                                                            child: Checkbox(
+                                                              activeColor: Color(0xFFF48A1D),
+                                                              checkColor: Colors.white,
+                                                              value: sevenThings['content'][contentOrder[i]]['status'],
+                                                              onChanged: (bool value) {},
+                                                            ),
+                                                          ),
+                                                          Padding(padding: EdgeInsets.all(7.5)),
+                                                          Flexible(
+                                                            child: Text(
+                                                              contentOrder[i],
+                                                              style: TextStyle(fontSize: 17),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
-                                                      Padding(padding: EdgeInsets.all(7.5)),
-                                                      Text(
-                                                        key,
-                                                        style: TextStyle(fontSize: 17),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
+                                                    )
+                                                  : SizedBox.shrink(),
+                                          ],
                                         )
                                       : Column(
                                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -426,6 +434,7 @@ class _GetUserDataState extends State<GetUserData> {
     date = DateTime(date.year, date.month, date.day);
     return date;
   }
+
   @override
   void initState() {
     super.initState();
@@ -463,8 +472,8 @@ class _GetUserDataState extends State<GetUserData> {
             if (snapshot.data[3].docs.length != 0) {
               goals = snapshot.data[3].docs.last.data();
             }
-            if(snapshot.data[1].data() != null) {
-              sevenThings = snapshot.data[1].data()['content'];
+            if (snapshot.data[1].data() != null) {
+              sevenThings = snapshot.data[1].data();
             }
             userdata.name = snapshot.data[0].get('name');
             userdata.gender = snapshot.data[0].get('gender');
@@ -478,7 +487,6 @@ class _GetUserDataState extends State<GetUserData> {
               userdata.currentEnrolledCampaign = "";
             }
             userdata.email = FirebaseAuth.instance.currentUser.email;
-
 
             return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals, point: point);
           } else {
@@ -552,63 +560,61 @@ class _HomeBaseState extends State<HomeBase> {
     ];
     return Scaffold(
       body: screen.elementAt(index),
-      bottomNavigationBar: Theme(
-        data: ThemeData(
-          brightness: Brightness.light,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
+      bottomNavigationBar: SizedBox(
+        height: 72,
+        child: Theme(
+          data: ThemeData(
+            brightness: Brightness.light,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
           ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            showSelectedLabels: false,
-            showUnselectedLabels: false,
-            items: [
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/home.svg',
-                  height: 24,
-                ),
-                activeIcon: SvgPicture.asset(
-                  'assets/home.svg',
-                  height: 24,
-                  color: Color(0xFF170E9A),
-                ),
-                label: 'Home',
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
+            ),
+            child: BottomNavigationBar(
+              elevation: 0,
+              backgroundColor: Colors.white,
+              unselectedItemColor: Color(0XFFAFAFAF),
+              selectedItemColor: Color(0xFF170E9A),
+              unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              selectedIconTheme: IconThemeData(
+                color: Color(0xFF170E9A),
               ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/users.svg',
-                  height: 24,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              items: [
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/home.svg',
+                    height: 22,
+                    color: index == 0 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                  ),
+                  label: 'Home',
                 ),
-                activeIcon: SvgPicture.asset(
-                  'assets/users.svg',
-                  height: 24,
-                  color: Color(0xFF170E9A),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/users.svg',
+                    height: 22,
+                    color: index == 1 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+
+                  ),
+                  label: 'Campaign',
                 ),
-                label: 'Campaign',
-              ),
-              BottomNavigationBarItem(
-                icon: SvgPicture.asset(
-                  'assets/user.svg',
-                  height: 24,
-                  color: Colors.black,
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    'assets/user.svg',
+                    height: 22,
+                    color: index == 2 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                  ),
+                  label: 'Profile',
                 ),
-                activeIcon: SvgPicture.asset(
-                  'assets/user.svg',
-                  height: 24,
-                  color: Color(0xFF170E9A),
-                ),
-                label: 'Profile',
-              ),
-            ],
-            currentIndex: index,
-            onTap: onTap,
+              ],
+              currentIndex: index,
+              onTap: onTap,
+            ),
           ),
         ),
       ),
