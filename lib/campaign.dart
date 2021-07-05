@@ -978,7 +978,6 @@ class _CampaignMainState extends State<CampaignMain> {
                                   Map<String, double> result = {};
                                   Map<String, double> sorted = {};
                                   List<double> sortVal = [];
-                                  List<Color> colors = [Color(0xFFFFDF00), Color(0xFFB5B7BB), Color(0XFFCD7F32), Color(0XFF299E45), Color(0XFF299E45)];
 
                                   users.forEach((i, v) {
                                     names[v.id] = v.get('name');
@@ -1026,7 +1025,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                             ),
                                             Padding(padding: EdgeInsets.all(5)),
                                             RoundedLinearProgress(
-                                              color: colors[index],
+                                              color: index == 0 ? Color(0xFFFFDF00) :  index == 1 ? Color(0xFFB5B7BB) : index == 2 ? Color(0XFFCD7F32) : Color(0XFF299E45),
                                               value: sorted.entries.elementAt(index).value / 10,
                                             ),
                                           ],
