@@ -574,7 +574,7 @@ class _HomeBaseState extends State<HomeBase> {
               border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
             ),
             child: BottomNavigationBar(
-              elevation: 0,
+              elevation: 12,
               backgroundColor: Colors.white,
               unselectedItemColor: Color(0XFFAFAFAF),
               selectedItemColor: Color(0xFF170E9A),

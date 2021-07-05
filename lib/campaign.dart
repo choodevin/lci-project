@@ -1004,7 +1004,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     scrollDirection: Axis.vertical,
-                                    itemCount: sorted.length > 5 ? 5 : sorted.length,
+                                    itemCount: sorted.length,
                                     itemBuilder: (context, index) {
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 10),
