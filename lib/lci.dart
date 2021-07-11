@@ -1075,7 +1075,7 @@ class LciResult extends StatelessWidget {
                                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                   ),
                                                   Text(
-                                                    (subScore[goal.entries.elementAt(i).key]).toStringAsFixed(2) + "%",
+                                                    (subScore[goal.entries.elementAt(i).key] * 10).toStringAsFixed(0) + "%",
                                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                   ),
                                                 ],
@@ -1134,7 +1134,7 @@ class LciResult extends StatelessWidget {
                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                 ),
                                 Text(
-                                  subScore[e].toStringAsFixed(2) + "%",
+                                  ((subScore[e] * 10).toStringAsFixed(0)) + "%",
                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                 ),
                               ],

@@ -111,7 +111,12 @@ class _WheelOfLife extends State<WheelOfLife> {
                   children: [
                     Stack(
                       children: [
-                        Center(child: Image.asset('assets/radar-bg.png', height: 260, width: 260,)),
+                        Center(
+                            child: Image.asset(
+                          'assets/radar-bg.png',
+                          height: 260,
+                          width: 260,
+                        )),
                         Padding(
                           padding: EdgeInsets.only(top: 30),
                           child: Center(
@@ -133,7 +138,7 @@ class _WheelOfLife extends State<WheelOfLife> {
                                     subScore['Hobby & Leisure'] / 10,
                                     subScore['Physical Environment'] / 10,
                                     subScore['Self-Development'] / 10,
-                                    subScore['Career or Study'] / 10 ,
+                                    subScore['Career or Study'] / 10,
                                     subScore['Finance'] / 10,
                                   ],
                                 ),
@@ -239,11 +244,11 @@ class _WheelOfLife extends State<WheelOfLife> {
                                 children: [
                                   Text(
                                     e,
-                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                   ),
                                   Text(
-                                    subScore[e].toString(),
-                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                                    ((subScore[e] * 10).toStringAsFixed(0)) + "%",
+                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                   ),
                                 ],
                               ),
