@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:radar_chart/radar_chart.dart';
 import 'package:spider_chart/spider_chart.dart';
 import 'package:http/http.dart' as http;
 
@@ -46,13 +47,6 @@ class _HomeState extends State<Home> {
   CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
 
   DateTime toChange;
-
-  Future<DateTime> getNetworkTime() async {
-    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
-    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
-    date = DateTime(date.year, date.month, date.day);
-    return date;
-  }
 
   @override
   void initState() {
@@ -156,34 +150,39 @@ class _HomeState extends State<Home> {
                                           text: 'Wheel of Life',
                                         ),
                                         Padding(padding: EdgeInsets.all(15)),
-                                        Center(
-                                          child: SpiderChart(
-                                            data: [
-                                              subScore['Spiritual Life'],
-                                              subScore['Romance Relationship'],
-                                              subScore['Family'],
-                                              subScore['Social Life'],
-                                              subScore['Health & Fitness'],
-                                              subScore['Hobby & Leisure'],
-                                              subScore['Physical Environment'],
-                                              subScore['Self-Development'],
-                                              subScore['Career or Study'],
-                                              subScore['Finance']
-                                            ],
-                                            maxValue: 10,
-                                            colors: [
-                                              Color(0xFF7C0E6F),
-                                              Color(0xFF6EC8F4),
-                                              Color(0xFFC4CF54),
-                                              Color(0xFFE671A8),
-                                              Color(0xFF003989),
-                                              Color(0xFFF27C00),
-                                              Color(0xFFFFE800),
-                                              Color(0xFF00862F),
-                                              Color(0xFFD9000D),
-                                              Color(0xFF8C8B8B),
-                                            ],
-                                          ),
+                                        Stack(
+                                          children: [
+                                            Center(child: Image.asset('assets/radar-bg.png', height: 200, width: 200,)),
+                                            Padding(
+                                              padding: EdgeInsets.only(top: 20),
+                                              child: Center(
+                                                child: RadarChart(
+                                                  initialAngle: 5,
+                                                  length: 10,
+                                                  radius: 80,
+                                                  radars: [
+                                                    RadarTile(
+                                                      borderStroke: 1,
+                                                      borderColor: Color(0xFFFF8000),
+                                                      backgroundColor: Color(0xFFFF8000).withOpacity(0.2),
+                                                      values: [
+                                                        subScore['Spiritual Life'] / 10,
+                                                        subScore['Romance Relationship'] / 10,
+                                                        subScore['Family'] / 10,
+                                                        subScore['Social Life'] / 10,
+                                                        subScore['Health & Fitness'] / 10,
+                                                        subScore['Hobby & Leisure'] / 10,
+                                                        subScore['Physical Environment'] / 10,
+                                                        subScore['Self-Development'] / 10,
+                                                        subScore['Career or Study'] / 10 ,
+                                                        subScore['Finance'] / 10,
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -428,13 +427,6 @@ class _GetUserDataState extends State<GetUserData> {
 
   _GetUserDataState(this.point);
 
-  Future<DateTime> getNetworkTime() async {
-    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
-    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
-    date = DateTime(date.year, date.month, date.day);
-    return date;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -455,10 +447,6 @@ class _GetUserDataState extends State<GetUserData> {
     return FutureBuilder<List<dynamic>>(
       future: Future.wait([userRef.get(), sThingsRef.get(), wheelRef.get(), goalsRef.get()]),
       builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(body: Text("Something went wrong"));
-        }
-
         if (snapshot.connectionState == ConnectionState.done) {
           DocumentSnapshot ud = snapshot.data[0];
           if (ud.exists) {
@@ -551,6 +539,39 @@ class _HomeBaseState extends State<HomeBase> {
     });
   }
 
+  Future<bool> showConfirmExit() {
+    return showDialog<bool>(
+      context: context,
+      builder: (c) {
+        return PrimaryDialog(
+          title: Text("Exit the app"),
+          content: Text("Are you sure you want to exit?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(
+                'Yes',
+                style: TextStyle(
+                  color: Color(0xFFFF0000),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'Cancel',
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
@@ -558,62 +579,73 @@ class _HomeBaseState extends State<HomeBase> {
       campaignPage,
       Profile(userdata: userdata),
     ];
-    return Scaffold(
-      body: screen.elementAt(index),
-      bottomNavigationBar: SizedBox(
-        height: 72,
-        child: Theme(
-          data: ThemeData(
-            brightness: Brightness.light,
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
+    return WillPopScope(
+      onWillPop: () async {
+        if(index != 0) {
+          setState(() {
+            index = 0;
+          });
+          return false;
+        } else {
+          return await showConfirmExit();
+        }
+      },
+      child: Scaffold(
+        body: screen.elementAt(index),
+        bottomNavigationBar: SizedBox(
+          height: 72,
+          child: Theme(
+            data: ThemeData(
+              brightness: Brightness.light,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
             ),
-            child: BottomNavigationBar(
-              elevation: 12,
-              backgroundColor: Colors.white,
-              unselectedItemColor: Color(0XFFAFAFAF),
-              selectedItemColor: Color(0xFF170E9A),
-              unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              selectedIconTheme: IconThemeData(
-                color: Color(0xFF170E9A),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
               ),
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              items: [
-                BottomNavigationBarItem(
-                  icon: SvgPicture.asset(
-                    'assets/home.svg',
-                    height: 22,
-                    color: index == 0 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
-                  ),
-                  label: 'Home',
+              child: BottomNavigationBar(
+                elevation: 12,
+                backgroundColor: Colors.white,
+                unselectedItemColor: Color(0XFFAFAFAF),
+                selectedItemColor: Color(0xFF170E9A),
+                unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                selectedIconTheme: IconThemeData(
+                  color: Color(0xFF170E9A),
                 ),
-                BottomNavigationBarItem(
-                  icon: SvgPicture.asset(
-                    'assets/users.svg',
-                    height: 22,
-                    color: index == 1 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
-
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      'assets/home.svg',
+                      height: 22,
+                      color: index == 0 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                    ),
+                    label: 'Home',
                   ),
-                  label: 'Campaign',
-                ),
-                BottomNavigationBarItem(
-                  icon: SvgPicture.asset(
-                    'assets/user.svg',
-                    height: 22,
-                    color: index == 2 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      'assets/users.svg',
+                      height: 22,
+                      color: index == 1 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                    ),
+                    label: 'Campaign',
                   ),
-                  label: 'Profile',
-                ),
-              ],
-              currentIndex: index,
-              onTap: onTap,
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      'assets/user.svg',
+                      height: 22,
+                      color: index == 2 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
+                    ),
+                    label: 'Profile',
+                  ),
+                ],
+                currentIndex: index,
+                onTap: onTap,
+              ),
             ),
           ),
         ),

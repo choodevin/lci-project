@@ -1,4 +1,5 @@
 import 'package:LCI/splash.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,11 +20,11 @@ class LoggedInMain extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       builder: (context, child) {
-      return ScrollConfiguration(
-        behavior: NoGlowScroll(),
-        child: child,
-      );
-    },
+        return ScrollConfiguration(
+          behavior: NoGlowScroll(),
+          child: child,
+        );
+      },
       home: GetUserData(),
     );
   }
@@ -37,6 +38,12 @@ class NonLoggedInMain extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: NoGlowScroll(),
+          child: child,
+        );
+      },
       home: Login(),
     );
   }
@@ -58,6 +65,7 @@ class BuildApp extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
+          FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
           if (FirebaseAuth.instance.currentUser != null) {
             return LoggedInMain();
           } else {
@@ -73,8 +81,7 @@ class BuildApp extends StatelessWidget {
 
 class NoGlowScroll extends ScrollBehavior {
   @override
-  Widget buildViewportChrome(
-      BuildContext context, Widget child, AxisDirection axisDirection) {
+  Widget buildViewportChrome(BuildContext context, Widget child, AxisDirection axisDirection) {
     return child;
   }
 }

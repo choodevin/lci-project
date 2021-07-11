@@ -1,14 +1,11 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:radar_chart/radar_chart.dart';
 import 'package:spider_chart/spider_chart.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
-import 'package:http/http.dart' as http;
 
 import 'custom-components.dart';
 import 'entity/LCIScore.dart';
@@ -41,7 +38,7 @@ class Lci extends StatelessWidget {
                 popAvailable: true,
               ),
               Container(
-                padding: EdgeInsets.fromLTRB(20, 25, 25, 25),
+                padding: EdgeInsets.fromLTRB(20, 0, 25, 25),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -57,7 +54,7 @@ class Lci extends StatelessWidget {
                           Text(
                             lciRules,
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -89,131 +86,414 @@ class PartOne extends StatefulWidget {
 
 class _PartOne extends State<PartOne> {
   var selected = 'Single';
+  var ref;
+
+  @override
+  void initState() {
+    super.initState();
+    ref = FirebaseFirestore.instance.collection('LCITest').doc('Questions').get();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: 'Part 1',
-                popAvailable: true,
+    return FutureBuilder(
+      future: ref,
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: Text("Something went wrong"),
               ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 86,
-                ),
-                padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          Map<String, dynamic> questions = snapshot.data.data();
+          return Scaffold(
+            body: SafeArea(
+              child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Are you single or engaged?',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                        Padding(padding: EdgeInsets.all(10)),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selected = "Single";
-                                });
-                              },
-                              child: Container(
-                                padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
-                                decoration: BoxDecoration(
-                                  color: selected == "Single" ? Color(0xFF170E9A) : Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  border: selected != "Single" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/check.svg',
-                                      color: selected == "Single" ? Colors.white : Color(0xFFCDCDCD),
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    Padding(padding: EdgeInsets.all(10)),
-                                    Text(
-                                      'Single',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: selected == "Single" ? Colors.white : Color(0xFF9B9B9B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(padding: EdgeInsets.all(5)),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selected = "Engaged";
-                                });
-                              },
-                              child: Container(
-                                width: MediaQuery.of(context).size.width / 3,
-                                padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
-                                decoration: BoxDecoration(
-                                  color: selected == "Engaged" ? Color(0xFF170E9A) : Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  border: selected != "Engaged" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/check.svg',
-                                      color: selected == "Engaged" ? Colors.white : Color(0xFFCDCDCD),
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    Padding(padding: EdgeInsets.all(10)),
-                                    Text(
-                                      'Engaged',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: selected == "Engaged" ? Colors.white : Color(0xFF9B9B9B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    PageHeadings(
+                      text: 'LCI Test',
+                      popAvailable: true,
                     ),
-                    PrimaryButton(
-                      onClickFunction: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => PartTwo(
-                              selected: selected,
-                            ),
+                    Container(
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 86,
+                      ),
+                      padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Are you single or engaged?',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                              Padding(padding: EdgeInsets.all(10)),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selected = "Single";
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
+                                      decoration: BoxDecoration(
+                                        color: selected == "Single" ? Color(0xFF170E9A) : Colors.white,
+                                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                                        border: selected != "Single" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/check.svg',
+                                            color: selected == "Single" ? Colors.white : Color(0xFFCDCDCD),
+                                            height: 20,
+                                            width: 20,
+                                          ),
+                                          Padding(padding: EdgeInsets.all(10)),
+                                          Text(
+                                            'Single',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: selected == "Single" ? Colors.white : Color(0xFF9B9B9B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(padding: EdgeInsets.all(5)),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selected = "Engaged";
+                                      });
+                                    },
+                                    child: Container(
+                                      width: MediaQuery.of(context).size.width / 3,
+                                      padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
+                                      decoration: BoxDecoration(
+                                        color: selected == "Engaged" ? Color(0xFF170E9A) : Colors.white,
+                                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                                        border: selected != "Engaged" ? Border.all(color: Color.fromRGBO(0, 0, 0, 0.1)) : Border.all(color: Colors.transparent),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SvgPicture.asset(
+                                            'assets/check.svg',
+                                            color: selected == "Engaged" ? Colors.white : Color(0xFFCDCDCD),
+                                            height: 20,
+                                            width: 20,
+                                          ),
+                                          Padding(padding: EdgeInsets.all(10)),
+                                          Text(
+                                            'Engaged',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: selected == "Engaged" ? Colors.white : Color(0xFF9B9B9B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      text: 'Next',
-                      color: Color(0xFF299E45),
-                      textColor: Colors.white,
+                          PrimaryButton(
+                            onClickFunction: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => QuestionForm(
+                                    selected: selected,
+                                    questions: questions,
+                                  ),
+                                ),
+                              );
+                            },
+                            text: 'Next',
+                            color: Color(0xFF299E45),
+                            textColor: Colors.white,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
+          );
+        }
+
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class QuestionForm extends StatefulWidget {
+  final selected;
+  final questions;
+
+  const QuestionForm({Key key, this.questions, this.selected}) : super(key: key);
+
+  _QuestionFormState createState() => _QuestionFormState(questions, selected);
+}
+
+class _QuestionFormState extends State<QuestionForm> {
+  final String selected;
+  final Map<String, dynamic> questions;
+
+  int currentPage = 1;
+  int totalPage;
+  double progress = 0.0;
+  bool allowSubmit = false;
+  List<String> randomizedList = [];
+  List<String> completedList = [];
+  List<String> skipList = [];
+  List<double> scoreList = [];
+  DateTime dateNow;
+  Map<String, dynamic> score = {};
+
+  PageController _pageController = new PageController();
+
+  _QuestionFormState(this.questions, this.selected);
+
+  @override
+  void initState() {
+    super.initState();
+    questions.forEach((key, value) {
+      if (value['type'] == "Single" || value['type'] == "Engaged") {
+        if (value['type'] != selected) {
+          skipList.add(key);
+        }
+      }
+    });
+
+    for (var i = 1; i <= questions.length; i++) {
+      if (!skipList.contains(i.toString())) {
+        randomizedList.add(i.toString());
+        scoreList.add(5.5);
+      }
+    }
+    totalPage = (randomizedList.length % 5 == 0 ? randomizedList.length / 5 : (randomizedList.length / 5) + 1).toInt();
+
+    randomizedList.shuffle();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Future<void> setScore() async {
+      if (dateNow == null) {
+        dateNow = DateTime.now();
+      }
+      await FirebaseFirestore.instance
+          .collection('UserData')
+          .doc(FirebaseAuth.instance.currentUser.uid)
+          .collection('LCIScore')
+          .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
+          .set(score)
+          .then((value) {
+        Navigator.of(context).pop();
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
+      });
+    }
+
+    void getProgress() {
+      setState(() {
+        progress = completedList.length / randomizedList.length;
+        if (progress == 1) {
+          allowSubmit = true;
+        }
+      });
+    }
+
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            PageHeadings(
+              text: 'LCI Test',
+              popAvailable: true,
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  currentPage != 1
+                      ? GestureDetector(
+                          onTap: () {
+                            _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                          },
+                          child: Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF170E9A),
+                              ),
+                              child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
+                        )
+                      : SizedBox(width: 41),
+                  Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                  currentPage != totalPage
+                      ? GestureDetector(
+                          onTap: () {
+                            _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                          },
+                          child: Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF170E9A),
+                              ),
+                              child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
+                        )
+                      : SizedBox(width: 41),
+                ],
+              ),
+            ),
+            Container(
+              height: MediaQuery.of(context).size.height - 208.6667,
+              width: MediaQuery.of(context).size.width,
+              child: PageView(
+                physics: NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                controller: _pageController,
+                onPageChanged: (page) {
+                  setState(() {
+                    currentPage = page + 1;
+                  });
+                },
+                children: [
+                  for (var page = 1; page <= totalPage; page++)
+                    Container(
+                      padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(padding: EdgeInsets.all(10)),
+                            for (var qIndex = (page * 5) - 5; qIndex < randomizedList.length && qIndex < page * 5; qIndex++)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                  ),
+                                  Padding(padding: EdgeInsets.all(20)),
+                                  Text(
+                                    questions[randomizedList[qIndex].toString()]['title'],
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xFF170E9A)),
+                                  ),
+                                  Padding(padding: EdgeInsets.all(24)),
+                                  AnswerSlider(
+                                    value: scoreList[qIndex],
+                                    callBack: (value) {
+                                      scoreList[qIndex] = value;
+                                      if (!completedList.contains(qIndex.toString())) {
+                                        completedList.add(qIndex.toString());
+                                        getProgress();
+                                      }
+                                    },
+                                  ),
+                                  Padding(padding: EdgeInsets.all(20)),
+                                ],
+                              ),
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                            ),
+                            Padding(padding: EdgeInsets.all(10)),
+                            page == totalPage
+                                ? SecondaryButton(
+                                    disabled: !allowSubmit,
+                                    color: Color(0xFF299E45),
+                                    text: "Submit",
+                                    onClickFunction: () async {
+                                      score = {};
+                                      showLoading(context);
+                                      for (var i = 0; i < randomizedList.length; i++) {
+                                        var key;
+                                        if (questions[randomizedList[i].toString()]['type'] == "Single" || questions[randomizedList[i].toString()]['type'] == "Engaged") {
+                                          key = "Romance Relationship";
+                                        } else {
+                                          key = questions[randomizedList[i].toString()]['type'];
+                                        }
+                                        Map<String, double> scoreContent = score[key];
+                                        if (scoreContent == null) {
+                                          scoreContent = {
+                                            "q1": scoreList[i],
+                                          };
+                                        } else {
+                                          var totalAdded = scoreContent.length;
+                                          String questionHeader = "q" + (totalAdded + 1).toString();
+                                          scoreContent[questionHeader] = scoreList[i];
+                                        }
+                                        score[key] = scoreContent;
+                                      }
+                                      await setScore();
+                                    },
+                                  )
+                                : SizedBox.shrink(),
+                            Padding(padding: EdgeInsets.all(10)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.all(0),
+              color: Color(0xFF5E5E5E),
+              height: 50,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    (progress * 100).toStringAsFixed(0) + "%",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  Padding(padding: EdgeInsets.all(10)),
+                  ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width - 120,
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF299E45)),
+                        backgroundColor: Color(0xFFCDCDCD),
+                        minHeight: 6,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -235,83 +515,82 @@ class _PartTwoState extends State<PartTwo> {
 
   var score = Map<String, Map<String, double>>();
   var questionRef;
-  var list = ['1', '2', '3', '4', '5'];
+  var list;
 
   @override
   void initState() {
     super.initState();
     score = {
       "Career or Study": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Family": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Finance": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Health & Fitness": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Hobby & Leisure": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Physical Environment": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
-      },
-      "Romance Relationship": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Self-Development": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       },
       "Social Life": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
       },
       "Spiritual Life": {
-        "1": 1.0,
-        "2": 1.0,
-        "3": 1.0,
-        "4": 1.0,
-        "5": 1.0,
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
       }
     };
+    if (selected == "Single") {
+      list = ["1", "2", "3"];
+      score['Romance Relationship'] = {
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+      };
+    } else {
+      list = ["1", "2", "3", "4"];
+      score['Romance Relationship'] = {
+        "1": 5.5,
+        "2": 5.5,
+        "3": 5.5,
+        "4": 5.5,
+      };
+    }
     questionRef = FirebaseFirestore.instance.collection('LCITest').doc(selected).get();
     list.shuffle();
   }
@@ -350,46 +629,41 @@ class _PartTwoState extends State<PartTwo> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                PrimaryCard(
-                                  padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        questions.get(q)['title'],
-                                        style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
-                                      ),
-                                      SfSlider(
-                                        min: 1.0,
-                                        max: 10.0,
-                                        interval: 1.0,
-                                        showTicks: true,
-                                        showLabels: true,
-                                        stepSize: 1.0,
-                                        value: score['Romance Relationship'][q],
-                                        onChanged: (value) {
-                                          setState(() {
-                                            score['Romance Relationship'][q] = value;
-                                          });
-                                        },
-                                      ),
-                                    ],
+                                Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                ),
+                                Padding(padding: EdgeInsets.all(20)),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Text(
+                                    questions.get(q)['title'],
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xFF170E9A)),
                                   ),
+                                ),
+                                Padding(padding: EdgeInsets.all(24)),
+                                AnswerSlider(
+                                  value: score['Romance Relationship'][q],
+                                  callBack: (value) {
+                                    setState(() {
+                                      score['Romance Relationship'][q] = value;
+                                    });
+                                  },
                                 ),
                                 Padding(padding: EdgeInsets.all(10)),
                               ],
                             ),
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Padding(padding: EdgeInsets.all(20)),
                           PrimaryButton(
                             text: 'Next',
                             color: Color(0xFF299E45),
                             textColor: Colors.white,
                             onClickFunction: () {
-                              for (var q in list) {
-                                if (questions.get(q)['reverse']) {
-                                  score['Romance Relationship'][q] = 11.0 - score['Romance Relationship'][q];
-                                  break;
-                                }
-                              }
                               Navigator.of(context).push(MaterialPageRoute(builder: (context) => AllQuestionForm(score: score)));
                             },
                           ),
@@ -432,16 +706,15 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
 
   var list = [];
   var subList = [];
+  var completedList = [];
   var loading = false;
+  var totalPage;
+  var progress = 0.0;
+  var currentPage = 1;
+  var allowSubmit = false;
 
   DateTime dateNow;
-
-  Future<DateTime> getNetworkTime() async {
-    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
-    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
-    date = DateTime(date.year, date.month, date.day);
-    return date;
-  }
+  PageController _pageController = new PageController();
 
   @override
   void initState() {
@@ -456,18 +729,23 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
       }
       subList.add(f.toString());
     }
-    print(subList);
+
     list.shuffle();
+
     getNetworkTime().then((value) {
       setState(() {
         dateNow = value;
       });
     });
+    totalPage = list.length / 5;
   }
 
   @override
   Widget build(BuildContext context) {
     Future<void> setScore() async {
+      if (dateNow == null) {
+        dateNow = DateTime.now();
+      }
       await FirebaseFirestore.instance
           .collection('UserData')
           .doc(FirebaseAuth.instance.currentUser.uid)
@@ -475,114 +753,197 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
           .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
           .set(score)
           .then((value) {
+        Navigator.of(context).pop();
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
       });
     }
 
-    return !loading
-        ? FutureBuilder(
-            future: _getAllQuestions,
-            builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Scaffold(
-                  body: SafeArea(
-                    child: Text('Something went wrong'),
-                  ),
-                );
-              }
+    void getProgress() {
+      setState(() {
+        progress = completedList.length / 45;
+        if (progress == 1) {
+          allowSubmit = true;
+        }
+      });
+    }
 
-              if (snapshot.connectionState == ConnectionState.done) {
-                var questions = snapshot.data;
-                return Scaffold(
-                  body: SafeArea(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          PageHeadings(
-                            text: 'Part 3',
-                            metaText: 'LCI Test',
-                            popAvailable: true,
-                          ),
-                          Container(
-                            padding: EdgeInsets.fromLTRB(25, 10, 25, 35),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (var q in list)
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      PrimaryCard(
-                                        padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            Text(
-                                              questions.get(q)['title'],
-                                              style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
-                                            ),
-                                            SfSlider(
-                                              min: 1.0,
-                                              max: 10.0,
-                                              interval: 1.0,
-                                              showTicks: true,
-                                              showLabels: true,
-                                              stepSize: 1.0,
-                                              value: score[questions.get(q)['type']][subList[int.parse(q) - 1]],
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  score[questions.get(q)['type']][subList[int.parse(q) - 1]] = value;
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(padding: EdgeInsets.all(10)),
-                                    ],
-                                  ),
-                                PrimaryButton(
-                                  text: 'Next',
-                                  color: Color(0xFF299E45),
-                                  textColor: Colors.white,
-                                  onClickFunction: () async {
-                                    for (var q in list) {
-                                      if (questions.get(q)['reverse']) {
-                                        score[questions.get(q)['type']][subList[int.parse(q) - 1]] = 11.0 - score[questions.get(q)['type']][subList[int.parse(q) - 1]];
-                                      }
-                                    }
-                                    setState(() {
-                                      loading = true;
-                                    });
-                                    await setScore();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+    return FutureBuilder(
+      future: _getAllQuestions,
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: SafeArea(
+              child: Text('Something went wrong'),
+            ),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          var questions = snapshot.data;
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  PageHeadings(
+                    text: 'Part 3',
+                    metaText: 'LCI Test',
+                    popAvailable: true,
+                  ),
+                  Container(
+                    padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        currentPage != 1
+                            ? GestureDetector(
+                                onTap: () {
+                                  _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                                },
+                                child: Container(
+                                    padding: EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF170E9A),
+                                    ),
+                                    child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
+                              )
+                            : SizedBox(width: 41),
+                        Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                        currentPage != totalPage
+                            ? GestureDetector(
+                                onTap: () {
+                                  _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                                },
+                                child: Container(
+                                    padding: EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF170E9A),
+                                    ),
+                                    child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
+                              )
+                            : SizedBox(width: 41),
+                      ],
                     ),
                   ),
-                );
-              }
-
-              return Scaffold(
-                body: SafeArea(
-                  child: Center(
-                    child: CircularProgressIndicator(),
+                  Container(
+                    height: MediaQuery.of(context).size.height - 116 - 49 - 0.667 - 46,
+                    width: MediaQuery.of(context).size.width,
+                    child: PageView(
+                      physics: NeverScrollableScrollPhysics(),
+                      scrollDirection: Axis.horizontal,
+                      controller: _pageController,
+                      onPageChanged: (page) {
+                        setState(() {
+                          currentPage = page + 1;
+                        });
+                      },
+                      children: [
+                        for (var page = 1; page <= totalPage; page++)
+                          Container(
+                            padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Padding(padding: EdgeInsets.all(10)),
+                                  for (var q = (page * 5) - 4; q <= page * 5; q++)
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        Divider(
+                                          height: 1,
+                                          thickness: 1,
+                                        ),
+                                        Padding(padding: EdgeInsets.all(20)),
+                                        Text(
+                                          questions.get(q.toString())['title'],
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xFF170E9A)),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(24)),
+                                        AnswerSlider(
+                                          value: score[questions.get(q.toString())['type']][subList[int.parse(q.toString()) - 1]],
+                                          callBack: (value) {
+                                            score[questions.get(q.toString())['type']][subList[int.parse(q.toString()) - 1]] = value;
+                                            if (!completedList.contains(q)) {
+                                              completedList.add(q);
+                                              getProgress();
+                                            }
+                                          },
+                                        ),
+                                        Padding(padding: EdgeInsets.all(20)),
+                                      ],
+                                    ),
+                                  Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                  ),
+                                  Padding(padding: EdgeInsets.all(10)),
+                                  page == totalPage
+                                      ? SecondaryButton(
+                                          disabled: !allowSubmit,
+                                          color: Color(0xFF299E45),
+                                          text: "Submit",
+                                          onClickFunction: () async {
+                                            showLoading(context);
+                                            setState(() {
+                                              loading = true;
+                                            });
+                                            await setScore();
+                                          },
+                                        )
+                                      : SizedBox.shrink(),
+                                  Padding(padding: EdgeInsets.all(10)),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          )
-        : Scaffold(
-            body: SafeArea(
-              child: Center(
-                child: CircularProgressIndicator(),
+                  Container(
+                    margin: EdgeInsets.all(0),
+                    color: Color(0xFF5E5E5E),
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          (progress * 100).toStringAsFixed(0) + "%",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                        Padding(padding: EdgeInsets.all(10)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width - 120,
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF299E45)),
+                              backgroundColor: Color(0xFFCDCDCD),
+                              minHeight: 6,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           );
+        }
+
+        return Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -619,35 +980,39 @@ class LciResult extends StatelessWidget {
                 children: [
                   PageHeadings(text: 'Your LCI Result', padding: EdgeInsets.zero),
                   Padding(padding: EdgeInsets.all(10)),
-                  Container(
-                    height: 220,
-                    child: SpiderChart(
-                      data: [
-                        subScore['Spiritual Life'],
-                        subScore['Romance Relationship'],
-                        subScore['Family'],
-                        subScore['Social Life'],
-                        subScore['Health & Fitness'],
-                        subScore['Hobby & Leisure'],
-                        subScore['Physical Environment'],
-                        subScore['Self-Development'],
-                        subScore['Career or Study'],
-                        subScore['Finance']
-                      ],
-                      maxValue: 10,
-                      colors: [
-                        Color(0xFF7C0E6F),
-                        Color(0xFF6EC8F4),
-                        Color(0xFFC4CF54),
-                        Color(0xFFE671A8),
-                        Color(0xFF003989),
-                        Color(0xFFF27C00),
-                        Color(0xFFFFE800),
-                        Color(0xFF00862F),
-                        Color(0xFFD9000D),
-                        Color(0xFF8C8B8B),
-                      ],
-                    ),
+                  Stack(
+                    children: [
+                      Center(child: Image.asset('assets/radar-bg.png', height: 260, width: 260,)),
+                      Padding(
+                        padding: EdgeInsets.only(top: 30),
+                        child: Center(
+                          child: RadarChart(
+                            initialAngle: 5,
+                            length: 10,
+                            radius: 100,
+                            radars: [
+                              RadarTile(
+                                borderStroke: 1,
+                                borderColor: Color(0xFFFF8000),
+                                backgroundColor: Color(0xFFFF8000).withOpacity(0.2),
+                                values: [
+                                  subScore['Spiritual Life'] / 10,
+                                  subScore['Romance Relationship'] / 10,
+                                  subScore['Family'] / 10,
+                                  subScore['Social Life'] / 10,
+                                  subScore['Health & Fitness'] / 10,
+                                  subScore['Hobby & Leisure'] / 10,
+                                  subScore['Physical Environment'] / 10,
+                                  subScore['Self-Development'] / 10,
+                                  subScore['Career or Study'] / 10 ,
+                                  subScore['Finance'] / 10,
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Padding(padding: EdgeInsets.all(10)),
                   Padding(
@@ -661,15 +1026,19 @@ class LciResult extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Padding(padding: EdgeInsets.all(30)),
-                  view != null ?Text(
-                    "Your top 3 focused fields",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ) : SizedBox.shrink(),
-                  Padding(padding: EdgeInsets.all(10)),
+                  Padding(padding: EdgeInsets.all(20)),
+                  view != null
+                      ? Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            "Your focused fields",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        )
+                      : SizedBox.shrink(),
                   view != null
                       ? FutureBuilder(
                           future: FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').get(),
@@ -684,7 +1053,7 @@ class LciResult extends StatelessWidget {
                             }
 
                             if (snapshot.connectionState == ConnectionState.done) {
-                              if(snapshot.data.size != 0) {
+                              if (snapshot.data.size != 0) {
                                 Map<String, dynamic> goal = snapshot.data.docs.last.data();
                                 return ListView.builder(
                                     physics: NeverScrollableScrollPhysics(),
@@ -741,7 +1110,7 @@ class LciResult extends StatelessWidget {
                           },
                         )
                       : SizedBox.shrink(),
-                  Padding(padding: EdgeInsets.all(30)),
+                  Padding(padding: EdgeInsets.all(15)),
                   Text(
                     view != null ? "All fields" : "Overview",
                     style: TextStyle(
@@ -883,6 +1252,7 @@ class _LCIMainState extends State<LCIMain> {
                                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
                                   },
                                   child: PrimaryCard(
+                                    padding: EdgeInsets.symmetric(vertical: 15),
                                     child: Text(
                                       displayDate,
                                       textAlign: TextAlign.center,

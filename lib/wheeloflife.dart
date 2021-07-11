@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:radar_chart/radar_chart.dart';
 import 'package:spider_chart/spider_chart.dart';
 
 import 'entity/Video.dart';
@@ -108,35 +109,39 @@ class _WheelOfLife extends State<WheelOfLife> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Container(
-                      height: 300,
-                      child: SpiderChart(
-                        data: [
-                          subScore['Spiritual Life'],
-                          subScore['Romance Relationship'],
-                          subScore['Family'],
-                          subScore['Social Life'],
-                          subScore['Health & Fitness'],
-                          subScore['Hobby & Leisure'],
-                          subScore['Physical Environment'],
-                          subScore['Self-Development'],
-                          subScore['Career or Study'],
-                          subScore['Finance']
-                        ],
-                        maxValue: 10,
-                        colors: [
-                          Color(0xFF7C0E6F),
-                          Color(0xFF6EC8F4),
-                          Color(0xFFC4CF54),
-                          Color(0xFFE671A8),
-                          Color(0xFF003989),
-                          Color(0xFFF27C00),
-                          Color(0xFFFFE800),
-                          Color(0xFF00862F),
-                          Color(0xFFD9000D),
-                          Color(0xFF8C8B8B),
-                        ],
-                      ),
+                    Stack(
+                      children: [
+                        Center(child: Image.asset('assets/radar-bg.png', height: 260, width: 260,)),
+                        Padding(
+                          padding: EdgeInsets.only(top: 30),
+                          child: Center(
+                            child: RadarChart(
+                              initialAngle: 5,
+                              length: 10,
+                              radius: 100,
+                              radars: [
+                                RadarTile(
+                                  borderStroke: 1,
+                                  borderColor: Color(0xFFFF8000),
+                                  backgroundColor: Color(0xFFFF8000).withOpacity(0.2),
+                                  values: [
+                                    subScore['Spiritual Life'] / 10,
+                                    subScore['Romance Relationship'] / 10,
+                                    subScore['Family'] / 10,
+                                    subScore['Social Life'] / 10,
+                                    subScore['Health & Fitness'] / 10,
+                                    subScore['Hobby & Leisure'] / 10,
+                                    subScore['Physical Environment'] / 10,
+                                    subScore['Self-Development'] / 10,
+                                    subScore['Career or Study'] / 10 ,
+                                    subScore['Finance'] / 10,
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     Padding(padding: EdgeInsets.all(15)),
                     Padding(

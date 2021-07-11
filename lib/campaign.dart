@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:LCI/custom-components.dart';
@@ -13,7 +12,6 @@ import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
 import 'entity/Video.dart';
-import 'package:http/http.dart' as http;
 import 'goal.dart';
 
 class LoadCampaign extends StatelessWidget {
@@ -1025,7 +1023,13 @@ class _CampaignMainState extends State<CampaignMain> {
                                             ),
                                             Padding(padding: EdgeInsets.all(5)),
                                             RoundedLinearProgress(
-                                              color: index == 0 ? Color(0xFFFFDF00) :  index == 1 ? Color(0xFFB5B7BB) : index == 2 ? Color(0XFFCD7F32) : Color(0XFF299E45),
+                                              color: index == 0
+                                                  ? Color(0xFFFFDF00)
+                                                  : index == 1
+                                                      ? Color(0xFFB5B7BB)
+                                                      : index == 2
+                                                          ? Color(0XFFCD7F32)
+                                                          : Color(0XFF299E45),
                                               value: sorted.entries.elementAt(index).value / 10,
                                             ),
                                           ],
@@ -1345,13 +1349,6 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
 
   _CampaignUserDetailsState(this.userdata, this.goalExists, this.goals, this.score);
 
-  Future<DateTime> getNetworkTime() async {
-    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
-    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
-    date = DateTime(date.year, date.month, date.day);
-    return date;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -1509,8 +1506,8 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data = snapshot.data.data();
           List<dynamic> contentOrder = [];
-          if(data != null && data.isNotEmpty) {
-            if(data.containsKey('contentOrder')) {
+          if (data != null && data.isNotEmpty) {
+            if (data.containsKey('contentOrder')) {
               contentOrder = data['contentOrder'];
             } else {
               var primaryCounter = 0;
@@ -1636,16 +1633,6 @@ class _CampaignSettingsState extends State<CampaignSettings> {
   var goalDecision;
   var usersRef;
 
-  Future<void> showLoading() {
-    return showDialog<void>(
-      barrierDismissible: false,
-      context: context,
-      builder: (c) {
-        return LoadingOverlay();
-      },
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -1737,7 +1724,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
 
     return WillPopScope(
       onWillPop: () async {
-        showLoading();
+        showLoading(context);
         if (campaignData.sevenThingsPenaltyDecision) {
           if (_scorePenaltyController.text.isNotEmpty) {
             if (int.parse(_scorePenaltyController.text) > 100) {
@@ -2193,7 +2180,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                       child: PopupMenuButton(
                                                         onSelected: (value) async {
                                                           if (value == 1) {
-                                                            showLoading();
+                                                            showLoading(context);
                                                             setState(() {
                                                               campaignData.campaignModerator.remove(uid);
                                                             });
@@ -2210,7 +2197,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('An error occurred')));
                                                             });
                                                           } else if (value == 2) {
-                                                            showLoading();
+                                                            showLoading(context);
                                                             await FirebaseFirestore.instance.collection("UserData").doc(uid).update({
                                                               "currentEnrolledCampaign": "",
                                                             }).then((value) {
@@ -2224,7 +2211,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('An error occurred')));
                                                             });
                                                           } else if (value == 3) {
-                                                            showLoading();
+                                                            showLoading(context);
                                                             setState(() {
                                                               campaignData.campaignModerator.add(uid);
                                                             });

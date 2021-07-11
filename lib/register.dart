@@ -1384,6 +1384,12 @@ class _RegisterPlanState extends State<RegisterPlan> {
                             'country': user.country,
                             'dateOfBirth': user.dateOfBirth,
                             'subscription': user.subscription,
+                            'viewedGoals' : false,
+                            'viewedCampaign' : false,
+                            'viewedHome' : false,
+                            'viewedLCI' : false,
+                            'viewedSevenThings' : false,
+                            'viewedWheelOfLife' : false,
                           }).then((value) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData()));

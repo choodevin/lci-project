@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'entity/Video.dart';
 import 'home.dart';
@@ -322,7 +325,7 @@ class _FacebookSignInButtonState extends State<FacebookSignInButton> {
   Future loginWithFacebook(FacebookLoginResult result, context) async {
     final FacebookAccessToken accessToken = result.accessToken;
     AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
-    var a = await _auth.signInWithCredential(credential);
+    await _auth.signInWithCredential(credential);
   }
 
   Widget build(BuildContext build) {
@@ -388,6 +391,41 @@ class PrimaryButton extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SecondaryButton extends StatelessWidget {
+  final String text;
+  final Color color;
+  final Function onClickFunction;
+  final disabled;
+
+  SecondaryButton({this.onClickFunction, this.text = "Sample Text", this.color = Colors.white, this.disabled});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(90)),
+        side: BorderSide(
+          width: 0.7,
+          color: disabled ? Color(0xFF6E6E6E) : color,
+        ),
+      ),
+      elevation: disabled ? 0 : 1,
+      clipBehavior: Clip.antiAlias,
+      child: MaterialButton(
+        padding: EdgeInsets.only(top: 15, bottom: 15),
+        onPressed: disabled ? null : onClickFunction,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: disabled ? Color(0xFF6E6E6E) : color,
             fontSize: 16,
           ),
         ),
@@ -945,4 +983,91 @@ class LoadingOverlay extends StatelessWidget {
       ),
     );
   }
+}
+
+class AnswerSlider extends StatefulWidget {
+  final callBack;
+  final value;
+
+  const AnswerSlider({Key key, this.callBack, this.value}) : super(key: key);
+
+  _AnswerSliderState createState() => _AnswerSliderState(callBack, value);
+}
+
+class _AnswerSliderState extends State<AnswerSlider> {
+  final callBack;
+  double value;
+
+  _AnswerSliderState(this.callBack, this.value);
+
+  TextStyle labelStyle = TextStyle(color: Color(0xFF2667FF));
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: Color(0xFF1AD9AA),
+              inactiveTrackColor: Color(0xFFFF9E9E),
+              trackShape: RoundedRectSliderTrackShape(),
+              trackHeight: 8,
+              overlayShape: SliderComponentShape.noOverlay,
+              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
+              thumbColor: Color(0xFF453EAE),
+            ),
+            child: Slider(
+              min: 1.0,
+              max: 10.0,
+              value: value,
+              onChanged: (value) {
+                setState(() {
+                  this.value = value;
+                  callBack(value);
+                });
+              },
+            ),
+          ),
+          Padding(padding: EdgeInsets.all(4)),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Disagree', style: labelStyle),
+                Text('Agree', style: labelStyle),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+
+//Custom Methods
+Future<DateTime> getNetworkTime() async {
+  var date;
+  await http.get(Uri.parse("https://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur")).timeout(Duration(seconds: 5)).then((value) {
+    date = DateTime.parse(jsonDecode(value.body)['datetime']);
+  }).catchError((error) {
+    date = DateTime.now();
+  }).whenComplete(() {
+    date = DateTime(date.year, date.month, date.day);
+  });
+  return date;
+}
+
+
+Future<void> showLoading(BuildContext context) {
+  return showDialog<void>(
+    barrierDismissible: false,
+    context: context,
+    builder: (c) {
+      return LoadingOverlay();
+    },
+  );
 }
