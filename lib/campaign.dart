@@ -13,6 +13,7 @@ import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
 import 'entity/Video.dart';
 import 'goal.dart';
+import 'group-chat.dart';
 
 class LoadCampaign extends StatelessWidget {
   final userdata;
@@ -923,27 +924,45 @@ class _CampaignMainState extends State<CampaignMain> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    PageHeadings(
-                      text: 'Campaign',
-                      padding: EdgeInsets.zero,
+                    Text(
+                      'Campaign',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
                     ),
-                    InkWell(
-                      onTap: () async {
-                        await Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId))).then((value) {
-                          setState(() {
-                            campaign = value;
-                          });
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        child: SvgPicture.asset(
-                          'assets/cog.svg',
-                          height: 20,
-                          width: 20,
-                          color: Colors.black,
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: campaignId)));
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            child: SvgPicture.asset(
+                              'assets/comment-dots.svg',
+                              height: 20,
+                              width: 20,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
-                      ),
+                        InkWell(
+                          onTap: () async {
+                            await Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId))).then((value) {
+                              setState(() {
+                                campaign = value;
+                              });
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            child: SvgPicture.asset(
+                              'assets/cog.svg',
+                              height: 20,
+                              width: 20,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

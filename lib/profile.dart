@@ -1,4 +1,5 @@
 import 'package:LCI/custom-components.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,9 +21,9 @@ class _ProfileState extends State<Profile> {
   final UserData userData;
 
   _ProfileState(this.userData);
-  
+
   var version = "";
-  
+
   @override
   void initState() {
     super.initState();
@@ -40,9 +41,7 @@ class _ProfileState extends State<Profile> {
         child: SingleChildScrollView(
           child: Container(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height -
-                  MediaQuery.of(context).padding.top -
-                  MediaQuery.of(context).padding.bottom - 72,
+              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 72,
             ),
             padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
             child: Column(
@@ -96,7 +95,10 @@ class _ProfileState extends State<Profile> {
                       color: Colors.red,
                       textColor: Colors.white,
                       onClickFunction: () {
-                        FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
+                        showLoading(context);
+                        FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
+                          FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
+                        });
                       },
                     ),
                   ],

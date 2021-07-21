@@ -4,9 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:radar_chart/radar_chart.dart';
-import 'package:spider_chart/spider_chart.dart';
 
 import 'entity/Video.dart';
 import 'lci.dart';
@@ -103,7 +101,16 @@ class _WheelOfLife extends State<WheelOfLife> {
               ),
               Container(
                 constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  minHeight: MediaQuery
+                      .of(context)
+                      .size
+                      .height - MediaQuery
+                      .of(context)
+                      .padding
+                      .top - MediaQuery
+                      .of(context)
+                      .padding
+                      .bottom,
                 ),
                 padding: EdgeInsets.fromLTRB(25, 10, 25, 10),
                 child: Column(
@@ -112,18 +119,18 @@ class _WheelOfLife extends State<WheelOfLife> {
                     Stack(
                       children: [
                         Center(
-                            child: Image.asset(
-                          'assets/radar-bg.png',
-                          height: 260,
-                          width: 260,
-                        )),
+                          child: Image.asset(
+                            'assets/radar-bg-complete.png',
+                            height: 260,
+                            width: 260,
+                          ),),
                         Padding(
-                          padding: EdgeInsets.only(top: 30),
+                          padding: EdgeInsets.only(top: 46),
                           child: Center(
                             child: RadarChart(
                               initialAngle: 5,
                               length: 10,
-                              radius: 100,
+                              radius: 84,
                               radars: [
                                 RadarTile(
                                   borderStroke: 1,

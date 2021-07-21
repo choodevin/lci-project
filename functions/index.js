@@ -146,3 +146,31 @@ exports.sevenThingsScheduler = functions.region('asia-southeast1').pubsub.schedu
     }).catch(e => { console.log(e); });
     return null;
 });
+
+exports.chatPushNotification = functions.firestore.document("ChatData/content/{campaignId}/{messsageId}").onCreate((messageData, context) => {
+    var campaignId = context.params.campaignId;
+    var invitationCode;
+    admin.firestore().collection("CampaignData").doc(campaignId).get().then((campaignData) => {
+        invitationCode = campaignData.data()['invitationCode'];
+
+        admin.firestore().collection("UserData").where("currentEnrolledCampaign", "==", invitationCode).get().then((snapshot) => {
+            snapshot.forEach((userData) => {
+                if (userData.id !== messageData.data()['sender']) {
+                    var token = userData.data()['token'];
+                    admin.messaging().send({
+                        token: token,
+                        data: {
+                            title: campaignData.data()['name'],
+                            content: messageData.data()['content']
+                        },
+                        android: {
+                            priority: "high",
+                        },
+                    }).catch(e => { console.log(e) });
+                }
+            });
+            return null;
+        }).catch(e => { console.log(e) });
+        return null;
+    }).catch(e => { console.log(e) });
+});

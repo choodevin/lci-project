@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:LCI/custom-components.dart';
 import 'package:LCI/entity/GoalsDetails.dart';
 import 'package:LCI/entity/Video.dart';
@@ -10,13 +8,12 @@ import 'package:LCI/seventhings.dart';
 import 'package:LCI/wheeloflife.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:radar_chart/radar_chart.dart';
-import 'package:spider_chart/spider_chart.dart';
-import 'package:http/http.dart' as http;
 
 import 'campaign.dart';
 import 'entity/LCIScore.dart';
@@ -152,14 +149,19 @@ class _HomeState extends State<Home> {
                                         Padding(padding: EdgeInsets.all(15)),
                                         Stack(
                                           children: [
-                                            Center(child: Image.asset('assets/radar-bg.png', height: 200, width: 200,)),
+                                            Center(
+                                                child: Image.asset(
+                                              'assets/radar-bg.png',
+                                              height: 200,
+                                              width: 200,
+                                            )),
                                             Padding(
-                                              padding: EdgeInsets.only(top: 20),
+                                              padding: EdgeInsets.only(top: 24),
                                               child: Center(
                                                 child: RadarChart(
                                                   initialAngle: 5,
                                                   length: 10,
-                                                  radius: 80,
+                                                  radius: 76,
                                                   radars: [
                                                     RadarTile(
                                                       borderStroke: 1,
@@ -174,7 +176,7 @@ class _HomeState extends State<Home> {
                                                         subScore['Hobby & Leisure'] / 10,
                                                         subScore['Physical Environment'] / 10,
                                                         subScore['Self-Development'] / 10,
-                                                        subScore['Career or Study'] / 10 ,
+                                                        subScore['Career or Study'] / 10,
                                                         subScore['Finance'] / 10,
                                                       ],
                                                     ),
@@ -516,11 +518,22 @@ class _HomeBaseState extends State<HomeBase> {
 
   int index = 0;
 
+  FirebaseMessaging messaging;
+
   _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals, this.point, this.isViewed);
+
+  Future<void> updateToken(String token) async {
+    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({"token": token});
+  }
 
   @override
   void initState() {
     super.initState();
+    messaging = FirebaseMessaging.instance;
+    messaging.getToken().then((token) {
+      updateToken(token);
+    });
+
     campaignPage = userdata.currentEnrolledCampaign.isNotEmpty
         ? LoadCampaign(userdata: userdata)
         : CampaignNew(
@@ -581,7 +594,7 @@ class _HomeBaseState extends State<HomeBase> {
     ];
     return WillPopScope(
       onWillPop: () async {
-        if(index != 0) {
+        if (index != 0) {
           setState(() {
             index = 0;
           });

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:radar_chart/radar_chart.dart';
-import 'package:spider_chart/spider_chart.dart';
 
 import 'custom-components.dart';
 import 'entity/LCIScore.dart';
@@ -146,7 +145,9 @@ class _PartOne extends State<PartOne> {
                                         selected = "Single";
                                       });
                                     },
-                                    child: Container(
+                                    child: AnimatedContainer(
+                                      duration: Duration(milliseconds: 300),
+                                      curve: Curves.ease,
                                       padding: EdgeInsets.only(top: 15, bottom: 15, left: 30, right: 30),
                                       decoration: BoxDecoration(
                                         color: selected == "Single" ? Color(0xFF170E9A) : Colors.white,
@@ -337,44 +338,7 @@ class _QuestionFormState extends State<QuestionForm> {
               popAvailable: true,
             ),
             Container(
-              padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  currentPage != 1
-                      ? GestureDetector(
-                          onTap: () {
-                            _pageController.jumpToPage(_pageController.page.toInt() - 1);
-                          },
-                          child: Container(
-                              padding: EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF170E9A),
-                              ),
-                              child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
-                        )
-                      : SizedBox(width: 41),
-                  Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
-                  currentPage != totalPage
-                      ? GestureDetector(
-                          onTap: () {
-                            _pageController.jumpToPage(_pageController.page.toInt() + 1);
-                          },
-                          child: Container(
-                              padding: EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF170E9A),
-                              ),
-                              child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
-                        )
-                      : SizedBox(width: 41),
-                ],
-              ),
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height - 208.6667,
+              height: MediaQuery.of(context).size.height - 160,
               width: MediaQuery.of(context).size.width,
               child: PageView(
                 physics: NeverScrollableScrollPhysics(),
@@ -458,6 +422,40 @@ class _QuestionFormState extends State<QuestionForm> {
                                     },
                                   )
                                 : SizedBox.shrink(),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                currentPage != 1
+                                    ? GestureDetector(
+                                  onTap: () {
+                                    _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF170E9A),
+                                      ),
+                                      child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
+                                )
+                                    : SizedBox(width: 41),
+                                Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                                currentPage != totalPage
+                                    ? GestureDetector(
+                                  onTap: () {
+                                    _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                                  },
+                                  child: Container(
+                                      padding: EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF170E9A),
+                                      ),
+                                      child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
+                                )
+                                    : SizedBox(width: 41),
+                              ],
+                            ),
                             Padding(padding: EdgeInsets.all(10)),
                           ],
                         ),
@@ -982,14 +980,19 @@ class LciResult extends StatelessWidget {
                   Padding(padding: EdgeInsets.all(10)),
                   Stack(
                     children: [
-                      Center(child: Image.asset('assets/radar-bg.png', height: 260, width: 260,)),
+                      Center(
+                        child: Image.asset(
+                          'assets/radar-bg-complete.png',
+                          height: 260,
+                          width: 260,
+                        ),),
                       Padding(
-                        padding: EdgeInsets.only(top: 30),
+                        padding: EdgeInsets.only(top: 46),
                         child: Center(
                           child: RadarChart(
                             initialAngle: 5,
                             length: 10,
-                            radius: 100,
+                            radius: 84,
                             radars: [
                               RadarTile(
                                 borderStroke: 1,
@@ -1004,7 +1007,7 @@ class LciResult extends StatelessWidget {
                                   subScore['Hobby & Leisure'] / 10,
                                   subScore['Physical Environment'] / 10,
                                   subScore['Self-Development'] / 10,
-                                  subScore['Career or Study'] / 10 ,
+                                  subScore['Career or Study'] / 10,
                                   subScore['Finance'] / 10,
                                 ],
                               ),
