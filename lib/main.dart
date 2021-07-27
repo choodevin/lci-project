@@ -1,3 +1,4 @@
+import 'package:LCI/group-chat.dart';
 import 'package:LCI/notification/NotificationListener.dart';
 import 'package:LCI/splash.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -53,6 +54,7 @@ class NonLoggedInMain extends StatelessWidget {
 
 class BuildApp extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +69,7 @@ class BuildApp extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
+          initNotifications();
           FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
           FirebaseMessaging.onBackgroundMessage(notificationReceiver);
           if (FirebaseAuth.instance.currentUser != null) {

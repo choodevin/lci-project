@@ -161,7 +161,8 @@ exports.chatPushNotification = functions.firestore.document("ChatData/content/{c
                         token: token,
                         data: {
                             title: campaignData.data()['name'],
-                            content: messageData.data()['content']
+                            content: userData.get('name') + ": " + messageData.data()['content'],
+                            targetCampaign: campaignData.id,
                         },
                         android: {
                             priority: "high",
