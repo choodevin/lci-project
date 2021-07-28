@@ -30,11 +30,11 @@ class GoalsDetails {
   String getAssetPath(String key) {
     var path;
     if (key == "Spiritual Life") {
-      path = "assets/star.svg";
+      path = "assets/spiritual.svg";
     } else if (key == "Romance Relationship") {
       path = "assets/heart.svg";
     } else if (key == "Family") {
-      path = "assets/user-friends.svg";
+      path = "assets/family.svg";
     } else if (key == "Social Life") {
       path = "assets/user-friends.svg";
     } else if (key == "Health & Fitness") {

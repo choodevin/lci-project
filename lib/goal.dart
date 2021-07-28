@@ -11,6 +11,7 @@ import 'campaign.dart';
 import 'entity/Video.dart';
 import 'home.dart';
 import 'lci.dart';
+import 'package:expandable_page_view/expandable_page_view.dart';
 
 class LoadGoals extends StatelessWidget {
   final userdata;
@@ -169,103 +170,126 @@ class _GoalsState extends State<Goals> {
     var goalDetails = GoalsDetails();
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: 'Setting Up Your Goals',
-                popAvailable: true,
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height - 96,
+              child: SingleChildScrollView(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(padding: EdgeInsets.all(5)),
-                    Text(
-                      'Choose your Goals',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Color(0xFF5D88FF),
-                      ),
+                    PageHeadings(
+                      text: 'Setting Up Your Goals',
+                      popAvailable: true,
                     ),
-                    Padding(padding: EdgeInsets.all(3)),
-                    Row(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/info.svg',
-                          color: Color(0xFFFFCC00),
-                          height: 18,
-                          width: 18,
-                        ),
-                        Padding(padding: EdgeInsets.all(3.5)),
-                        Text(
-                          'Recommended to select only 3',
-                          style: TextStyle(
-                            color: Color(0xFFFFCC00),
-                            fontSize: 18,
+                    Container(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 25),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(padding: EdgeInsets.all(5)),
+                          Text(
+                            'Choose your Goals',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF5D88FF),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(6)),
-                    Column(
-                      children: goals.keys.map((key) {
-                        if (key != "targetLCI") {
-                          return Column(
+                          Padding(padding: EdgeInsets.all(3)),
+                          Row(
                             children: [
-                              GoalSelection(
-                                title: key,
-                                description: goalDetails.getDesc(key),
-                                color: goalDetails.getColor(key),
-                                value: goals[key]['selected'],
-                                assetPath: goalDetails.getAssetPath(key),
-                                callBack: (bool newValue) {
-                                  goals[key]['selected'] = newValue;
-                                  setState(
-                                    () {
-                                      newValue ? totalSelected++ : totalSelected--;
-                                    },
-                                  );
-                                },
+                              SvgPicture.asset(
+                                'assets/info.svg',
+                                color: Color(0xFFFFCC00),
+                                height: 18,
+                                width: 18,
                               ),
-                              Padding(padding: EdgeInsets.all(6)),
+                              Padding(padding: EdgeInsets.all(3.5)),
+                              Text(
+                                'Recommended to select only 3',
+                                style: TextStyle(
+                                  color: Color(0xFFFFCC00),
+                                  fontSize: 18,
+                                ),
+                              ),
                             ],
-                          );
-                        } else {
-                          return SizedBox.shrink();
-                        }
-                      }).toList(),
-                    ),
-                    Padding(padding: EdgeInsets.all(30)),
-                    Text(
-                      totalSelected.toString() + '/3 Goals Selected',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
+                          ),
+                          Column(
+                            children: goals.keys.map((key) {
+                              if (key != "targetLCI") {
+                                return Padding(
+                                  padding: EdgeInsets.only(top: 25),
+                                  child: GoalSelection(
+                                    title: key,
+                                    description: goalDetails.getDesc(key),
+                                    value: goals[key]['selected'],
+                                    assetPath: goalDetails.getAssetPath(key),
+                                    callBack: (bool newValue) {
+                                      goals[key]['selected'] = newValue;
+                                      setState(
+                                        () {
+                                          newValue ? totalSelected++ : totalSelected--;
+                                        },
+                                      );
+                                    },
+                                  ),
+                                );
+                              } else {
+                                return SizedBox.shrink();
+                              }
+                            }).toList(),
+                          ),
+                        ],
                       ),
-                    ),
-                    Padding(padding: EdgeInsets.all(30)),
-                    PrimaryButton(
-                      color: Color(0xFF299E45),
-                      textColor: Colors.white,
-                      text: 'Confirm & Proceed',
-                      onClickFunction: () {
-                        if (totalSelected == 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select at least one goal')));
-                        } else if (totalSelected > 3) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please select only 3 goals')));
-                        } else {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals, edit: edit)));
-                        }
-                      },
                     ),
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+            Container(
+              height: 72,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.14),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                    offset: Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: Container(
+                height: 160,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      totalSelected.toString() + ' Area(s) Selected',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Container(
+                      width: 120,
+                      child: PrimaryButton(
+                        color: totalSelected == 0 ? Color(0xFF929191) : Color(0xFF299E45),
+                        textColor: Colors.white,
+                        text: 'Confirm',
+                        borderRadius: 10,
+                        padding: EdgeInsets.symmetric(vertical: 0),
+                        onClickFunction: totalSelected == 0
+                            ? null
+                            : () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => LoadScore(userdata: userdata, goals: goals, edit: edit)));
+                              },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -446,8 +470,9 @@ class _GoalSettingState extends State<GoalSetting> {
     subScore = scoreObj.subScore();
 
     questionStyle = TextStyle(
-      fontSize: 16,
-      color: goalDetails.getColor(toDisplay),
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: Color(0xFF170E9A),
     );
   }
 
@@ -462,253 +487,299 @@ class _GoalSettingState extends State<GoalSetting> {
           )));
     }
 
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: "Milestone Goals",
-                metaText: "Review your current status with your goals",
-                popAvailable: true,
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+    return GestureDetector(
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: "Milestone Goals",
+                  metaText: "Review your current status with your goals",
+                  popAvailable: true,
                 ),
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PrimaryCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  ),
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextWithIcon(
+                        text: toDisplay,
+                        assetPath: goalDetails.getAssetPath(toDisplay),
+                        assetColor: Color(0xFF170E9A),
+                        textStyle: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF170E9A),
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(7.5)),
+                      Text(
+                        goalDetails.getDesc(toDisplay),
+                        style: TextStyle(
+                          color: Color(0xFF170E9A),
+                          fontSize: 16,
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(12)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          TextWithIcon(
-                            text: toDisplay,
-                            assetPath: goalDetails.getAssetPath(toDisplay),
-                            assetColor: goalDetails.getColor(toDisplay),
-                            textStyle: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: goalDetails.getColor(toDisplay),
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(7.5)),
-                          Text(
-                            goalDetails.getDesc(toDisplay),
-                            style: TextStyle(
-                              color: goalDetails.getColor(toDisplay),
-                              fontSize: 16,
-                            ),
-                          ),
-                          Padding(padding: EdgeInsets.all(15)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    "Current Value",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 18,
-                                      color: goalDetails.getColor(toDisplay),
-                                    ),
-                                  ),
-                                  Padding(padding: EdgeInsets.all(5)),
-                                  SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
-                                ],
-                              ),
-                              Text(
-                                subScore[toDisplay].toString(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 18,
-                                  color: goalDetails.getColor(toDisplay),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Padding(padding: EdgeInsets.all(2)),
-                          RoundedLinearProgress(
-                            value: subScore[toDisplay] / 10,
-                            color: Color(0xFF170E9A),
-                          ),
-                          Padding(padding: EdgeInsets.all(5)),
                           Row(
                             children: [
                               Text(
-                                "Your Goal",
+                                "Current State",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 18,
-                                  color: goalDetails.getColor(toDisplay),
+                                  color: Color(0xFF170E9A),
                                 ),
                               ),
                               Padding(padding: EdgeInsets.all(5)),
                               SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
                             ],
                           ),
-                          Padding(padding: EdgeInsets.all(2)),
-                          InputBox(
-                            focusNode: _targetNode,
-                            focusNodeNext: _qOneNode,
-                            controller: _targetController,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(20)),
-                    Row(
-                      children: [
-                        Text(
-                          "How do you define your goal ?",
-                          style: questionStyle,
-                        ),
-                        Padding(padding: EdgeInsets.all(5)),
-                        SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(2)),
-                    InputBox(focusNode: _qOneNode, focusNodeNext: _qTwoNode, controller: _qOneController, minLines: 5, maxLines: 5, color: goalDetails.getColor(toDisplay)),
-                    Padding(padding: EdgeInsets.all(20)),
-                    Row(
-                      children: [
-                        Text(
-                          "What do you want to achieve in 1 month ?",
-                          style: questionStyle,
-                        ),
-                        Padding(padding: EdgeInsets.all(5)),
-                        SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(2)),
-                    InputBox(focusNode: _qTwoNode, focusNodeNext: _qThreeNode, controller: _qTwoController, minLines: 5, maxLines: 5, color: goalDetails.getColor(toDisplay)),
-                    Padding(padding: EdgeInsets.all(20)),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "What do you need to do weekly to achieve the above ?",
-                            style: questionStyle,
-                          ),
-                          WidgetSpan(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                          Text(
+                            subScore[toDisplay].toStringAsFixed(2),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              color: Color(0xFF170E9A),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Padding(padding: EdgeInsets.all(2)),
-                    InputBox(focusNode: _qThreeNode, focusNodeNext: _qFourNode, controller: _qThreeController, color: goalDetails.getColor(toDisplay)),
-                    Padding(padding: EdgeInsets.all(20)),
-                    Row(
-                      children: [
-                        Text(
-                          "How many times a week ?",
-                          style: questionStyle,
+                      Padding(padding: EdgeInsets.all(2)),
+                      RoundedLinearProgress(
+                        value: subScore[toDisplay] / 10,
+                        color: Color(0xFF170E9A),
+                      ),
+                      Padding(padding: EdgeInsets.all(12)),
+                      PrimaryCard(
+                        borderRadius: 12,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "Your Goal",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    color: Color(0xFF170E9A),
+                                  ),
+                                ),
+                                Padding(padding: EdgeInsets.all(5)),
+                                SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                              ],
+                            ),
+                            Container(
+                              width: 80,
+                              child: InputBox(
+                                textAlign: TextAlign.center,
+                                focusNode: _targetNode,
+                                focusNodeNext: _qOneNode,
+                                controller: _targetController,
+                                keyboardType: TextInputType.number,
+                                color: Color(0xFF170E9A),
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                              ),
+                            ),
+                          ],
                         ),
-                        Padding(padding: EdgeInsets.all(5)),
-                        SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
-                      ],
-                    ),
-                    Padding(padding: EdgeInsets.all(2)),
-                    InputBox(focusNode: _qFourNode, controller: _qFourController, keyboardType: TextInputType.number, color: goalDetails.getColor(toDisplay)),
-                    Padding(padding: EdgeInsets.all(20)),
-                    PrimaryButton(
-                      text: "Confirm & Proceed",
-                      color: Color(0xFF299E45),
-                      textColor: Colors.white,
-                      onClickFunction: () async {
-                        var targetScore = double.tryParse(_targetController.text);
-                        if (targetScore != null) {
-                          if (targetScore <= subScore[toDisplay] || targetScore > 10) {
+                      ),
+                      Padding(padding: EdgeInsets.all(20)),
+                      PrimaryCard(
+                        borderRadius: 12,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "How do you define your goal ?",
+                                  style: questionStyle,
+                                ),
+                                Padding(padding: EdgeInsets.all(12)),
+                                SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                              ],
+                            ),
+                            Padding(padding: EdgeInsets.all(2)),
+                            InputBox(focusNode: _qOneNode, focusNodeNext: _qTwoNode, controller: _qOneController, minLines: 5, maxLines: 5, color: Color(0xFF170E9A)),
+                          ],
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(20)),
+                      PrimaryCard(
+                        borderRadius: 12,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "What do you want to achieve in 1 month ?",
+                                  style: questionStyle,
+                                ),
+                                Padding(padding: EdgeInsets.all(12)),
+                                SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                              ],
+                            ),
+                            Padding(padding: EdgeInsets.all(2)),
+                            InputBox(focusNode: _qTwoNode, focusNodeNext: _qThreeNode, controller: _qTwoController, minLines: 5, maxLines: 5, color: goalDetails.getColor(toDisplay)),
+                          ],
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(20)),
+                      PrimaryCard(
+                        borderRadius: 12,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        child: Column(
+                          children: [
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "What do you need to do weekly to achieve the above ?",
+                                    style: questionStyle,
+                                  ),
+                                  WidgetSpan(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 10),
+                                      child: SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(padding: EdgeInsets.all(4)),
+                            InputBox(focusNode: _qThreeNode, focusNodeNext: _qFourNode, controller: _qThreeController, color: goalDetails.getColor(toDisplay)),
+                          ],
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(20)),
+                      PrimaryCard(
+                        borderRadius: 12,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "How many times a week ?",
+                                  style: questionStyle,
+                                ),
+                                Padding(padding: EdgeInsets.all(5)),
+                                SvgPicture.asset('assets/info.svg', height: 16, width: 16, color: Color(0xFFFFCC00)),
+                              ],
+                            ),
+                            Padding(padding: EdgeInsets.all(4)),
+                            InputBox(focusNode: _qFourNode, controller: _qFourController, keyboardType: TextInputType.number, color: goalDetails.getColor(toDisplay)),
+                          ],
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(20)),
+                      PrimaryButton(
+                        text: "Confirm & Proceed",
+                        color: Color(0xFF299E45),
+                        textColor: Colors.white,
+                        onClickFunction: () async {
+                          var targetScore = double.tryParse(_targetController.text);
+                          if (targetScore != null) {
+                            if (targetScore <= subScore[toDisplay] || targetScore > 10) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Goal input cannot be lesser than current value and cannot be higher than 10'),
+                              ));
+                              return;
+                            }
+                          } else {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Goal input cannot be lesser than current value and cannot be higher than 10'),
+                              content: Text('Invalid goal input.'),
                             ));
                             return;
                           }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Invalid goal input.'),
-                          ));
-                          return;
-                        }
 
-                        var selectedCount = 0;
-                        displayedList.add(toDisplay);
-                        goals.entries.forEach((element) {
-                          if (element.key != "targetLCI") {
-                            if (element.value['selected']) {
-                              selectedCount++;
+                          var selectedCount = 0;
+                          displayedList.add(toDisplay);
+                          goals.entries.forEach((element) {
+                            if (element.key != "targetLCI") {
+                              if (element.value['selected']) {
+                                selectedCount++;
+                              }
+                            }
+                          });
+
+                          if (displayedList.length != selectedCount) {
+                            if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                              goals[toDisplay]['target'] = _targetController.text;
+                              goals[toDisplay]['q1'] = _qOneController.text;
+                              goals[toDisplay]['q2'] = _qTwoController.text;
+                              goals[toDisplay]['q3'] = _qThreeController.text;
+                              goals[toDisplay]['q4'] = _qFourController.text;
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => GoalSetting(
+                                    userdata: userdata,
+                                    score: score,
+                                    goals: goals,
+                                    displayedList: displayedList,
+                                    edit: edit,
+                                  ),
+                                ),
+                              );
+                              displayedList.remove(toDisplay);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Please make sure all questions had been answered.'),
+                              ));
+                              return;
+                            }
+                          } else {
+                            if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                              goals[toDisplay]['target'] = _targetController.text;
+                              goals[toDisplay]['q1'] = _qOneController.text;
+                              goals[toDisplay]['q2'] = _qTwoController.text;
+                              goals[toDisplay]['q3'] = _qThreeController.text;
+                              goals[toDisplay]['q4'] = _qFourController.text;
+                              goals['targetLCI'] = score.id;
+                              var dateNow = DateTime.now();
+                              await updateGoals();
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => GoalStatus(
+                                    score: score,
+                                    goals: goals,
+                                    goalDate: DateTime(dateNow.year, dateNow.month, dateNow.day).toString(),
+                                    edit: edit,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text('Please make sure all questions had been answered.'),
+                              ));
+                              return;
                             }
                           }
-                        });
-
-                        if (displayedList.length != selectedCount) {
-                          if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
-                            goals[toDisplay]['target'] = _targetController.text;
-                            goals[toDisplay]['q1'] = _qOneController.text;
-                            goals[toDisplay]['q2'] = _qTwoController.text;
-                            goals[toDisplay]['q3'] = _qThreeController.text;
-                            goals[toDisplay]['q4'] = _qFourController.text;
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => GoalSetting(
-                                  userdata: userdata,
-                                  score: score,
-                                  goals: goals,
-                                  displayedList: displayedList,
-                                  edit: edit,
-                                ),
-                              ),
-                            );
-                            displayedList.remove(toDisplay);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Please make sure all questions had been answered.'),
-                            ));
-                            return;
-                          }
-                        } else {
-                          if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
-                            goals[toDisplay]['target'] = _targetController.text;
-                            goals[toDisplay]['q1'] = _qOneController.text;
-                            goals[toDisplay]['q2'] = _qTwoController.text;
-                            goals[toDisplay]['q3'] = _qThreeController.text;
-                            goals[toDisplay]['q4'] = _qFourController.text;
-                            goals['targetLCI'] = score.id;
-                            var dateNow = DateTime.now();
-                            await updateGoals();
-                            Navigator.of(context).popUntil((route) => route.isFirst);
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => GoalStatus(
-                                  score: score,
-                                  goals: goals,
-                                  goalDate: DateTime(dateNow.year, dateNow.month, dateNow.day).toString(),
-                                  edit: edit,
-                                ),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('Please make sure all questions had been answered.'),
-                            ));
-                            return;
-                          }
-                        }
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -760,63 +831,126 @@ class GoalStatus extends StatelessWidget {
             child: Column(
               children: [
                 PageHeadings(
-                  text: "Milestone Goals",
+                  text: "Your Goals",
+                  metaText: "Swipe to see other goals.",
                   popAvailable: true,
                 ),
                 Container(
-                  padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Column(
-                        children: goalsTemp.keys.map((key) {
-                          return Column(
-                            children: [
-                              PrimaryCard(
-                                padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+                      ExpandablePageView(
+                        animateFirstPage: true,
+                        controller: PageController(
+                          viewportFraction: 0.85,
+                          initialPage: 0,
+                        ),
+                        children: [
+                          for (var i = 0; i < goalsTemp.length; i++)
+                            Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: PrimaryCard(
+                                padding: EdgeInsets.all(30),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    TextWithIcon(
-                                      assetColor: goalDetails.getColor(key),
-                                      assetPath: goalDetails.getAssetPath(key),
-                                      text: key,
-                                      textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          goalsTemp.keys.elementAt(i),
+                                          style: TextStyle(fontSize: 22, color: Color(0xFF170E9A), fontWeight: FontWeight.w700),
+                                        ),
+                                        SvgPicture.asset(
+                                          goalDetails.getAssetPath(goalsTemp.keys.elementAt(i)),
+                                          color: Color(0xFF170E9A),
+                                          height: 22,
+                                          width: 22,
+                                        ),
+                                      ],
                                     ),
-                                    Padding(padding: EdgeInsets.all(7.5)),
-                                    MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
-                                    Padding(padding: EdgeInsets.all(15)),
+                                    Padding(padding: EdgeInsets.all(12)),
+                                    MultiColorProgressBar(
+                                        subScore[goalsTemp.keys.elementAt(i)] / 10, double.parse(goalsTemp.values.elementAt(i)['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                    Padding(padding: EdgeInsets.all(8)),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Current",
+                                          style: TextStyle(
+                                            color: Color(0xFF0B256F),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          subScore[goalsTemp.keys.elementAt(i)].toStringAsFixed(2),
+                                          style: TextStyle(
+                                            color: Color(0xFF0B256F),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Padding(padding: EdgeInsets.all(5)),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Target",
+                                          style: TextStyle(
+                                            color: Color(0xFF0B256F),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          goalsTemp.values.elementAt(i)['target'],
+                                          style: TextStyle(
+                                            color: Color(0xFF0B256F),
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Padding(padding: EdgeInsets.all(5)),
+                                    Divider(
+                                      thickness: 1,
+                                      height: 1,
+                                    ),
+                                    Padding(padding: EdgeInsets.all(8)),
                                     Text(
                                       "Definition of Success/Goal",
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color: goalDetails.getColor(key),
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                     Padding(padding: EdgeInsets.all(2)),
                                     Text(
-                                      goalsTemp[key]['q1'],
+                                      goalsTemp.values.elementAt(i)['q1'],
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        color: goalDetails.getColor(key),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                     Padding(padding: EdgeInsets.all(15)),
                                     Text(
-                                      "Achivemenet within this month",
+                                      "Achievements within this month",
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color: goalDetails.getColor(key),
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                     Padding(padding: EdgeInsets.all(2)),
                                     Text(
-                                      goalsTemp[key]['q2'],
+                                      goalsTemp.values.elementAt(i)['q2'],
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        color: goalDetails.getColor(key),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                     Padding(padding: EdgeInsets.all(15)),
@@ -825,54 +959,51 @@ class GoalStatus extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w500,
-                                        color: goalDetails.getColor(key),
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                     Padding(padding: EdgeInsets.all(2)),
                                     Text(
-                                      goalsTemp[key]['q3'],
+                                      goalsTemp.values.elementAt(i)['q3'],
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        color: goalDetails.getColor(key),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                        color: Color(0xFF170E9A),
+                                      ),
+                                    ),
+                                    Padding(padding: EdgeInsets.all(15)),
+                                    Text(
+                                      "Frequency per week",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF170E9A),
+                                      ),
+                                    ),
+                                    Text(
+                                      goalsTemp.values.elementAt(i)['q4'],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                        color: Color(0xFF170E9A),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Padding(padding: EdgeInsets.all(30)),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Goal Setting Date:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
-                            DateFormat('d/M/y').format(DateTime.parse(goalDate)),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
-                              color: Colors.black,
-                            ),
-                          ),
+                            )
                         ],
                       ),
-                      Padding(padding: EdgeInsets.all(30)),
-                      PrimaryButton(
-                        text: "Review / Revise Goals",
-                        color: Color(0xFF170E9A),
-                        textColor: Colors.white,
-                        onClickFunction: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(goals: goals, edit: true)));
-                        },
+                      Padding(padding: EdgeInsets.all(20)),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        child: SecondaryButton(
+                          text: "Review / Revise Goals",
+                          color: Color(0xFF170E9A),
+                          onClickFunction: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Goals(goals: goals, edit: true)));
+                          },
+                        ),
                       ),
                     ],
                   ),

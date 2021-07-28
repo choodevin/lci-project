@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import 'entity/Video.dart';
 import 'home.dart';
@@ -23,6 +26,7 @@ class InputBox extends StatelessWidget {
   final TextAlign textAlign;
   final bool readOnly;
   final Color color;
+  final String hint;
 
   const InputBox({
     this.focusNode,
@@ -35,6 +39,7 @@ class InputBox extends StatelessWidget {
     this.textAlign = TextAlign.left,
     this.readOnly = false,
     this.color = Colors.transparent,
+    this.hint,
   });
 
   Widget build(BuildContext context) {
@@ -75,8 +80,10 @@ class InputBox extends StatelessWidget {
           contentPadding: EdgeInsets.fromLTRB(15, 10, 15, 10),
           fillColor: color == Colors.transparent ? Color(0xFFF2F2F2) : Colors.white,
           filled: true,
+          hintText: hint != null ? hint : "",
           hintStyle: TextStyle(
-            color: Color(0xFFB4B4B4),
+            color: color,
+            fontSize: 14,
           ),
           enabledBorder: OutlineInputBorder(
               borderRadius: bRadius,
@@ -322,7 +329,7 @@ class _FacebookSignInButtonState extends State<FacebookSignInButton> {
   Future loginWithFacebook(FacebookLoginResult result, context) async {
     final FacebookAccessToken accessToken = result.accessToken;
     AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
-    var a = await _auth.signInWithCredential(credential);
+    await _auth.signInWithCredential(credential);
   }
 
   Widget build(BuildContext build) {
@@ -368,20 +375,29 @@ class PrimaryButton extends StatelessWidget {
   final Color color;
   final Color textColor;
   final Function onClickFunction;
+  final double borderRadius;
+  final EdgeInsets padding;
 
-  PrimaryButton({this.onClickFunction, this.text = "Sample Text", this.color = Colors.white, this.textColor = Colors.black});
+  PrimaryButton({
+    this.onClickFunction,
+    this.text = "Sample Text",
+    this.color = Colors.white,
+    this.textColor = Colors.black,
+    this.borderRadius = 90,
+    this.padding = const EdgeInsets.symmetric(vertical: 15),
+  });
 
   @override
   Widget build(BuildContext context) {
     return Material(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(90)),
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
       ),
       elevation: 1,
       color: color,
       clipBehavior: Clip.antiAlias,
       child: MaterialButton(
-        padding: EdgeInsets.only(top: 15, bottom: 15),
+        padding: padding,
         onPressed: onClickFunction,
         child: Text(
           text,
@@ -396,12 +412,48 @@ class PrimaryButton extends StatelessWidget {
   }
 }
 
+class SecondaryButton extends StatelessWidget {
+  final String text;
+  final Color color;
+  final Function onClickFunction;
+  final disabled;
+
+  SecondaryButton({this.onClickFunction, this.text = "Sample Text", this.color = Colors.white, this.disabled = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(90)),
+        side: BorderSide(
+          width: 0.7,
+          color: disabled ? Color(0xFF6E6E6E) : color,
+        ),
+      ),
+      elevation: disabled ? 0 : 1,
+      clipBehavior: Clip.antiAlias,
+      child: MaterialButton(
+        padding: EdgeInsets.only(top: 15, bottom: 15),
+        onPressed: disabled ? null : onClickFunction,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: disabled ? Color(0xFF6E6E6E) : color,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PrimaryCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final Color color;
   final BorderSide borderSide;
   final double minHeight;
+  final double borderRadius;
 
   PrimaryCard({
     this.child,
@@ -409,16 +461,17 @@ class PrimaryCard extends StatelessWidget {
     this.color = const Color(0xFFFFFFFF),
     this.borderSide = BorderSide.none,
     this.minHeight = 0.0,
+    this.borderRadius = 25,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
       constraints: BoxConstraints(minHeight: minHeight),
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.all(Radius.circular(25)),
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.12),
@@ -427,6 +480,8 @@ class PrimaryCard extends StatelessWidget {
           ),
         ],
       ),
+      duration: Duration(milliseconds: 200),
+      curve: Curves.ease,
       child: Padding(
         padding: padding,
         child: child,
@@ -464,10 +519,16 @@ class ClickablePrimaryCard extends StatelessWidget {
 class PageHeadings extends StatelessWidget {
   final String text;
   final String metaText;
+  final TextStyle textStyle;
   final bool popAvailable;
   final EdgeInsets padding;
 
-  PageHeadings({this.text = "", this.metaText = "", this.popAvailable = false, this.padding = const EdgeInsets.fromLTRB(5, 20, 20, 20)});
+  PageHeadings(
+      {this.text = "",
+      this.metaText = "",
+      this.popAvailable = false,
+      this.padding = const EdgeInsets.fromLTRB(5, 20, 20, 20),
+      this.textStyle = const TextStyle(fontWeight: FontWeight.w900, fontSize: 28)});
 
   @override
   Widget build(BuildContext context) {
@@ -498,7 +559,7 @@ class PageHeadings extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
+                  style: textStyle,
                 ),
                 metaText.isNotEmpty
                     ? Text(
@@ -598,7 +659,7 @@ class MultiColorProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
         boxShadow: [
           BoxShadow(
             blurRadius: 5,
@@ -607,13 +668,13 @@ class MultiColorProgressBar extends StatelessWidget {
           ),
         ],
       ),
-      height: 12,
+      height: 32,
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: BorderRadius.all(Radius.circular(20)),
             child: SizedBox(
-              height: 12,
+              height: 32,
               child: LinearProgressIndicator(
                 value: valueTwo,
                 valueColor: AlwaysStoppedAnimation<Color>(colorTwo),
@@ -622,9 +683,9 @@ class MultiColorProgressBar extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 12,
+            height: 32,
             child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
               child: LinearProgressIndicator(
                 value: valueOne,
                 valueColor: AlwaysStoppedAnimation<Color>(colorOne),
@@ -694,80 +755,69 @@ class UnlockPremium extends StatelessWidget {
 class GoalSelection extends StatefulWidget {
   final String title;
   final String description;
-  final Color color;
   final bool value;
   final String assetPath;
   final Function(bool) callBack;
 
-  const GoalSelection({this.title, this.description, this.color, this.value, this.assetPath, this.callBack});
+  const GoalSelection({this.title, this.description, this.value, this.assetPath, this.callBack});
 
-  _GoalSelectionState createState() => _GoalSelectionState(title, description, color, value, assetPath, callBack);
+  _GoalSelectionState createState() => _GoalSelectionState(title, description, value, assetPath, callBack);
 }
 
 class _GoalSelectionState extends State<GoalSelection> {
   final String title;
   final String description;
-  final Color color;
   final String assetPath;
   Function(bool) callBack;
   bool value;
 
-  _GoalSelectionState(this.title, this.description, this.color, this.value, this.assetPath, this.callBack);
+  _GoalSelectionState(this.title, this.description, this.value, this.assetPath, this.callBack);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            value = !value;
-          });
-          callBack(value);
-        },
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          value = !value;
+        });
+        callBack(value);
+      },
+      child: PrimaryCard(
+        color: value ? Color(0xFF299E45) : Colors.white,
+        borderSide: BorderSide(
+          color: Colors.white,
+          width: 10,
+          style: BorderStyle.solid,
+        ),
         child: Column(
           children: [
             Row(
               children: [
-                Theme(
-                  child: Checkbox(
-                    checkColor: Colors.white,
-                    activeColor: color,
-                    value: value,
-                    onChanged: (value) {
-                      setState(() {
-                        this.value = value;
-                      });
-                      callBack(value);
-                    },
-                  ),
-                  data: ThemeData(
-                    unselectedWidgetColor: color,
-                  ),
+                SvgPicture.asset(
+                  assetPath,
+                  height: 22,
+                  width: 22,
+                  color: value ? Colors.white : Color(0xFF6E6E6E),
                 ),
+                Padding(padding: EdgeInsets.all(10)),
                 Text(
                   title,
                   style: TextStyle(
-                    color: color,
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
+                    color: value ? Colors.white : Color(0xFF6E6E6E),
                   ),
                 ),
                 Padding(padding: EdgeInsets.all(5)),
-                SvgPicture.asset(
-                  assetPath,
-                  color: color,
-                  height: 20,
-                  width: 20,
-                ),
               ],
             ),
             Padding(
-              padding: EdgeInsets.only(left: 50),
+              padding: EdgeInsets.only(left: 40, top: 10),
               child: Text(
                 description,
                 style: TextStyle(
-                  color: color,
                   fontSize: 16,
+                  color: value ? Colors.white : Color(0xFF6E6E6E),
                 ),
               ),
             )
@@ -945,4 +995,185 @@ class LoadingOverlay extends StatelessWidget {
       ),
     );
   }
+}
+
+class AnswerSlider extends StatefulWidget {
+  final callBack;
+  final value;
+
+  const AnswerSlider({Key key, this.callBack, this.value}) : super(key: key);
+
+  _AnswerSliderState createState() => _AnswerSliderState(callBack, value);
+}
+
+class _AnswerSliderState extends State<AnswerSlider> {
+  final callBack;
+  double value;
+
+  _AnswerSliderState(this.callBack, this.value);
+
+  TextStyle labelStyle = TextStyle(color: Color(0xFF2667FF));
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: Color(0xFF1AD9AA),
+              inactiveTrackColor: Color(0xFFFF9E9E),
+              trackShape: RoundedRectSliderTrackShape(),
+              trackHeight: 8,
+              overlayShape: SliderComponentShape.noOverlay,
+              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12.0),
+              thumbColor: Color(0xFF453EAE),
+            ),
+            child: Slider(
+              min: 1.0,
+              max: 10.0,
+              value: value,
+              onChanged: (value) {
+                setState(() {
+                  this.value = value;
+                  callBack(value);
+                });
+              },
+            ),
+          ),
+          Padding(padding: EdgeInsets.all(4)),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Disagree', style: labelStyle),
+                Text('Agree', style: labelStyle),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class ChatBubble extends StatelessWidget {
+  final String content;
+  final String timeStamp;
+  final String targetName;
+  final bool owner;
+
+  ChatBubble({this.content, this.timeStamp, this.owner, this.targetName});
+
+  @override
+  Widget build(BuildContext context) {
+    TextStyle contentStyle = TextStyle(
+      color: owner ? Color(0xFF170E9A) : Colors.white,
+      fontSize: 16,
+    );
+    TextStyle timeStampStyle = TextStyle(
+      color: Color(0xFFC2C2C2),
+      fontSize: 12,
+    );
+    return AnimatedContainer(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      constraints: BoxConstraints(
+        maxWidth: owner ? 280 : 250,
+      ),
+      padding: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: owner ? Colors.white : Color(0xFF170E9A),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      duration: Duration(milliseconds: 200),
+      curve: Curves.ease,
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            !owner
+                ? Text(
+                    targetName,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+                  )
+                : SizedBox.shrink(),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                content,
+                style: contentStyle,
+              ),
+            ),
+            Text(
+              timeStamp,
+              style: timeStampStyle,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//Custom Methods
+Future<DateTime> getNetworkTime() async {
+  var date;
+  await http.get(Uri.parse("https://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur")).timeout(Duration(seconds: 5)).then((value) {
+    date = DateTime.parse(jsonDecode(value.body)['datetime']);
+  }).catchError((error) {
+    date = DateTime.now();
+  }).whenComplete(() {
+    date = DateTime(date.year, date.month, date.day);
+  });
+  return date;
+}
+
+Future<void> showLoading(BuildContext context) {
+  return showDialog<void>(
+    barrierDismissible: false,
+    context: context,
+    builder: (c) {
+      return LoadingOverlay();
+    },
+  );
+}
+
+String restructureStringFromNewLine(String input) {
+  String result = "";
+  if (input.contains("\n")) {
+    List<String> tempList = input.split("\n");
+    int startIndex = -1;
+    int endIndex = -1;
+    for (var i = 0; i < tempList.length; i++) {
+      if (tempList[i].isNotEmpty) {
+        if (startIndex == -1) {
+          startIndex = i;
+        } else {
+          endIndex = i;
+        }
+      }
+    }
+    if(endIndex == -1) {
+      endIndex = startIndex;
+    }
+    for (var i = startIndex; i <= endIndex; i++) {
+      result += tempList[i];
+      if(i != endIndex) {
+        result += "\n";
+      }
+    }
+  } else {
+    result = input;
+  }
+  return result;
 }

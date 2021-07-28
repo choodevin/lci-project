@@ -1,11 +1,15 @@
+import 'package:LCI/group-chat.dart';
+import 'package:LCI/notification/NotificationListener.dart';
 import 'package:LCI/splash.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'home.dart';
 import 'login.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(BuildApp());
 }
@@ -19,11 +23,11 @@ class LoggedInMain extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       builder: (context, child) {
-      return ScrollConfiguration(
-        behavior: NoGlowScroll(),
-        child: child,
-      );
-    },
+        return ScrollConfiguration(
+          behavior: NoGlowScroll(),
+          child: child,
+        );
+      },
       home: GetUserData(),
     );
   }
@@ -37,6 +41,12 @@ class NonLoggedInMain extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: NoGlowScroll(),
+          child: child,
+        );
+      },
       home: Login(),
     );
   }
@@ -44,6 +54,7 @@ class NonLoggedInMain extends StatelessWidget {
 
 class BuildApp extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +69,9 @@ class BuildApp extends StatelessWidget {
 
         // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
+          initNotifications();
+          FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
+          FirebaseMessaging.onBackgroundMessage(notificationReceiver);
           if (FirebaseAuth.instance.currentUser != null) {
             return LoggedInMain();
           } else {
@@ -73,8 +87,7 @@ class BuildApp extends StatelessWidget {
 
 class NoGlowScroll extends ScrollBehavior {
   @override
-  Widget buildViewportChrome(
-      BuildContext context, Widget child, AxisDirection axisDirection) {
+  Widget buildViewportChrome(BuildContext context, Widget child, AxisDirection axisDirection) {
     return child;
   }
 }

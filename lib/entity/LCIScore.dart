@@ -11,59 +11,73 @@ class LCIScore {
     Map<String, double> result = {};
 
     var cognitiveTotal = 0.0; // 3
+    var cognitiveOccurrence = 0;
     var spiritTotal = 0.0; // 1
+    var spiritOccurrence = 0;
     var relationTotal = 0.0; // 3
+    var relationOccurrence = 0;
     var physicalTotal = 0.0; // 3
+    var physicalOccurrence = 0;
 
     score.forEach((key, value) {
       if (key == "Finance") {
         value.forEach((key, value) {
           cognitiveTotal += value;
+          cognitiveOccurrence++;
         });
       } else if (key == "Career or Study") {
         value.forEach((key, value) {
           cognitiveTotal += value;
+          cognitiveOccurrence++;
         });
       } else if (key == "Self-Development") {
         value.forEach((key, value) {
           cognitiveTotal += value;
+          cognitiveOccurrence++;
         });
       } else if (key == "Spiritual Life") {
         value.forEach((key, value) {
           spiritTotal += value;
+          spiritOccurrence++;
         });
       } else if (key == "Family") {
         value.forEach((key, value) {
           relationTotal += value;
+          relationOccurrence++;
         });
       } else if (key == "Romance Relationship") {
         value.forEach((key, value) {
           relationTotal += value;
+          relationOccurrence++;
         });
       } else if (key == "Social Life") {
         value.forEach((key, value) {
           relationTotal += value;
+          relationOccurrence++;
         });
       } else if (key == "Health & Fitness") {
         value.forEach((key, value) {
           physicalTotal += value;
+          physicalOccurrence++;
         });
       } else if (key == "Hobby & Leisure") {
         value.forEach((key, value) {
           physicalTotal += value;
+          physicalOccurrence++;
         });
       } else if (key == "Physical Environment") {
         value.forEach((key, value) {
           physicalTotal += value;
+          physicalOccurrence++;
         });
       }
     });
 
     result = {
-      "Cognitive": cognitiveTotal / 15,
-      "Spirit": spiritTotal / 5,
-      "Relationship": relationTotal / 15,
-      "Physical": physicalTotal / 15,
+      "Cognitive": cognitiveTotal / cognitiveOccurrence,
+      "Spirit": spiritTotal / spiritOccurrence,
+      "Relationship": relationTotal / relationOccurrence,
+      "Physical": physicalTotal / physicalOccurrence,
     };
 
     return result;
@@ -161,11 +175,13 @@ class LCIScore {
     List<double> sortVal = [];
 
     score.forEach((key, value) {
+      var questionCount = 0;
       result[key] = 0;
       value.forEach((x, value) {
         result[key] += value;
+        questionCount++;
       });
-      result[key] = result[key] / 5;
+      result[key] = result[key] / questionCount;
       sortVal.add(result[key]);
     });
 

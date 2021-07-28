@@ -10,7 +10,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'entity/Video.dart';
-import 'package:http/http.dart' as http;
 
 class SevenThingsMain extends StatefulWidget {
   final date;
@@ -37,13 +36,6 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
   Function addCallBack;
 
   var isEdit = false;
-
-  Future<DateTime> getNetworkTime() async {
-    var dataJson = await http.get(Uri.parse("http://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur"));
-    var date = DateTime.parse(jsonDecode(dataJson.body)['datetime']);
-    date = DateTime(date.year, date.month, date.day);
-    return date;
-  }
 
   Future<void> infoVideo() {
     return showDialog<void>(
@@ -381,16 +373,6 @@ class _SevenThingListState extends State<SevenThingList> {
 
   TextEditingController _newSevenThings = new TextEditingController();
 
-  Future<void> showLoading() {
-    return showDialog<void>(
-      barrierDismissible: false,
-      context: context,
-      builder: (c) {
-        return LoadingOverlay();
-      },
-    );
-  }
-
   getProgress() {
     if (sevenThings != null) {
       var progress = 0.0;
@@ -506,7 +488,7 @@ class _SevenThingListState extends State<SevenThingList> {
               },
             ).then((value) async {
               if (value != null) {
-                showLoading();
+                showLoading(context);
                 var type;
                 if (contentOrder.contains(value)) {
                   Navigator.of(context).pop();
@@ -598,7 +580,7 @@ class _SevenThingListState extends State<SevenThingList> {
             },
           ).then((value) async {
             if (value != null) {
-              showLoading();
+              showLoading(context);
               var type;
               if (contentOrder.contains(value)) {
                 Navigator.of(context).pop();
@@ -657,7 +639,7 @@ class _SevenThingListState extends State<SevenThingList> {
 
     Function recallFunction = (type) async {
       if (type == 0) {
-        showLoading();
+        showLoading(context);
         var newContent = new Map<String, dynamic>();
         sevenThings['contentOrder'] = contentOrder;
         for (var i = 0; i < contentOrder.length; i++) {
@@ -789,7 +771,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                 ? () async {
                                                     await showEditDelete(contentOrder[i]).then((value) async {
                                                       if (value != null && value != contentOrder[i]) {
-                                                        showLoading();
+                                                        showLoading(context);
                                                         if (value != 0) {
                                                           var occurrence = 0;
                                                           for (var s in contentOrder) {
@@ -1031,7 +1013,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                             },
                                           ).then((value) async {
                                             if (value != null) {
-                                              showLoading();
+                                              showLoading(context);
                                               var type;
                                               if (contentOrder.contains(value)) {
                                                 Navigator.of(context).pop();
