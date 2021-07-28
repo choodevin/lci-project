@@ -1128,13 +1128,15 @@ class ChatBubble extends StatelessWidget {
 //Custom Methods
 Future<DateTime> getNetworkTime() async {
   var date;
-  await http.get(Uri.parse("https://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur")).timeout(Duration(seconds: 5)).then((value) {
-    date = DateTime.parse(jsonDecode(value.body)['datetime']);
-  }).catchError((error) {
+  try {
+    await http.get(Uri.parse("https://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur")).timeout(Duration(seconds: 5)).then((value) {
+      date = DateTime.parse(jsonDecode(value.body)['datetime']);
+    });
+  } catch (Exception) {
     date = DateTime.now();
-  }).whenComplete(() {
-    date = DateTime(date.year, date.month, date.day);
-  });
+  } finally {
+     date = DateTime(date.year, date.month, date.day);
+  }
   return date;
 }
 

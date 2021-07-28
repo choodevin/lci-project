@@ -173,7 +173,7 @@ class _GoalsState extends State<Goals> {
         child: Column(
           children: [
             Container(
-              height: MediaQuery.of(context).size.height - 96,
+              height: MediaQuery.of(context).size.height - 96 - 8.6,
               child: SingleChildScrollView(
                 child: Column(
                   children: [

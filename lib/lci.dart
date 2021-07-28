@@ -338,7 +338,7 @@ class _QuestionFormState extends State<QuestionForm> {
               popAvailable: true,
             ),
             Container(
-              height: MediaQuery.of(context).size.height - 160,
+              height: MediaQuery.of(context).size.height - 160 - 8.6,
               width: MediaQuery.of(context).size.width,
               child: PageView(
                 physics: NeverScrollableScrollPhysics(),
