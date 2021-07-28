@@ -605,61 +605,61 @@ class _HomeBaseState extends State<HomeBase> {
       },
       child: Scaffold(
         body: screen.elementAt(index),
-        bottomNavigationBar: SizedBox(
-          height: 72,
-          child: Theme(
-            data: ThemeData(
-              brightness: Brightness.light,
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
+        bottomNavigationBar: Theme(
+          data: ThemeData(
+            brightness: Brightness.light,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: BottomNavigationBar(
+            elevation: 12,
+            backgroundColor: Colors.white,
+            unselectedItemColor: Colors.black,
+            selectedItemColor: Color(0xFF170E9A),
+            unselectedLabelStyle: TextStyle(fontSize: 11),
+            selectedLabelStyle: TextStyle(fontSize: 11),
+            selectedIconTheme: IconThemeData(
+              color: Color(0xFF170E9A),
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
-              ),
-              child: BottomNavigationBar(
-                elevation: 12,
-                backgroundColor: Colors.white,
-                unselectedItemColor: Color(0XFFAFAFAF),
-                selectedItemColor: Color(0xFF170E9A),
-                unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                selectedIconTheme: IconThemeData(
-                  color: Color(0xFF170E9A),
+            showUnselectedLabels: true,
+            showSelectedLabels: true,
+            items: [
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 6, top: 2),
+                  child: SvgPicture.asset(
+                    'assets/home.svg',
+                    height: 24,
+                    color: index == 0 ? Color(0xFF170E9A) : Colors.black,
+                  ),
                 ),
-                showSelectedLabels: true,
-                showUnselectedLabels: true,
-                items: [
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/home.svg',
-                      height: 22,
-                      color: index == 0 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
-                    ),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/users.svg',
-                      height: 22,
-                      color: index == 1 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
-                    ),
-                    label: 'Campaign',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SvgPicture.asset(
-                      'assets/user.svg',
-                      height: 22,
-                      color: index == 2 ? Color(0xFF170E9A) : Color(0xFF6E6E6E),
-                    ),
-                    label: 'Profile',
-                  ),
-                ],
-                currentIndex: index,
-                onTap: onTap,
+                label: 'Home',
               ),
-            ),
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 6, top: 2),
+                  child: SvgPicture.asset(
+                    'assets/users.svg',
+                    height: 24,
+                    color: index == 1 ? Color(0xFF170E9A) : Colors.black,
+                  ),
+                ),
+                label: 'Campaign',
+              ),
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 6, top: 2),
+                  child: SvgPicture.asset(
+                    'assets/user.svg',
+                    height: 24,
+                    color: index == 2 ? Color(0xFF170E9A) : Colors.black,
+                  ),
+                ),
+                label: 'Profile',
+              ),
+            ],
+            currentIndex: index,
+            onTap: onTap,
           ),
         ),
       ),
