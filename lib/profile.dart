@@ -34,6 +34,39 @@ class _ProfileState extends State<Profile> {
     });
   }
 
+  Future<bool> showConfirmLogout() {
+    return showDialog<bool>(
+      context: context,
+      builder: (c) {
+        return PrimaryDialog(
+          title: Text("Signing out"),
+          content: Text("Are you sure you want to sign out?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'Cancel',
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(
+                'Yes',
+                style: TextStyle(
+                  color: Color(0xFFFF0000),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,10 +127,14 @@ class _ProfileState extends State<Profile> {
                       text: 'Sign Out',
                       color: Colors.red,
                       textColor: Colors.white,
-                      onClickFunction: () {
-                        showLoading(context);
-                        FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
-                          FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
+                      onClickFunction: () async {
+                        await showConfirmLogout().then((value) {
+                          if(value) {
+                            showLoading(context);
+                            FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
+                              FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
+                            });
+                          }
                         });
                       },
                     ),

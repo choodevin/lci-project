@@ -562,6 +562,14 @@ class _HomeBaseState extends State<HomeBase> {
           actions: <Widget>[
             TextButton(
               onPressed: () async {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'Cancel',
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
                 Navigator.of(context).pop(true);
               },
               child: Text(
@@ -569,14 +577,6 @@ class _HomeBaseState extends State<HomeBase> {
                 style: TextStyle(
                   color: Color(0xFFFF0000),
                 ),
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(false);
-              },
-              child: Text(
-                'Cancel',
               ),
             ),
           ],

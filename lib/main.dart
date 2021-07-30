@@ -1,4 +1,3 @@
-import 'package:LCI/group-chat.dart';
 import 'package:LCI/notification/NotificationListener.dart';
 import 'package:LCI/splash.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,15 +58,8 @@ class BuildApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      // Initialize FlutterFire:
       future: _initialization,
       builder: (context, snapshot) {
-        // Check for errors
-        if (snapshot.hasError) {
-          //return SomethingWentWrong();
-        }
-
-        // Once complete, show your application
         if (snapshot.connectionState == ConnectionState.done) {
           initNotifications();
           FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
@@ -78,7 +70,7 @@ class BuildApp extends StatelessWidget {
             return NonLoggedInMain();
           }
         }
-        // Otherwise, show something whilst waiting for initialization to complete
+
         return SplashScreenMain();
       },
     );
