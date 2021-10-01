@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'entity/CampaignData.dart';
 import 'entity/GoalsDetails.dart';
@@ -17,11 +18,17 @@ import 'group-chat.dart';
 
 class LoadCampaign extends StatelessWidget {
   final userdata;
+  final toSearchCampaign;
 
-  const LoadCampaign({Key key, this.userdata}) : super(key: key);
+  const LoadCampaign({Key key, this.userdata, this.toSearchCampaign}) : super(key: key);
 
   Widget build(BuildContext context) {
-    var ref = FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: userdata.currentEnrolledCampaign);
+    var ref;
+    if (toSearchCampaign != null) {
+      ref = FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: toSearchCampaign);
+    } else {
+      ref = FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: userdata.currentEnrolledCampaign);
+    }
 
     return FutureBuilder<QuerySnapshot>(
       future: ref.get(),
@@ -44,7 +51,7 @@ class LoadCampaign extends StatelessWidget {
           campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
           campaign.startDate = snapshot.data.docs.last.get('startDate');
           campaign.campaignModerator = snapshot.data.docs.last.get('campaignModerator');
-          return CampaignMain(campaign: campaign, userdata: userdata, campaignId: snapshot.data.docs.last.id);
+          return CampaignMain(campaign: campaign, campaignId: snapshot.data.docs.last.id, isCoach: toSearchCampaign != null ? true : false);
         }
 
         return Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -798,14 +805,14 @@ class SetupCampaignFinal extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 PageHeadings(
                   text: 'Final Step!',
                 ),
-                Padding(padding: EdgeInsets.all(15)),
+                Padding(padding: EdgeInsets.all(20)),
                 Text(
                   'Share it out to your peers to join this campaign!',
                   style: TextStyle(
@@ -815,26 +822,52 @@ class SetupCampaignFinal extends StatelessWidget {
                   ),
                 ),
                 Padding(padding: EdgeInsets.all(15)),
-                Container(
-                  padding: EdgeInsets.only(
-                    bottom: 5, // Space between underline and text
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Color(0xFFAAAAAA),
-                        width: 1.0, // Underline thickness
+                Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 10),
+                        child: Container(
+                          padding: EdgeInsets.only(
+                            bottom: 5, // Space between underline and text
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Color(0xFFAAAAAA),
+                                width: 1.0, // Underline thickness
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            campaignData.invitationCode,
+                            style: TextStyle(
+                              color: Color(0xFF6E6E6E),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  child: Text(
-                    campaignData.invitationCode,
-                    style: TextStyle(
-                      color: Color(0xFF6E6E6E),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: campaignData.invitationCode));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Invitation code has been copied to clipboard"),
+                        ));
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: SvgPicture.asset(
+                          'assets/clipboard.svg',
+                          height: 18,
+                          width: 18,
+                          color: Color(0xFF6E6E6E),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 Padding(padding: EdgeInsets.all(15)),
                 PrimaryButton(
@@ -861,20 +894,20 @@ class SetupCampaignFinal extends StatelessWidget {
 
 class CampaignMain extends StatefulWidget {
   final campaign;
-  final userdata;
   final campaignId;
+  final isCoach;
 
-  const CampaignMain({Key key, this.campaign, this.userdata, this.campaignId}) : super(key: key);
+  const CampaignMain({Key key, this.campaign, this.campaignId, this.isCoach}) : super(key: key);
 
-  _CampaignMainState createState() => _CampaignMainState(campaign, userdata, campaignId);
+  _CampaignMainState createState() => _CampaignMainState(campaign, campaignId, isCoach);
 }
 
 class _CampaignMainState extends State<CampaignMain> {
   CampaignData campaign;
   final campaignId;
-  UserData userdata;
+  final isCoach;
 
-  _CampaignMainState(this.campaign, this.userdata, this.campaignId);
+  _CampaignMainState(this.campaign, this.campaignId, this.isCoach);
 
   DocumentSnapshot selectedUser;
 
@@ -914,6 +947,18 @@ class _CampaignMainState extends State<CampaignMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF5D88FF),
+        child: SvgPicture.asset(
+          'assets/comment-dots.svg',
+          height: 20,
+          width: 20,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: campaignId)));
+        },
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
@@ -932,21 +977,7 @@ class _CampaignMainState extends State<CampaignMain> {
                       children: [
                         InkWell(
                           onTap: () async {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: campaignId)));
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            child: SvgPicture.asset(
-                              'assets/comment-dots.svg',
-                              height: 20,
-                              width: 20,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () async {
-                            await Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId))).then((value) {
+                            await Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId, isCoach: isCoach))).then((value) {
                               setState(() {
                                 campaign = value;
                               });
@@ -1371,11 +1402,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
   @override
   void initState() {
     super.initState();
-    getNetworkTime().then((value) {
-      setState(() {
-        today = DateTime(value.year, value.month, value.day);
-      });
-    });
+    today = getTime();
   }
 
   @override
@@ -1633,17 +1660,19 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
 class CampaignSettings extends StatefulWidget {
   final campaignData;
   final campaignId;
+  final isCoach;
 
-  const CampaignSettings({Key key, this.campaignData, this.campaignId}) : super(key: key);
+  const CampaignSettings({Key key, this.campaignData, this.campaignId, this.isCoach}) : super(key: key);
 
-  _CampaignSettingsState createState() => _CampaignSettingsState(campaignData, campaignId);
+  _CampaignSettingsState createState() => _CampaignSettingsState(campaignData, campaignId, isCoach);
 }
 
 class _CampaignSettingsState extends State<CampaignSettings> {
   final campaignId;
   CampaignData campaignData;
+  final isCoach;
 
-  _CampaignSettingsState(this.campaignData, this.campaignId);
+  _CampaignSettingsState(this.campaignData, this.campaignId, this.isCoach);
 
   final _scorePenaltyController = new TextEditingController();
   FocusNode _scorePenaltyNode;
@@ -1690,9 +1719,18 @@ class _CampaignSettingsState extends State<CampaignSettings> {
           actions: <Widget>[
             TextButton(
               onPressed: () async {
-                await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'currentEnrolledCampaign': ""});
-                Navigator.of(context).popUntil((route) => route.isFirst);
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
+                if (isCoach) {
+                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").get().then((value) async {
+                    var coachingList = value.get("coachingList");
+                    coachingList.remove(campaignData.invitationCode);
+                    await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'coachingList': coachingList});
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  });
+                } else {
+                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'currentEnrolledCampaign': ""});
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
+                }
               },
               child: Text(
                 'Yes',
@@ -2287,7 +2325,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                       ),
                       Padding(padding: EdgeInsets.all(20)),
                       PrimaryButton(
-                          text: "Un-enroll",
+                          text: isCoach ? "Leave as Coach" : "Un-enroll",
                           textColor: Colors.white,
                           color: Color(0xFFFF3939),
                           onClickFunction: () {

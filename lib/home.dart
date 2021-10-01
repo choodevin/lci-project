@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:radar_chart/radar_chart.dart';
-
 import 'campaign.dart';
 import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
@@ -48,11 +47,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    getNetworkTime().then((value) {
-      setState(() {
-        toChange = DateTime(value.year, value.month, value.day);
-      });
-    });
+    toChange = getTime();
 
     if (sevenThings != null && sevenThings.containsKey('contentOrder')) {
       contentOrder = sevenThings['contentOrder'];
@@ -330,78 +325,6 @@ class _HomeState extends State<Home> {
                                 : Container(),
                           ],
                         ),
-                        Padding(padding: EdgeInsets.all(20)),
-                        Stack(
-                          children: [
-                            ClickablePrimaryCard(
-                              padding: EdgeInsets.fromLTRB(30, 25, 30, 25),
-                              onClickFunction: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SevenThingsMain()));
-                              },
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  TextWithIcon(
-                                    assetPath: 'assets/tasks.svg',
-                                    text: 'Today\'s 7 Things',
-                                  ),
-                                  Padding(padding: EdgeInsets.all(10)),
-                                  contentOrder.length > 0 && sevenThings['content'].length > 0
-                                      ? Column(
-                                          children: [
-                                            for (var i = 0; i < contentOrder.length; i++)
-                                              contentOrder[i].isNotEmpty
-                                                  ? Padding(
-                                                      padding: EdgeInsets.only(top: 5, bottom: 5),
-                                                      child: Row(
-                                                        children: [
-                                                          SizedBox(
-                                                            height: 20,
-                                                            width: 20,
-                                                            child: Checkbox(
-                                                              activeColor: Color(0xFFF48A1D),
-                                                              checkColor: Colors.white,
-                                                              value: sevenThings['content'][contentOrder[i]]['status'],
-                                                              onChanged: (bool value) {},
-                                                            ),
-                                                          ),
-                                                          Padding(padding: EdgeInsets.all(7.5)),
-                                                          Flexible(
-                                                            child: Text(
-                                                              contentOrder[i],
-                                                              style: TextStyle(fontSize: 17),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    )
-                                                  : SizedBox.shrink(),
-                                          ],
-                                        )
-                                      : Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            Padding(padding: EdgeInsets.all(30)),
-                                            Text(
-                                              'You have not set any daily tasks today',
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            Padding(padding: EdgeInsets.all(30)),
-                                            PrimaryButton(
-                                              text: 'Set 7 Things',
-                                              color: Color(0xFF7A90FE),
-                                              textColor: Colors.white,
-                                              onClickFunction: () {
-                                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SevenThingsMain()));
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -432,11 +355,7 @@ class _GetUserDataState extends State<GetUserData> {
   @override
   void initState() {
     super.initState();
-    getNetworkTime().then((value) {
-      setState(() {
-        toSearch = DateTime(value.year, value.month, value.day);
-      });
-    });
+    toSearch = getTime();
   }
 
   @override
@@ -475,6 +394,11 @@ class _GetUserDataState extends State<GetUserData> {
               userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
             } else {
               userdata.currentEnrolledCampaign = "";
+            }
+            if (udx.containsKey('isCoach')) {
+              userdata.isCoach = snapshot.data[0].get('isCoach');
+            } else {
+              userdata.isCoach = false;
             }
             userdata.email = FirebaseAuth.instance.currentUser.email;
 
@@ -589,6 +513,7 @@ class _HomeBaseState extends State<HomeBase> {
   Widget build(BuildContext context) {
     List<Widget> screen = <Widget>[
       Home(userdata: userdata, wheelData: wheelData, sevenThings: sevenThings, goals: goals),
+      SevenThingsMain(),
       campaignPage,
       Profile(userdata: userdata),
     ];
@@ -612,7 +537,7 @@ class _HomeBaseState extends State<HomeBase> {
             highlightColor: Colors.transparent,
           ),
           child: BottomNavigationBar(
-            elevation: 12,
+            type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
             unselectedItemColor: Colors.black,
             selectedItemColor: Color(0xFF170E9A),
@@ -623,6 +548,8 @@ class _HomeBaseState extends State<HomeBase> {
             ),
             showUnselectedLabels: true,
             showSelectedLabels: true,
+            currentIndex: index,
+            onTap: onTap,
             items: [
               BottomNavigationBarItem(
                 icon: Padding(
@@ -639,9 +566,20 @@ class _HomeBaseState extends State<HomeBase> {
                 icon: Padding(
                   padding: EdgeInsets.only(bottom: 6, top: 2),
                   child: SvgPicture.asset(
-                    'assets/users.svg',
+                    'assets/tasks.svg',
                     height: 24,
                     color: index == 1 ? Color(0xFF170E9A) : Colors.black,
+                  ),
+                ),
+                label: '7 Things',
+              ),
+              BottomNavigationBarItem(
+                icon: Padding(
+                  padding: EdgeInsets.only(bottom: 6, top: 2),
+                  child: SvgPicture.asset(
+                    'assets/users.svg',
+                    height: 24,
+                    color: index == 2 ? Color(0xFF170E9A) : Colors.black,
                   ),
                 ),
                 label: 'Campaign',
@@ -651,15 +589,13 @@ class _HomeBaseState extends State<HomeBase> {
                   padding: EdgeInsets.only(bottom: 6, top: 2),
                   child: SvgPicture.asset(
                     'assets/user.svg',
-                    height: 24,
-                    color: index == 2 ? Color(0xFF170E9A) : Colors.black,
+                    height: 22,
+                    color: index == 3 ? Color(0xFF170E9A) : Colors.black,
                   ),
                 ),
                 label: 'Profile',
               ),
             ],
-            currentIndex: index,
-            onTap: onTap,
           ),
         ),
       ),

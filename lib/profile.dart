@@ -2,9 +2,11 @@ import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
+import 'coach.dart';
 import 'entity/UserData.dart';
 import 'entity/Video.dart';
 import 'login.dart';
@@ -27,11 +29,16 @@ class _ProfileState extends State<Profile> {
   @override
   void initState() {
     super.initState();
-    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+    getPackageName().then((value) {
       setState(() {
-        version = packageInfo.version;
+        version = value;
       });
     });
+  }
+
+  Future<String> getPackageName() async {
+    final info = await PackageInfo.fromPlatform();
+    return info.version;
   }
 
   Future<bool> showConfirmLogout() {
@@ -76,7 +83,7 @@ class _ProfileState extends State<Profile> {
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - 72,
             ),
-            padding: EdgeInsets.fromLTRB(20, 25, 20, 25),
+            padding: EdgeInsets.fromLTRB(20, 25, 20, 0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -123,13 +130,28 @@ class _ProfileState extends State<Profile> {
                       },
                     ),
                     Padding(padding: EdgeInsets.all(20)),
+                    userData.isCoach
+                        ? PrimaryButton(
+                            text: 'Coach Screen',
+                            color: Color(0xFF170E9A),
+                            textColor: Colors.white,
+                            onClickFunction: () {
+                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => CoachMain()));
+                            },
+                          )
+                        : SizedBox.shrink(),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                     PrimaryButton(
                       text: 'Sign Out',
                       color: Colors.red,
                       textColor: Colors.white,
                       onClickFunction: () async {
                         await showConfirmLogout().then((value) {
-                          if(value) {
+                          if (value) {
                             showLoading(context);
                             FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
                               FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
@@ -138,9 +160,14 @@ class _ProfileState extends State<Profile> {
                         });
                       },
                     ),
+                    Padding(padding: EdgeInsets.all(10)),
+                    Text(
+                      'Version : v' + version + "(alpha)",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFFA7A7A7), fontSize: 12),
+                    ),
                   ],
                 ),
-                Text('Version : v' + version + "(alpha)", style: TextStyle(color: Color(0xFFA7A7A7), fontSize: 12)),
               ],
             ),
           ),

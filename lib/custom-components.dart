@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -10,7 +8,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import 'entity/Video.dart';
 import 'home.dart';
@@ -27,6 +24,7 @@ class InputBox extends StatelessWidget {
   final bool readOnly;
   final Color color;
   final String hint;
+  final Function onChanged;
 
   const InputBox({
     this.focusNode,
@@ -40,6 +38,7 @@ class InputBox extends StatelessWidget {
     this.readOnly = false,
     this.color = Colors.transparent,
     this.hint,
+    this.onChanged,
   });
 
   Widget build(BuildContext context) {
@@ -60,6 +59,7 @@ class InputBox extends StatelessWidget {
         ],
       ),
       child: TextField(
+        onChanged: onChanged,
         minLines: minLines,
         maxLines: maxLines,
         obscureText: false,
@@ -161,7 +161,9 @@ class _PasswordBoxState extends State<PasswordBox> {
             ),
           ),
           suffixIcon: IconButton(
-            icon: passwordVisible ? SvgPicture.asset('assets/eye-slash.svg', color: Colors.grey, height: 16, width: 16) : SvgPicture.asset('assets/eye.svg', color: Colors.grey, height: 16, width: 16),
+            icon: passwordVisible
+                ? SvgPicture.asset('assets/eye-slash.svg', color: Colors.grey, height: 16, width: 16)
+                : SvgPicture.asset('assets/eye.svg', color: Colors.grey, height: 16, width: 16),
             onPressed: () {
               this.setState(() {
                 passwordVisible = !passwordVisible;
@@ -1059,6 +1061,154 @@ class _AnswerSliderState extends State<AnswerSlider> {
   }
 }
 
+class ChatPoll extends StatefulWidget {
+  final yesValue;
+  final noValue;
+  final owner;
+  final yesCallback;
+  final noCallback;
+  final votedOn;
+  final expireTime;
+
+  const ChatPoll({Key key, this.yesValue, this.noValue, this.owner, this.yesCallback, this.noCallback, this.votedOn, this.expireTime}) : super(key: key);
+
+  ChatPollState createState() => ChatPollState(yesValue, noValue, owner, yesCallback, noCallback, votedOn, expireTime);
+}
+
+class ChatPollState extends State<ChatPoll> {
+  final yesValue;
+  final noValue;
+  final owner;
+  final yesCallback;
+  final noCallback;
+  final votedOn;
+  DateTime expireTime;
+
+  ChatPollState(this.yesValue, this.noValue, this.owner, this.yesCallback, this.noCallback, this.votedOn, this.expireTime);
+
+  @override
+  Widget build(BuildContext context) {
+    DateTime currentTime = DateTime.now();
+    bool isExpire = currentTime.isBefore(expireTime) ? false : true;
+    String timeLeft = isExpire ? null : "${expireTime.difference(currentTime).inHours}hour(s)";
+    return AnimatedContainer(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      constraints: BoxConstraints(
+        maxWidth: owner ? 280 : 250,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.12),
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      duration: Duration(milliseconds: 200),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(12, 10, 12, 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text("Leave Poll", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black)),
+            Padding(padding: EdgeInsets.all(5)),
+            GestureDetector(
+              onTap: votedOn == "Yes" || isExpire ? null : yesCallback,
+              child: PollBar(
+                color: Color(0xFFF5F5F5),
+                value: yesValue,
+                label: "Yes",
+                voted: votedOn == "Yes",
+              ),
+            ),
+            GestureDetector(
+              onTap: votedOn == "No" || isExpire ? null : noCallback,
+              child: PollBar(
+                color: Color(0xFFF5F5F5),
+                value: noValue,
+                label: "No",
+                voted: votedOn == "No",
+              ),
+            ),
+            Padding(padding: EdgeInsets.all(5)),
+            isExpire
+                ? Text(
+                    "Poll has ended on ${expireTime.hour}:00 ${expireTime.day}/${expireTime.month}/${expireTime.year}",
+                    style: TextStyle(fontSize: 12),
+                  )
+                : Text("Poll will be expiring in $timeLeft"),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PollBar extends StatelessWidget {
+  final color;
+  final value;
+  final label;
+  final voted;
+
+  const PollBar({Key key, this.color, this.value, this.label, this.voted}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 5),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Stack(
+              children: [
+                LinearProgressIndicator(
+                  minHeight: 42,
+                  value: 1,
+                  color: color,
+                ),
+                LinearProgressIndicator(
+                  minHeight: 42,
+                  value: value,
+                  color: Color(0xFFD2D2D2),
+                  backgroundColor: Colors.transparent,
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Text(
+                "${(value * 100).toStringAsFixed(0)}%",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class ChatBubble extends StatelessWidget {
   final String content;
   final String timeStamp;
@@ -1126,17 +1276,10 @@ class ChatBubble extends StatelessWidget {
 }
 
 //Custom Methods
-Future<DateTime> getNetworkTime() async {
+DateTime getTime() {
   var date;
-  try {
-    await http.get(Uri.parse("https://worldtimeapi.org/api/timezone/Asia/Kuala_Lumpur")).timeout(Duration(seconds: 5)).then((value) {
-      date = DateTime.parse(jsonDecode(value.body)['datetime']);
-    });
-  } catch (Exception) {
-    date = DateTime.now();
-  } finally {
-     date = DateTime(date.year, date.month, date.day);
-  }
+  date = DateTime.now();
+  date = DateTime(date.year, date.month, date.day);
   return date;
 }
 
@@ -1165,12 +1308,12 @@ String restructureStringFromNewLine(String input) {
         }
       }
     }
-    if(endIndex == -1) {
+    if (endIndex == -1) {
       endIndex = startIndex;
     }
     for (var i = startIndex; i <= endIndex; i++) {
       result += tempList[i];
-      if(i != endIndex) {
+      if (i != endIndex) {
         result += "\n";
       }
     }

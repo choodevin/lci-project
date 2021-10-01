@@ -33,7 +33,6 @@ class Lci extends StatelessWidget {
             children: [
               PageHeadings(
                 text: 'Welcome to LCI Test',
-                metaText: 'Brief explanation of LCI Test here',
                 popAvailable: true,
               ),
               Container(
@@ -427,32 +426,32 @@ class _QuestionFormState extends State<QuestionForm> {
                               children: [
                                 currentPage != 1
                                     ? GestureDetector(
-                                  onTap: () {
-                                    _pageController.jumpToPage(_pageController.page.toInt() - 1);
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF170E9A),
-                                      ),
-                                      child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
-                                )
+                                        onTap: () {
+                                          _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                                        },
+                                        child: Container(
+                                            padding: EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFF170E9A),
+                                            ),
+                                            child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
+                                      )
                                     : SizedBox(width: 41),
                                 Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
                                 currentPage != totalPage
                                     ? GestureDetector(
-                                  onTap: () {
-                                    _pageController.jumpToPage(_pageController.page.toInt() + 1);
-                                  },
-                                  child: Container(
-                                      padding: EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF170E9A),
-                                      ),
-                                      child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
-                                )
+                                        onTap: () {
+                                          _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                                        },
+                                        child: Container(
+                                            padding: EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Color(0xFF170E9A),
+                                            ),
+                                            child: SvgPicture.asset('assets/chevron-right.svg', color: Colors.white, height: 14, width: 14)),
+                                      )
                                     : SizedBox(width: 41),
                               ],
                             ),
@@ -730,11 +729,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
 
     list.shuffle();
 
-    getNetworkTime().then((value) {
-      setState(() {
-        dateNow = value;
-      });
-    });
+    dateNow = getTime();
     totalPage = list.length / 5;
   }
 
@@ -985,7 +980,8 @@ class LciResult extends StatelessWidget {
                           'assets/radar-bg-complete.png',
                           height: 260,
                           width: 260,
-                        ),),
+                        ),
+                      ),
                       Padding(
                         padding: EdgeInsets.only(top: 46),
                         child: Center(
@@ -1213,7 +1209,6 @@ class _LCIMainState extends State<LCIMain> {
             children: [
               PageHeadings(
                 text: "Welcome to LCI Test",
-                metaText: "Brief explanation of LCI Test here.",
                 popAvailable: true,
               ),
               Container(

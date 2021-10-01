@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,23 +50,19 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
   void initState() {
     super.initState();
     if (date == null) {
-      getNetworkTime().then((value) {
-        setState(() {
-          selectedDate = DateTime(value.year, value.month, value.day);
-          initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
-          endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
-          daysBetween = endingDate.difference(initialDate).inDays;
-          WidgetsBinding.instance.addPostFrameCallback((_) async {
-            _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
-            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
-              if (!value.get('viewedSevenThings')) {
-                infoVideo();
-                await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
-                  "viewedSevenThings": true,
-                });
-              }
+      selectedDate = getTime();
+      initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
+      endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
+      daysBetween = endingDate.difference(initialDate).inDays;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+          if (!value.get('viewedSevenThings')) {
+            infoVideo();
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+              "viewedSevenThings": true,
             });
-          });
+          }
         });
       });
     } else {
@@ -135,9 +129,9 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
             onWillPop: () async {
               if (isEdit) {
                 showSaveChanges().then((value) {
-                    if(value) {
-                      Navigator.of(context).pop();
-                    }
+                  if (value) {
+                    Navigator.of(context).pop();
+                  }
                 });
               }
               return true;
@@ -147,7 +141,9 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   FloatingActionButton(
-                    child: isEdit ? SvgPicture.asset('assets/check.svg', color: Colors.white, height: 16, width: 16) : SvgPicture.asset('assets/plus.svg', color: Colors.white, height: 16, width: 16),
+                    child: isEdit
+                        ? SvgPicture.asset('assets/check.svg', color: Colors.white, height: 16, width: 16)
+                        : SvgPicture.asset('assets/plus.svg', color: Colors.white, height: 16, width: 16),
                     backgroundColor: isEdit ? Color(0xFF299E45) : Color(0xFF170E9A),
                     onPressed: isEdit
                         ? () {
@@ -403,10 +399,21 @@ class _SevenThingListState extends State<SevenThingList> {
     if (sevenThings == null || sevenThings['content'] == null || sevenThings['content'].length == 0) {
       progressPercent = 0.0;
       contentOrder = ["", "", "", "", "", "", ""];
-      sevenThings = {
-        "content": {},
-        "status": {},
-      };
+      if (sevenThings != null) {
+        if (sevenThings['status'] == null || sevenThings['status'].length == 0) {
+          sevenThings = {
+            "content": {},
+            "status": {},
+          };
+        } else {
+          sevenThings['content'] = {};
+        }
+      } else {
+        sevenThings = {
+          "content": {},
+          "status": {},
+        };
+      }
     } else {
       if (sevenThings['status']['lockEdit'] != null) {
         if (sevenThings['status']['lockEdit']) {
@@ -508,7 +515,7 @@ class _SevenThingListState extends State<SevenThingList> {
                         if (sevenThings['content'] == null) {
                           sevenThings = {
                             "content": {},
-                            "status": {},
+                            "status": sevenThings['status'] == null ? {} : sevenThings['status'],
                           };
                           sevenThings['content'][value] = {
                             "status": false,
@@ -525,7 +532,10 @@ class _SevenThingListState extends State<SevenThingList> {
                       break;
                     }
                   }
-                  await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                  await FirebaseFirestore.instance
+                      .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                      .set(sevenThings)
+                      .then((value) {
                     Navigator.of(context).pop();
                     _newSevenThings.text = "";
                     progressPercent = getProgress();
