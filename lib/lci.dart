@@ -400,7 +400,8 @@ class _QuestionFormState extends State<QuestionForm> {
                                       showLoading(context);
                                       for (var i = 0; i < randomizedList.length; i++) {
                                         var key;
-                                        if (questions[randomizedList[i].toString()]['type'] == "Single" || questions[randomizedList[i].toString()]['type'] == "Engaged") {
+                                        if (questions[randomizedList[i].toString()]['type'] == "Single" ||
+                                            questions[randomizedList[i].toString()]['type'] == "Engaged") {
                                           key = "Romance Relationship";
                                         } else {
                                           key = questions[randomizedList[i].toString()]['type'];
@@ -438,7 +439,8 @@ class _QuestionFormState extends State<QuestionForm> {
                                             child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
                                       )
                                     : SizedBox(width: 41),
-                                Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                                Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0),
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
                                 currentPage != totalPage
                                     ? GestureDetector(
                                         onTap: () {
@@ -801,7 +803,8 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
                                     child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
                               )
                             : SizedBox(width: 41),
-                        Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                        Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
                         currentPage != totalPage
                             ? GestureDetector(
                                 onTap: () {
@@ -1234,7 +1237,8 @@ class _LCIMainState extends State<LCIMain> {
                           }
 
                           if (snapshot.connectionState == ConnectionState.done) {
-                            var data = snapshot.data.docs.asMap();
+                            Map<dynamic, dynamic> data = snapshot.data.docs.asMap();
+                            data.forEach((key, value) {});
                             return ListView.builder(
                               shrinkWrap: true,
                               scrollDirection: Axis.vertical,

@@ -76,12 +76,15 @@ class _HomeState extends State<Home> {
           }
         }
 
-        sevenThings['content'].forEach((k, v) {
-          if (v['type'] == 'Secondary') {
-            contentOrder.add(k);
-            secondaryCounter++;
-          }
-        });
+        if(sevenThings['content'] != null) {
+          sevenThings['content'].forEach((k, v) {
+            if (v['type'] == 'Secondary') {
+              contentOrder.add(k);
+              secondaryCounter++;
+            }
+          });
+        }
+
         if (secondaryCounter < 4) {
           while (secondaryCounter < 4) {
             contentOrder.add("");

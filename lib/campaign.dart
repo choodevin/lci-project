@@ -8,6 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'Model/Campaign.dart';
+import 'Model/MonthlyRankings.dart';
 import 'entity/CampaignData.dart';
 import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
@@ -200,11 +203,18 @@ class _JoinCampaignState extends State<JoinCampaign> {
   }
 
   Future<String> joinCampaign() async {
-    return await FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: _campaignCodeController.text).get().then((value) async {
+    return await FirebaseFirestore.instance
+        .collection('CampaignData')
+        .where('invitationCode', isEqualTo: _campaignCodeController.text)
+        .get()
+        .then((value) async {
       if (value == null || value.size == 0) {
         return 'No campaign found';
       } else {
-        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({'currentEnrolledCampaign': _campaignCodeController.text});
+        await FirebaseFirestore.instance
+            .collection('UserData')
+            .doc(FirebaseAuth.instance.currentUser.uid)
+            .update({'currentEnrolledCampaign': _campaignCodeController.text});
         Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
         return "Campaign found and enrolled";
@@ -655,7 +665,8 @@ class _SetupCampaignState extends State<SetupCampaign> {
                           if (int.tryParse(campaignData.sevenThingsPenalty) != null) {
                             var tempPenalty = int.parse(campaignData.sevenThingsPenalty);
                             if (tempPenalty > 0 && tempPenalty <= 100) {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('7 Things penalty entered must be within 0-100')));
                               return;
@@ -665,7 +676,8 @@ class _SetupCampaignState extends State<SetupCampaign> {
                             return;
                           }
                         } else {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
                         }
                       },
                     ),
@@ -922,15 +934,9 @@ class _CampaignMainState extends State<CampaignMain> {
     );
   }
 
-  var userRef;
-  var nameRef;
-
   @override
   void initState() {
     super.initState();
-
-    userRef = FirebaseFirestore.instance.collection('CampaignData').doc(campaignId).collection('Rankings');
-    nameRef = FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaign.invitationCode);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
@@ -946,6 +952,8 @@ class _CampaignMainState extends State<CampaignMain> {
 
   @override
   Widget build(BuildContext context) {
+    final campaignProvider = Provider.of<Campaign>(context);
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xFF5D88FF),
@@ -977,7 +985,10 @@ class _CampaignMainState extends State<CampaignMain> {
                       children: [
                         InkWell(
                           onTap: () async {
-                            await Navigator.of(context).push(MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId, isCoach: isCoach))).then((value) {
+                            await Navigator.of(context)
+                                .push(
+                                    MaterialPageRoute(builder: (context) => CampaignSettings(campaignData: campaign, campaignId: campaignId, isCoach: isCoach)))
+                                .then((value) {
                               setState(() {
                                 campaign = value;
                               });
@@ -1009,49 +1020,24 @@ class _CampaignMainState extends State<CampaignMain> {
                             assetPath: 'assets/medal.svg',
                           ),
                           Padding(padding: EdgeInsets.all(5)),
-                          FutureBuilder<List<dynamic>>(
-                              future: Future.wait([userRef.get(), nameRef.get()]),
-                              builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+                          FutureBuilder<List<MonthlyRankings>>(
+                              future: campaignProvider.getRankings(campaignId, null),
+                              builder: (context, AsyncSnapshot<List<MonthlyRankings>> snapshot) {
                                 if (snapshot.hasError) {
                                   return Padding(
                                     padding: EdgeInsets.all(50),
-                                    child: Center(child: Text("Something went wrong")),
+                                    child: Center(child: Text(snapshot.error.toString())),
                                   );
                                 }
 
                                 if (snapshot.connectionState == ConnectionState.done) {
-                                  var rankings = snapshot.data[0].docs.asMap();
-                                  var users = snapshot.data[1].docs.asMap();
-                                  Map<String, String> names = {};
-                                  Map<String, double> result = {};
-                                  Map<String, double> sorted = {};
-                                  List<double> sortVal = [];
-
-                                  users.forEach((i, v) {
-                                    names[v.id] = v.get('name');
-                                  });
-
-                                  rankings.forEach((i, v) {
-                                    var finalScore = v.get('totalScore') / v.get('totalDays');
-                                    result[v.id] = finalScore;
-                                    sortVal.add(finalScore);
-                                  });
-
-                                  sortVal.sort((b, a) => a.compareTo(b));
-
-                                  sortVal.forEach((x) {
-                                    result.forEach((key, value) {
-                                      if (value == x) {
-                                        sorted[key] = x;
-                                      }
-                                    });
-                                  });
+                                  List<MonthlyRankings> rankingsList = snapshot.data;
 
                                   return ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     scrollDirection: Axis.vertical,
-                                    itemCount: sorted.length,
+                                    itemCount: rankingsList.length,
                                     itemBuilder: (context, index) {
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1062,11 +1048,11 @@ class _CampaignMainState extends State<CampaignMain> {
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
-                                                  names[sorted.entries.elementAt(index).key],
+                                                  rankingsList[index].name,
                                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                 ),
                                                 Text(
-                                                  (sorted.entries.elementAt(index).value * 10).toStringAsFixed(2) + "%",
+                                                  rankingsList[index].averageScore.toStringAsFixed(2) + "%",
                                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                 ),
                                               ],
@@ -1080,7 +1066,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                                       : index == 2
                                                           ? Color(0XFFCD7F32)
                                                           : Color(0XFF299E45),
-                                              value: sorted.entries.elementAt(index).value / 10,
+                                              value: rankingsList[index].averageScore / 100,
                                             ),
                                           ],
                                         ),
@@ -1425,7 +1411,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
     }
 
     if (goalExists) {
-      scoreObj = new LCIScore(score.data());
+      scoreObj = new LCIScore(score);
       goalsTemp = getSelected();
       subScore = scoreObj.subScore();
     }
@@ -1466,7 +1452,8 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                                           textStyle: TextStyle(fontSize: 22, color: goalDetails.getColor(key), fontWeight: FontWeight.w700),
                                         ),
                                         Padding(padding: EdgeInsets.all(7.5)),
-                                        MultiColorProgressBar(subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                        MultiColorProgressBar(
+                                            subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
                                         Padding(padding: EdgeInsets.all(15)),
                                         Text(
                                           "Definition of Success/Goal",
@@ -1559,29 +1546,32 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
               var primaryCounter = 0;
               var secondaryCounter = 0;
 
-              data['content'].forEach((k, v) {
-                if (v['type'] == 'Primary') {
-                  contentOrder.add(k);
-                  primaryCounter++;
-                }
-              });
-              if (primaryCounter < 3) {
-                while (primaryCounter < 3) {
-                  contentOrder.add("");
-                  primaryCounter++;
-                }
-              }
+              if (data['content'] != null) {
+                data['content'].forEach((k, v) {
+                  if (v['type'] == 'Primary') {
+                    contentOrder.add(k);
+                    primaryCounter++;
+                  }
+                });
 
-              data['content'].forEach((k, v) {
-                if (v['type'] == 'Secondary') {
-                  contentOrder.add(k);
-                  secondaryCounter++;
+                if (primaryCounter < 3) {
+                  while (primaryCounter < 3) {
+                    contentOrder.add("");
+                    primaryCounter++;
+                  }
                 }
-              });
-              if (secondaryCounter < 4) {
-                while (secondaryCounter < 4) {
-                  contentOrder.add("");
-                  secondaryCounter++;
+
+                data['content'].forEach((k, v) {
+                  if (v['type'] == 'Secondary') {
+                    contentOrder.add(k);
+                    secondaryCounter++;
+                  }
+                });
+                if (secondaryCounter < 4) {
+                  while (secondaryCounter < 4) {
+                    contentOrder.add("");
+                    secondaryCounter++;
+                  }
                 }
               }
             }
@@ -2246,8 +2236,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                             }).then((value) {
                                                               Navigator.of(context).pop();
                                                               setState(() {
-                                                                usersRef =
-                                                                    FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode).get();
+                                                                usersRef = FirebaseFirestore.instance
+                                                                    .collection('UserData')
+                                                                    .where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode)
+                                                                    .get();
                                                               });
                                                             }).catchError((error) {
                                                               Navigator.of(context).pop();
@@ -2260,8 +2252,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                             }).then((value) {
                                                               Navigator.of(context).pop();
                                                               setState(() {
-                                                                usersRef =
-                                                                    FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode).get();
+                                                                usersRef = FirebaseFirestore.instance
+                                                                    .collection('UserData')
+                                                                    .where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode)
+                                                                    .get();
                                                               });
                                                             }).catchError((error) {
                                                               Navigator.of(context).pop();
@@ -2277,8 +2271,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                             }).then((value) {
                                                               Navigator.of(context).pop();
                                                               setState(() {
-                                                                usersRef =
-                                                                    FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode).get();
+                                                                usersRef = FirebaseFirestore.instance
+                                                                    .collection('UserData')
+                                                                    .where('currentEnrolledCampaign', isEqualTo: campaignData.invitationCode)
+                                                                    .get();
                                                               });
                                                             }).catchError((error) {
                                                               Navigator.of(context).pop();
