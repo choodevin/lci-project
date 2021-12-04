@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class CampaignData {
+
+class CampaignData{
   String name;
   int duration;
   Timestamp startDate;
@@ -14,17 +15,16 @@ class CampaignData {
   int selectedGoalReview;
   String rules;
 
-  CampaignData(
-      {this.name,
-      this.duration,
-      this.startDate,
-      this.goalDecision,
-      this.sevenThingsDeadline,
-      this.sevenThingsPenaltyDecision,
-      this.sevenThingsPenalty,
-      this.invitationCode,
-      this.campaignAdmin,
-      this.campaignModerator,
-      this.selectedGoalReview,
-      this.rules});
+  CampaignData({this.name,
+    this.duration,
+    this.startDate,
+    this.goalDecision,
+    this.sevenThingsDeadline,
+    this.sevenThingsPenaltyDecision,
+    this.sevenThingsPenalty,
+    this.invitationCode,
+    this.campaignAdmin,
+    this.campaignModerator,
+    this.selectedGoalReview,
+    this.rules});
 }

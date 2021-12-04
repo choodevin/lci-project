@@ -22,22 +22,26 @@ class LoadGoals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var ref;
+    var goalsRef;
+    var scoreRef;
     if (isSelf) {
-      ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+      goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+      scoreRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
     } else {
-      ref = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('Goals');
+      goalsRef = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('Goals');
+      scoreRef = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('LCIScore');
     }
 
-    return FutureBuilder<QuerySnapshot>(
-      future: ref.get(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+    return FutureBuilder<List<QuerySnapshot>>(
+      future: Future.wait([goalsRef.get(), scoreRef.get()]),
+      builder: (BuildContext context, AsyncSnapshot<List<QuerySnapshot>> snapshot) {
         if (snapshot.hasError) {
           return Scaffold(body: Text("Something went wrong"));
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          var goals = snapshot.data;
+          var goals = snapshot.data[0];
+          var scores = snapshot.data[1];
 
           if (goals == null || goals.size == 0) {
             if (isSelf) {
@@ -46,48 +50,43 @@ class LoadGoals extends StatelessWidget {
               return CampaignUserDetails(goalExists: false, userdata: userdata);
             }
           } else {
-            var goalDate = goals.docs.last.id;
-            return GetScoreFromGoals(userdata: userdata, goals: goals.docs.last.data(), goalDate: goalDate, isSelf: isSelf, toGetUid: toGetUid);
-          }
-        }
+            var latestDate;
+            var goal;
+            var score;
+            goals.docs.forEach((element) {
+              var idDate = DateTime.parse(element.id);
+              if (latestDate == null) {
+                latestDate = idDate;
+                goal = element.data();
+              } else {
+                if (latestDate.isBefore(idDate)) {
+                  latestDate = idDate;
+                  goal = element.data();
+                }
+              }
+            });
 
-        return Scaffold(body: Center(child: CircularProgressIndicator()));
-      },
-    );
-  }
-}
+            latestDate = null;
 
-class GetScoreFromGoals extends StatelessWidget {
-  final goals;
-  final goalDate;
-  final isSelf;
-  final userdata;
-  final toGetUid;
+            scores.docs.forEach((element) {
+              DateFormat df = new DateFormat("dd-MM-yyyy");
+              var idDate = df.parse(element.id);
+              if (latestDate == null) {
+                latestDate = idDate;
+                score = element.data();
+              } else {
+                if (latestDate.isBefore(idDate)) {
+                  latestDate = idDate;
+                  score = element.data();
+                }
+              }
+            });
 
-  const GetScoreFromGoals({Key key, this.goals, this.goalDate, this.isSelf, this.userdata, this.toGetUid}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var ref;
-    if (isSelf) {
-      ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore').doc(goals['targetLCI']);
-    } else {
-      ref = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('LCIScore').doc(goals['targetLCI']);
-    }
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: ref.get(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        if (snapshot.hasError) {
-          return Scaffold(body: Center(child: Text("Something went wrong")));
-        }
-
-        if (snapshot.connectionState == ConnectionState.done) {
-          var score = snapshot.data;
-          if (isSelf) {
-            return GoalStatus(goals: goals, score: score, goalDate: goalDate);
-          } else {
-            return CampaignUserDetails(goals: goals, score: score, userdata: userdata, goalExists: true);
+            if (isSelf) {
+              return GoalStatus(goals: goal, score: score, goalDate: latestDate);
+            } else {
+              return CampaignUserDetails(goals: goal, score: score, userdata: userdata, goalExists: true);
+            }
           }
         }
 
@@ -482,9 +481,12 @@ class _GoalSettingState extends State<GoalSetting> {
 
     Future<void> updateGoals() {
       var dateNow = DateTime.now();
-      return user.doc(DateTime(dateNow.year, dateNow.month, dateNow.day).toString()).set(goals).catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('There was an error inserting the item, please try again.'),
-          )));
+      return user
+          .doc(DateTime(dateNow.year, dateNow.month, dateNow.day).toString())
+          .set(goals)
+          .catchError((error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('There was an error inserting the item, please try again.'),
+              )));
     }
 
     return GestureDetector(
@@ -614,7 +616,13 @@ class _GoalSettingState extends State<GoalSetting> {
                               ],
                             ),
                             Padding(padding: EdgeInsets.all(2)),
-                            InputBox(focusNode: _qOneNode, focusNodeNext: _qTwoNode, controller: _qOneController, minLines: 5, maxLines: 5, color: Color(0xFF170E9A)),
+                            InputBox(
+                                focusNode: _qOneNode,
+                                focusNodeNext: _qTwoNode,
+                                controller: _qOneController,
+                                minLines: 5,
+                                maxLines: 5,
+                                color: Color(0xFF170E9A)),
                           ],
                         ),
                       ),
@@ -636,7 +644,13 @@ class _GoalSettingState extends State<GoalSetting> {
                               ],
                             ),
                             Padding(padding: EdgeInsets.all(2)),
-                            InputBox(focusNode: _qTwoNode, focusNodeNext: _qThreeNode, controller: _qTwoController, minLines: 5, maxLines: 5, color: goalDetails.getColor(toDisplay)),
+                            InputBox(
+                                focusNode: _qTwoNode,
+                                focusNodeNext: _qThreeNode,
+                                controller: _qTwoController,
+                                minLines: 5,
+                                maxLines: 5,
+                                color: goalDetails.getColor(toDisplay)),
                           ],
                         ),
                       ),
@@ -684,7 +698,11 @@ class _GoalSettingState extends State<GoalSetting> {
                               ],
                             ),
                             Padding(padding: EdgeInsets.all(4)),
-                            InputBox(focusNode: _qFourNode, controller: _qFourController, keyboardType: TextInputType.number, color: goalDetails.getColor(toDisplay)),
+                            InputBox(
+                                focusNode: _qFourNode,
+                                controller: _qFourController,
+                                keyboardType: TextInputType.number,
+                                color: goalDetails.getColor(toDisplay)),
                           ],
                         ),
                       ),
@@ -720,7 +738,10 @@ class _GoalSettingState extends State<GoalSetting> {
                           });
 
                           if (displayedList.length != selectedCount) {
-                            if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                            if (_qOneController.text.isNotEmpty &&
+                                _qTwoController.text.isNotEmpty &&
+                                _qThreeController.text.isNotEmpty &&
+                                _qFourController.text.isNotEmpty) {
                               goals[toDisplay]['target'] = _targetController.text;
                               goals[toDisplay]['q1'] = _qOneController.text;
                               goals[toDisplay]['q2'] = _qTwoController.text;
@@ -746,7 +767,10 @@ class _GoalSettingState extends State<GoalSetting> {
                               return;
                             }
                           } else {
-                            if (_qOneController.text.isNotEmpty && _qTwoController.text.isNotEmpty && _qThreeController.text.isNotEmpty && _qFourController.text.isNotEmpty) {
+                            if (_qOneController.text.isNotEmpty &&
+                                _qTwoController.text.isNotEmpty &&
+                                _qThreeController.text.isNotEmpty &&
+                                _qFourController.text.isNotEmpty) {
                               goals[toDisplay]['target'] = _targetController.text;
                               goals[toDisplay]['q1'] = _qOneController.text;
                               goals[toDisplay]['q2'] = _qTwoController.text;
@@ -798,7 +822,7 @@ class GoalStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var goalDetails = new GoalsDetails();
-    var scoreObj = new LCIScore(score.data());
+    var scoreObj = new LCIScore(score);
 
     Map<String, dynamic> getSelected() {
       Map<String, dynamic> result = {};
@@ -870,8 +894,8 @@ class GoalStatus extends StatelessWidget {
                                       ],
                                     ),
                                     Padding(padding: EdgeInsets.all(12)),
-                                    MultiColorProgressBar(
-                                        subScore[goalsTemp.keys.elementAt(i)] / 10, double.parse(goalsTemp.values.elementAt(i)['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                    MultiColorProgressBar(subScore[goalsTemp.keys.elementAt(i)] / 10,
+                                        double.parse(goalsTemp.values.elementAt(i)['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
                                     Padding(padding: EdgeInsets.all(8)),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -904,7 +928,7 @@ class GoalStatus extends StatelessWidget {
                                           ),
                                         ),
                                         Text(
-                                          goalsTemp.values.elementAt(i)['target'],
+                                          goalsTemp.values.elementAt(i)['target'].toString(),
                                           style: TextStyle(
                                             color: Color(0xFF0B256F),
                                             fontSize: 16,

@@ -1232,7 +1232,10 @@ class _LCIMainState extends State<LCIMain> {
                         }
 
                         if (snapshot.connectionState == ConnectionState.done) {
-                          var data = snapshot.data.docs.asMap();
+                          Map<dynamic, dynamic> data = snapshot.data.docs.asMap();
+                          data.forEach((key, value) {
+
+                          });
                           return ListView.builder(
                             shrinkWrap: true,
                             scrollDirection: Axis.vertical,

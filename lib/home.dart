@@ -59,12 +59,14 @@ class _HomeState extends State<Home> {
         var primaryCounter = 0;
         var secondaryCounter = 0;
 
-        sevenThings['content'].forEach((k, v) {
-          if (v['type'] == 'Primary') {
-            contentOrder.add(k);
-            primaryCounter++;
-          }
-        });
+        if(sevenThings['content'] != null) {
+          sevenThings['content'].forEach((k, v) {
+            if (v['type'] == 'Primary') {
+              contentOrder.add(k);
+              primaryCounter++;
+            }
+          });
+        }
         if (primaryCounter < 3) {
           while (primaryCounter < 3) {
             contentOrder.add("");
@@ -72,12 +74,15 @@ class _HomeState extends State<Home> {
           }
         }
 
-        sevenThings['content'].forEach((k, v) {
-          if (v['type'] == 'Secondary') {
-            contentOrder.add(k);
-            secondaryCounter++;
-          }
-        });
+        if(sevenThings['content'] != null) {
+          sevenThings['content'].forEach((k, v) {
+            if (v['type'] == 'Secondary') {
+              contentOrder.add(k);
+              secondaryCounter++;
+            }
+          });
+        }
+
         if (secondaryCounter < 4) {
           while (secondaryCounter < 4) {
             contentOrder.add("");

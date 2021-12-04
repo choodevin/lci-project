@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:radar_chart/radar_chart.dart';
 
 import 'entity/Video.dart';
@@ -84,7 +85,20 @@ class _WheelOfLife extends State<WheelOfLife> {
     if (getSpecific != null && getSpecific) {
       score = scoreBundle;
     } else {
-      score = scoreBundle.docs.last.data();
+      DateFormat df = new DateFormat("dd-MM-yyyy");
+      DateTime latestDate;
+      scoreBundle.docs.forEach((element) {
+        DateTime tempDate = df.parse(element.id);
+        if(latestDate == null) {
+          latestDate = tempDate;
+          score = element.data();
+        } else {
+          if(latestDate.isBefore(tempDate)) {
+            latestDate = tempDate;
+            score = element.data();
+          }
+        }
+      });
     }
     LCIScore scoreObj = new LCIScore(score);
     var subScore = scoreObj.subScore();
@@ -158,85 +172,85 @@ class _WheelOfLife extends State<WheelOfLife> {
                     Padding(padding: EdgeInsets.all(15)),
                     Padding(
                       padding: EdgeInsets.only(left: 50, right: 50),
-                      child: PrimaryCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Statistics',
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            Padding(padding: EdgeInsets.all(5)),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Current Year',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                CupertinoSwitch(
-                                  value: isCurrentYear,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isCurrentYear = value;
-                                      isLastYear = false;
-                                      isAverage = false;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Last Year',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                CupertinoSwitch(
-                                  value: isLastYear,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isLastYear = value;
-                                      isCurrentYear = false;
-                                      isAverage = false;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Average',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                CupertinoSwitch(
-                                  value: isAverage,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isAverage = value;
-                                      isCurrentYear = false;
-                                      isLastYear = false;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                      // child: PrimaryCard(
+                      //   child: Column(
+                      //     crossAxisAlignment: CrossAxisAlignment.stretch,
+                      //     children: [
+                      //       Text(
+                      //         'Statistics',
+                      //         textAlign: TextAlign.left,
+                      //         style: TextStyle(
+                      //           fontSize: 20,
+                      //           fontWeight: FontWeight.w900,
+                      //         ),
+                      //       ),
+                      //       Padding(padding: EdgeInsets.all(5)),
+                      //       Row(
+                      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //         children: [
+                      //           Text(
+                      //             'Current Year',
+                      //             style: TextStyle(
+                      //               fontSize: 18,
+                      //             ),
+                      //           ),
+                      //           CupertinoSwitch(
+                      //             value: isCurrentYear,
+                      //             onChanged: (value) {
+                      //               setState(() {
+                      //                 isCurrentYear = value;
+                      //                 isLastYear = false;
+                      //                 isAverage = false;
+                      //               });
+                      //             },
+                      //           ),
+                      //         ],
+                      //       ),
+                      //       Row(
+                      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //         children: [
+                      //           Text(
+                      //             'Last Year',
+                      //             style: TextStyle(
+                      //               fontSize: 18,
+                      //             ),
+                      //           ),
+                      //           CupertinoSwitch(
+                      //             value: isLastYear,
+                      //             onChanged: (value) {
+                      //               setState(() {
+                      //                 isLastYear = value;
+                      //                 isCurrentYear = false;
+                      //                 isAverage = false;
+                      //               });
+                      //             },
+                      //           ),
+                      //         ],
+                      //       ),
+                      //       Row(
+                      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //         children: [
+                      //           Text(
+                      //             'Average',
+                      //             style: TextStyle(
+                      //               fontSize: 18,
+                      //             ),
+                      //           ),
+                      //           CupertinoSwitch(
+                      //             value: isAverage,
+                      //             onChanged: (value) {
+                      //               setState(() {
+                      //                 isAverage = value;
+                      //                 isCurrentYear = false;
+                      //                 isLastYear = false;
+                      //               });
+                      //             },
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ],
+                      //   ) ,
+                      // ),
                     ),
                     Padding(padding: EdgeInsets.all(15)),
                     Column(
