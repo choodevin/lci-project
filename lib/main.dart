@@ -7,12 +7,36 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Model/Campaign.dart';
+import 'Screen/SplashScreen.dart';
 import 'home.dart';
 import 'login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(BuildApp());
+}
+
+class BuildApp extends StatelessWidget {
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  static final navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _initialization,
+      builder: (context, snapshot) {
+        if(snapshot.connectionState == ConnectionState.done) {
+          FirebaseMessaging.onBackgroundMessage(notificationReceiver);
+          if(FirebaseAuth.instance.currentUser != null) {
+            
+          }
+        }
+
+        return SplashScreen();
+      },
+    );
+  }
+
 }
 
 class LoggedInMain extends StatelessWidget {
@@ -58,7 +82,7 @@ class NonLoggedInMain extends StatelessWidget {
   }
 }
 
-class BuildApp extends StatelessWidget {
+class BuildApp2 extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
   static final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -78,7 +102,7 @@ class BuildApp extends StatelessWidget {
           }
         }
 
-        return SplashScreenMain();
+        return SplashScreen();
       },
     );
   }
