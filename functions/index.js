@@ -276,8 +276,9 @@ function monthlyRankingPatching() {
                     var sevenThingsYear = sevenThingsDate.split(' ')[0].split('-')[0];
                     var sevenThingsMonth = sevenThingsDate.split(' ')[0].split('-')[1].padStart(2, '0');
                     var sevenThingsDay = parseInt(sevenThingsDate.split(' ')[0].split('-')[2]);
-                    var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 2 ? true : false;
-                    if (!stopCount) {
+                    //var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 15 ? true : false;
+                    var toCount = sevenThingsMonth == '12' && sevenThingsDay <= '15' ? true : false;
+                    if (toCount) {
                         var toSetRanking = sevenThingsMonth + '-' + sevenThingsYear;
                         if (parentMap[toSetRanking] === undefined) {
                             parentMap[toSetRanking] = {};
