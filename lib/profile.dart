@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+//import 'package:package_info_plus/package_info_plus.dart';
 
 import 'coach.dart';
 import 'entity/UserData.dart';
@@ -37,8 +37,9 @@ class _ProfileState extends State<Profile> {
   }
 
   Future<String> getPackageName() async {
-    final info = await PackageInfo.fromPlatform();
-    return info.version;
+    // final info = await PackageInfo.fromPlatform();
+    // return info.version;
+    return "v0.6.0";
   }
 
   Future<bool> showConfirmLogout() {

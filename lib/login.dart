@@ -170,18 +170,18 @@ class _LoginFormState extends State<LoginForm> {
               ],
             ),
           ),
-          Container(
-            margin: EdgeInsets.only(top: 30.0),
-            child: Column(
-              children: [
-                GoogleSignInButton(),
-                Padding(
-                  padding: EdgeInsets.only(top: 15),
-                ),
-                FacebookSignInButton(),
-              ],
-            ),
-          ),
+          // Container(
+          //   margin: EdgeInsets.only(top: 30.0),
+          //   child: Column(
+          //     children: [
+          //       GoogleSignInButton(),
+          //       Padding(
+          //         padding: EdgeInsets.only(top: 15),
+          //       ),
+          //       FacebookSignInButton(),
+          //     ],
+          //   ),
+          // ),
           Container(
             margin: EdgeInsets.only(top: 60.0),
             child: Row(

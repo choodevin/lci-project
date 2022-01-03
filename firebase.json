@@ -1,16 +1,10 @@
 {
   "hosting": {
-    "public": "web",
+    "public": "build/web",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
     ]
   },
   "functions": {
@@ -22,7 +16,7 @@
   "emulators": {
     "hosting": {
       "port": 5000,
-      "host": "192.168.0.122"
+      "host": "127.0.0.1"
     }
   }
 }

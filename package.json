@@ -1,0 +1,26 @@
+{
+  "name": "com.lci.lci_project",
+  "version": "0.6.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "firebase-admin": "^10.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/choodevin/lci-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/choodevin/lci-project/issues"
+  },
+  "homepage": "https://github.com/choodevin/lci-project#readme"
+}

@@ -13,7 +13,7 @@ import 'login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(BuildApp());
+  runApp(BuildApp2());
 }
 
 class BuildApp extends StatelessWidget {
@@ -28,7 +28,9 @@ class BuildApp extends StatelessWidget {
         if(snapshot.connectionState == ConnectionState.done) {
           FirebaseMessaging.onBackgroundMessage(notificationReceiver);
           if(FirebaseAuth.instance.currentUser != null) {
-            
+            return LoggedInMain();
+          } else {
+            return NonLoggedInMain();
           }
         }
 

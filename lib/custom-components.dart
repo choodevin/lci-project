@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:flutter_facebook_login_web/flutter_facebook_login_web.dart' as FBWeb;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -245,132 +244,132 @@ class GoogleSignInButton extends StatelessWidget {
   }
 }
 
-class FacebookSignInButton extends StatefulWidget {
-  @override
-  _FacebookSignInButtonState createState() => _FacebookSignInButtonState();
-}
-
-class _FacebookSignInButtonState extends State<FacebookSignInButton> {
-  FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<Null> _login(BuildContext build) async {
-    var facebookSignIn;
-    if (kIsWeb) {
-      facebookSignIn = new FBWeb.FacebookLoginWeb();
-      final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
-
-      switch (result.status) {
-        case FacebookLoginStatus.loggedIn:
-          final FacebookAccessToken accessToken = result.accessToken;
-          print('''
-         Logged in!
-         Token: ${accessToken.token}
-         User id: ${accessToken.userId}
-         Expires: ${accessToken.expires}
-         Permissions: ${accessToken.permissions}
-         Declined permissions: ${accessToken.declinedPermissions}
-         ''');
-
-          try {
-            await loginWithFacebook(result, build);
-            Navigator.pushReplacement(build, MaterialPageRoute(builder: (context) => GetUserData()));
-          } catch (e) {
-            print(e);
-          }
-          break;
-        case FacebookLoginStatus.cancelledByUser:
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Login cancelled by the user.'),
-          ));
-          break;
-        case FacebookLoginStatus.error:
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Something went wrong with the login process.\n'
-                'Here\'s the error Facebook gave us: ${result.errorMessage}'),
-          ));
-          break;
-      }
-    } else {
-      facebookSignIn = new FacebookLogin();
-      final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
-
-      switch (result.status) {
-        case FacebookLoginStatus.loggedIn:
-          final FacebookAccessToken accessToken = result.accessToken;
-          print('''
-         Logged in!
-         Token: ${accessToken.token}
-         User id: ${accessToken.userId}
-         Expires: ${accessToken.expires}
-         Permissions: ${accessToken.permissions}
-         Declined permissions: ${accessToken.declinedPermissions}
-         ''');
-
-          try {
-            await loginWithFacebook(result, build);
-            Navigator.pushReplacement(build, MaterialPageRoute(builder: (context) => GetUserData()));
-          } catch (e) {
-            print(e);
-          }
-          break;
-        case FacebookLoginStatus.cancelledByUser:
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Login cancelled by the user.'),
-          ));
-          break;
-        case FacebookLoginStatus.error:
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Something went wrong with the login process.\n'
-                'Here\'s the error Facebook gave us: ${result.errorMessage}'),
-          ));
-          break;
-      }
-    }
-  }
-
-  Future loginWithFacebook(FacebookLoginResult result, context) async {
-    final FacebookAccessToken accessToken = result.accessToken;
-    AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
-    await _auth.signInWithCredential(credential);
-  }
-
-  Widget build(BuildContext build) {
-    return Material(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(90)),
-      ),
-      elevation: 1,
-      color: Color(0xFF1877f2),
-      clipBehavior: Clip.antiAlias,
-      child: MaterialButton(
-        elevation: 3,
-        padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
-        onPressed: () async {
-          await _login(build);
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Image(
-                image: AssetImage('assets/facebook_sign_in.png'),
-                height: 26,
-              ),
-            ),
-            Text(
-              'Sign in with Facebook',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class FacebookSignInButton extends StatefulWidget {
+//   @override
+//   _FacebookSignInButtonState createState() => _FacebookSignInButtonState();
+// }
+//
+// class _FacebookSignInButtonState extends State<FacebookSignInButton> {
+//   FirebaseAuth _auth = FirebaseAuth.instance;
+//
+//   Future<Null> _login(BuildContext build) async {
+//     var facebookSignIn;
+//     if (kIsWeb) {
+//       facebookSignIn = new FBWeb.FacebookLoginWeb();
+//       final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
+//
+//       switch (result.status) {
+//         case FacebookLoginStatus.loggedIn:
+//           final FacebookAccessToken accessToken = result.accessToken;
+//           print('''
+//          Logged in!
+//          Token: ${accessToken.token}
+//          User id: ${accessToken.userId}
+//          Expires: ${accessToken.expires}
+//          Permissions: ${accessToken.permissions}
+//          Declined permissions: ${accessToken.declinedPermissions}
+//          ''');
+//
+//           try {
+//             await loginWithFacebook(result, build);
+//             Navigator.pushReplacement(build, MaterialPageRoute(builder: (context) => GetUserData()));
+//           } catch (e) {
+//             print(e);
+//           }
+//           break;
+//         case FacebookLoginStatus.cancelledByUser:
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Login cancelled by the user.'),
+//           ));
+//           break;
+//         case FacebookLoginStatus.error:
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Something went wrong with the login process.\n'
+//                 'Here\'s the error Facebook gave us: ${result.errorMessage}'),
+//           ));
+//           break;
+//       }
+//     } else {
+//       facebookSignIn = new FacebookLogin();
+//       final FacebookLoginResult result = await facebookSignIn.logIn(['email']);
+//
+//       switch (result.status) {
+//         case FacebookLoginStatus.loggedIn:
+//           final FacebookAccessToken accessToken = result.accessToken;
+//           print('''
+//          Logged in!
+//          Token: ${accessToken.token}
+//          User id: ${accessToken.userId}
+//          Expires: ${accessToken.expires}
+//          Permissions: ${accessToken.permissions}
+//          Declined permissions: ${accessToken.declinedPermissions}
+//          ''');
+//
+//           try {
+//             await loginWithFacebook(result, build);
+//             Navigator.pushReplacement(build, MaterialPageRoute(builder: (context) => GetUserData()));
+//           } catch (e) {
+//             print(e);
+//           }
+//           break;
+//         case FacebookLoginStatus.cancelledByUser:
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Login cancelled by the user.'),
+//           ));
+//           break;
+//         case FacebookLoginStatus.error:
+//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+//             content: Text('Something went wrong with the login process.\n'
+//                 'Here\'s the error Facebook gave us: ${result.errorMessage}'),
+//           ));
+//           break;
+//       }
+//     }
+//   }
+//
+//   Future loginWithFacebook(FacebookLoginResult result, context) async {
+//     final FacebookAccessToken accessToken = result.accessToken;
+//     AuthCredential credential = FacebookAuthProvider.credential(accessToken.token);
+//     await _auth.signInWithCredential(credential);
+//   }
+//
+//   Widget build(BuildContext build) {
+//     return Material(
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.all(Radius.circular(90)),
+//       ),
+//       elevation: 1,
+//       color: Color(0xFF1877f2),
+//       clipBehavior: Clip.antiAlias,
+//       child: MaterialButton(
+//         elevation: 3,
+//         padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
+//         onPressed: () async {
+//           await _login(build);
+//         },
+//         child: Row(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Padding(
+//               padding: EdgeInsets.only(right: 10),
+//               child: Image(
+//                 image: AssetImage('assets/facebook_sign_in.png'),
+//                 height: 26,
+//               ),
+//             ),
+//             Text(
+//               'Sign in with Facebook',
+//               style: TextStyle(
+//                 fontSize: 16,
+//                 color: Colors.white,
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class PrimaryButton extends StatelessWidget {
   final String text;
