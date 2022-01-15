@@ -952,6 +952,8 @@ class _CampaignMainState extends State<CampaignMain> {
             "viewedCampaign": true,
           });
         }
+      }).catchError((e) {
+        print("Error while checking first time viewedCampaign");
       });
     });
   }

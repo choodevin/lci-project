@@ -13,7 +13,7 @@ import 'login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(BuildApp2());
+  runApp(BuildApp());
 }
 
 class BuildApp extends StatelessWidget {
@@ -25,9 +25,9 @@ class BuildApp extends StatelessWidget {
     return FutureBuilder(
       future: _initialization,
       builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.done) {
+        if (snapshot.connectionState == ConnectionState.done) {
           FirebaseMessaging.onBackgroundMessage(notificationReceiver);
-          if(FirebaseAuth.instance.currentUser != null) {
+          if (FirebaseAuth.instance.currentUser != null) {
             return LoggedInMain();
           } else {
             return NonLoggedInMain();
@@ -38,7 +38,6 @@ class BuildApp extends StatelessWidget {
       },
     );
   }
-
 }
 
 class LoggedInMain extends StatelessWidget {
@@ -68,18 +67,23 @@ class LoggedInMain extends StatelessWidget {
 class NonLoggedInMain extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<Campaign>(create: (c) => Campaign()),
+      ],
+      child: MaterialApp(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        builder: (context, child) {
+          return ScrollConfiguration(
+            behavior: NoGlowScroll(),
+            child: child,
+          );
+        },
+        home: Login(),
       ),
-      builder: (context, child) {
-        return ScrollConfiguration(
-          behavior: NoGlowScroll(),
-          child: child,
-        );
-      },
-      home: Login(),
     );
   }
 }
