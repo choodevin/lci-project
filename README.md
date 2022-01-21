@@ -23,8 +23,13 @@ lci-project
 └─── Screen (Views)
 │    - UI of the application
 │
-└─── Services (Controllers/Action)
-     - Main functions are declared here, communication between user interface and backend functions/data
+└─── Services (Interface)
+│    - Interface of the controllers, improve maintainability
+│
+└─── Controllers
+│    - Main functions are declared here, communication between user interface and backend functions/data
+│
+└─── main.dart
 ```
 
 ## Git branching strategy
