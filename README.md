@@ -1,7 +1,7 @@
 # 4WARD Life Compass
 
 ## Project Description
-An application that support the basic functionality for [4WARD Life Compass](https://4wardlc.com/), included functions are:
+An application that supports [4WARD Life Compass](https://4wardlc.com/), included functions are:
 - LCI Test (similar to personality test)
 - Seven Things (to-do-list with purpose)
 - Campaign (to gather friends/family and compare Seven Things performance)
