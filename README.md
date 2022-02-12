@@ -26,7 +26,7 @@ lci-project
 └─── Services (Interface)
 │    - Interface of the controllers, improve maintainability
 │
-└─── Controllers
+└─── Controllers/Action
 │    - Main functions are declared here, communication between user interface and backend functions/data
 │
 └─── main.dart
