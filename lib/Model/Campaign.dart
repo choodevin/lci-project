@@ -5,17 +5,23 @@ import 'package:flutter/cupertino.dart';
 import 'MonthlyRankings.dart';
 
 class Campaign extends ChangeNotifier {
+
   Future<List<MonthlyRankings>> getRankings(String campaignId, String rankingsDate) async {
-    if (rankingsDate == null) {
+    if (rankingsDate.length == 0) {
       DateTime now = DateTime.now();
       int currentMonth = now.month;
       int currentYear = now.year;
-      rankingsDate = "$currentMonth-$currentYear";
+      String monthString = currentMonth.toString().padLeft(2, '0');
+
+      rankingsDate = "$monthString-$currentYear";
     }
+
     FirebaseService db = FirebaseService("CampaignData/$campaignId/MonthlyRanking/$rankingsDate");
     MonthlyRankings rankingsModel = MonthlyRankings();
 
     DocumentSnapshot result = await db.getData();
+
+    print(result.exists);
 
     return await rankingsModel.documentToList(result);
   }

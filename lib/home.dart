@@ -346,7 +346,7 @@ class _HomeState extends State<Home> {
 class GetUserData extends StatefulWidget {
   final point;
 
-  const GetUserData({Key key, this.point}) : super(key: key);
+  const GetUserData({Key? key, this.point}) : super(key: key);
 
   _GetUserDataState createState() => _GetUserDataState(point);
 }

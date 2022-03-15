@@ -12,7 +12,7 @@ import 'entity/Video.dart';
 class SevenThingsMain extends StatefulWidget {
   final date;
 
-  const SevenThingsMain({Key key, this.date}) : super(key: key);
+  const SevenThingsMain({Key? key, this.date}) : super(key: key);
 
   _SevenThingsMainState createState() => _SevenThingsMainState(date);
 }
@@ -294,7 +294,7 @@ class GetSevenThingList extends StatefulWidget {
   final editingCallBack;
   final addCallBack;
 
-  const GetSevenThingList({Key key, this.date, this.editingCallBack, this.addCallBack}) : super(key: key);
+  const GetSevenThingList({Key? key, this.date, this.editingCallBack, this.addCallBack}) : super(key: key);
 
   _GetSevenThingListState createState() => _GetSevenThingListState(date, editingCallBack, addCallBack);
 }
@@ -350,7 +350,7 @@ class SevenThingList extends StatefulWidget {
   final addCallBack;
   final date;
 
-  const SevenThingList({Key key, this.sevenThings, this.editingCallBack, this.date, this.addCallBack}) : super(key: key);
+  const SevenThingList({Key? key, this.sevenThings, this.editingCallBack, this.date, this.addCallBack}) : super(key: key);
 
   _SevenThingListState createState() => _SevenThingListState(sevenThings, editingCallBack, date, addCallBack);
 }

@@ -16,7 +16,7 @@ Future<void> initNotifications() async {
       String payloadPrefix = fullPayload[0];
       String payloadData = fullPayload[1];
       if (payloadPrefix == "CHAT") {
-        await BuildApp.navigatorKey.currentState.push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: payloadData)));
+        await BuildApp.navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: payloadData)));
       }
     }
     return;

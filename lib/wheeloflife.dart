@@ -37,7 +37,7 @@ class WheelOfLife extends StatefulWidget {
   final scoreBundle;
   final getSpecific;
 
-  const WheelOfLife({Key key, this.scoreBundle, this.getSpecific}) : super(key: key);
+  const WheelOfLife({Key? key, this.scoreBundle, this.getSpecific}) : super(key: key);
 
   _WheelOfLife createState() => _WheelOfLife(scoreBundle, getSpecific);
 }

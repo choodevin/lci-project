@@ -833,7 +833,7 @@ class Information extends StatelessWidget {
   final label;
   final text;
 
-  const Information({Key key, this.label, this.text}) : super(key: key);
+  const Information({Key? key, this.label, this.text}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -865,7 +865,7 @@ class PrimaryDialog extends StatelessWidget {
   final content;
   final actions;
 
-  const PrimaryDialog({Key key, this.title, this.content, this.actions}) : super(key: key);
+  const PrimaryDialog({Key? key, this.title, this.content, this.actions}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -883,7 +883,7 @@ class PrimaryDialog extends StatelessWidget {
 class PopupPlayer extends StatefulWidget {
   final url;
 
-  const PopupPlayer({Key key, this.url}) : super(key: key);
+  const PopupPlayer({Key? key, this.url}) : super(key: key);
 
   _PopupPlayerState createState() => _PopupPlayerState(url);
 }
@@ -937,7 +937,7 @@ class _PopupPlayerState extends State<PopupPlayer> {
 class VideoPlayer extends StatefulWidget {
   final url;
 
-  const VideoPlayer({Key key, this.url}) : super(key: key);
+  const VideoPlayer({Key? key, this.url}) : super(key: key);
 
   _VideoPlayerState createState() => _VideoPlayerState(url);
 }
@@ -1002,7 +1002,7 @@ class AnswerSlider extends StatefulWidget {
   final callBack;
   final value;
 
-  const AnswerSlider({Key key, this.callBack, this.value}) : super(key: key);
+  const AnswerSlider({Key? key, this.callBack, this.value}) : super(key: key);
 
   _AnswerSliderState createState() => _AnswerSliderState(callBack, value);
 }
@@ -1069,7 +1069,7 @@ class ChatPoll extends StatefulWidget {
   final votedOn;
   final expireTime;
 
-  const ChatPoll({Key key, this.yesValue, this.noValue, this.owner, this.yesCallback, this.noCallback, this.votedOn, this.expireTime}) : super(key: key);
+  const ChatPoll({Key? key, this.yesValue, this.noValue, this.owner, this.yesCallback, this.noCallback, this.votedOn, this.expireTime}) : super(key: key);
 
   ChatPollState createState() => ChatPollState(yesValue, noValue, owner, yesCallback, noCallback, votedOn, expireTime);
 }
@@ -1152,7 +1152,7 @@ class PollBar extends StatelessWidget {
   final label;
   final voted;
 
-  const PollBar({Key key, this.color, this.value, this.label, this.voted}) : super(key: key);
+  const PollBar({Key? key, this.color, this.value, this.label, this.voted}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

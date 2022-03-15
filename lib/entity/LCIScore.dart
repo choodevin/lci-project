@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 class LCIScore {
-  Map<String, dynamic> score;
+  late Map<String, dynamic> score;
 
   LCIScore(score) {
     this.score = score;
@@ -91,76 +91,92 @@ class LCIScore {
     var relationHealth = 0;
     var physicalHealth = 0;
 
-    if(dividedScore['Spirit'] >= 8) {
+    if (dividedScore['Spirit']! >= 8) {
       spiritHealth = 1;
     }
-    if(dividedScore['Cognitive'] >= 8) {
+    if (dividedScore['Cognitive']! >= 8) {
       cogHealth = 1;
     }
-    if(dividedScore['Relationship'] >= 8) {
+    if (dividedScore['Relationship']! >= 8) {
       relationHealth = 1;
     }
-    if(dividedScore['Physical'] >= 8) {
+    if (dividedScore['Physical']! >= 8) {
       physicalHealth = 1;
     }
 
-    if(spiritHealth == 1) {
-      if(physicalHealth == 1) {
-        if(relationHealth == 1) {
-          if(cogHealth == 1) {
-            displayResult = "You are living fullness in your life! You are enjoying your life every day. If you do not feel so, we highly recommend you to look into your spiritual life or talk to our coach.";
+    if (spiritHealth == 1) {
+      if (physicalHealth == 1) {
+        if (relationHealth == 1) {
+          if (cogHealth == 1) {
+            displayResult =
+            "You are living fullness in your life! You are enjoying your life every day. If you do not feel so, we highly recommend you to look into your spiritual life or talk to our coach.";
           } else {
-            displayResult = "You are living a good and healthy life. However you feel like you can do more in your life to achieve a better displayResult. If you do not sure how and what you can be improved, we highly recommend you talk to our coach.";
+            displayResult =
+            "You are living a good and healthy life. However you feel like you can do more in your life to achieve a better displayResult. If you do not sure how and what you can be improved, we highly recommend you talk to our coach.";
           }
         } else {
-          if(cogHealth == 1) {
-            displayResult = "Overall, you are living a good life. However there might be some relationship challenges that you are facing or you do not aware. If your [Romance Relationship], [Family], and [Social] life is not in your current focus, we recommend that you may look into it. Or you can talk to our coach to explore more.";
+          if (cogHealth == 1) {
+            displayResult =
+            "Overall, you are living a good life. However there might be some relationship challenges that you are facing or you do not aware. If your [Romance Relationship], [Family], and [Social] life is not in your current focus, we recommend that you may look into it. Or you can talk to our coach to explore more.";
           } else {
-            displayResult = "Overall, you are living a healthy life, but you may be having obstacle in your relationships with others and you may be looking for changes in your life. We recommend you to define a clearer direction for your life first, and then start work on the direction. If you not sure how to do it, feel free to contact our coach.";
+            displayResult =
+            "Overall, you are living a healthy life, but you may be having obstacle in your relationships with others and you may be looking for changes in your life. We recommend you to define a clearer direction for your life first, and then start work on the direction. If you not sure how to do it, feel free to contact our coach.";
           }
         }
       } else {
-        if(relationHealth == 1) {
-          if(cogHealth == 1) {
-            displayResult = 'Overall you are living a good live. However, you might have not look into living a healthy life style. Making time for your rest, having \"me\" time, exercise or taking care your diet are very important too. We recommend you to start work on your life style to improve your life. You may talk to our coach to explore more as well.';
+        if (relationHealth == 1) {
+          if (cogHealth == 1) {
+            displayResult =
+            'Overall you are living a good live. However, you might have not look into living a healthy life style. Making time for your rest, having \"me\" time, exercise or taking care your diet are very important too. We recommend you to start work on your life style to improve your life. You may talk to our coach to explore more as well.';
           } else {
-            displayResult = "It is good to have healthy relationships with people around you. You might feel that you are not as good as them sometimes, but that is simply you haven\'t fully utilise your potential. If you wish to improve that, please feel free to contact our coach.";
+            displayResult =
+            "It is good to have healthy relationships with people around you. You might feel that you are not as good as them sometimes, but that is simply you haven\'t fully utilise your potential. If you wish to improve that, please feel free to contact our coach.";
           }
         } else {
-          if(cogHealth == 1) {
-            displayResult = "You might aware that there are changes in your relationship and life style that you need to make, and you might already doing it. If you want to accelerate your progress, please feel free to contact our coach.";
+          if (cogHealth == 1) {
+            displayResult =
+            "You might aware that there are changes in your relationship and life style that you need to make, and you might already doing it. If you want to accelerate your progress, please feel free to contact our coach.";
           } else {
-            displayResult = "You may be on the journey of recovering from a significant event of your life. Other wise, our coach can talk to you and assist you in your growth.";
+            displayResult =
+            "You may be on the journey of recovering from a significant event of your life. Other wise, our coach can talk to you and assist you in your growth.";
           }
         }
       }
     } else {
-      if(physicalHealth == 1) {
-        if(relationHealth == 1) {
-          if(cogHealth == 1) {
-            displayResult = "Overall, you are living a good life. However, you might have questions about meaning of life some times, that you might wonder what is the reason of your existance. We recommend you to look into your spiritual life.";
+      if (physicalHealth == 1) {
+        if (relationHealth == 1) {
+          if (cogHealth == 1) {
+            displayResult =
+            "Overall, you are living a good life. However, you might have questions about meaning of life some times, that you might wonder what is the reason of your existance. We recommend you to look into your spiritual life.";
           } else {
-            displayResult = "You might feeling lost in your life sometimes, where you aren't able to find direction and purpose for your life. All you need is a guide to help you discover this part of your life. You may contact our coach as we will assist you in your discovery journey.";
+            displayResult =
+            "You might feeling lost in your life sometimes, where you aren't able to find direction and purpose for your life. All you need is a guide to help you discover this part of your life. You may contact our coach as we will assist you in your discovery journey.";
           }
         } else {
-          if(cogHealth == 1) {
-            displayResult = "It is good that you take care yourself both physically and mentally. We would like to remind you, true happiness comes from healthy relationships with others. Do not over work but forget the people around you. If you are facing unsolvable relationship issue, please feel free to talk to our coach.";
+          if (cogHealth == 1) {
+            displayResult =
+            "It is good that you take care yourself both physically and mentally. We would like to remind you, true happiness comes from healthy relationships with others. Do not over work but forget the people around you. If you are facing unsolvable relationship issue, please feel free to talk to our coach.";
           } else {
-            displayResult = "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
+            displayResult =
+            "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
           }
         }
       } else {
-        if(relationHealth == 1) {
-          if(cogHealth == 1) {
-            displayResult = "When was the last time you take good care of yourself? You might spend lot of time in your work and your relationships with people, but your personal well being is important too. Do not forget to refresh yourself from time to time. If you not sure what to do, please feel free to contact our coach.";
+        if (relationHealth == 1) {
+          if (cogHealth == 1) {
+            displayResult =
+            "When was the last time you take good care of yourself? You might spend lot of time in your work and your relationships with people, but your personal well being is important too. Do not forget to refresh yourself from time to time. If you not sure what to do, please feel free to contact our coach.";
           } else {
-            displayResult = "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
+            displayResult =
+            "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
           }
         } else {
-          if(cogHealth == 1) {
-            displayResult = "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
+          if (cogHealth == 1) {
+            displayResult =
+            "You may feel like there is a lot of things in your life that you need to improve. Please feel free to talk to our coach for your future development.";
           } else {
-            displayResult = "It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.";
+            displayResult =
+            "It is good that you are here! This is a right place if you are looking for changes and growth! Please let our coach to assist you, and develop a plan for you.";
           }
         }
       }
@@ -178,11 +194,11 @@ class LCIScore {
       var questionCount = 0;
       result[key] = 0;
       value.forEach((x, value) {
-        result[key] += value;
+        result[key] = result[key]! + value;
         questionCount++;
       });
-      result[key] = result[key] / questionCount;
-      sortVal.add(result[key]);
+      result[key] = result[key]! / questionCount;
+      sortVal.add(result[key]!);
     });
 
     sortVal.sort((b, a) => a.compareTo(b));

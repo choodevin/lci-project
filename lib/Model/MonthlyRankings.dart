@@ -3,14 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'User.dart';
 
 class MonthlyRankings {
-  String id;
-  int days;
-  int totalLeave;
-  double totalScore;
-  String name;
-  double averageScore;
+  late String id;
+  late int days;
+  late int totalLeave;
+  late double totalScore;
+  late String name;
+  late double averageScore;
 
-  MonthlyRankings({this.id, this.days, this.totalLeave, this.totalScore, this.name, this.averageScore});
+  MonthlyRankings({this.id = "", this.days = 0, this.totalLeave = 0, this.totalScore = 0, this.name = "", this.averageScore = 0});
 
   MonthlyRankings.fromMap(Map snapshot, String id)
       : id = id ?? "",
@@ -22,9 +22,9 @@ class MonthlyRankings {
     List<MonthlyRankings> result = [];
     User userModel = User();
     if (snapshot.exists) {
-      Map resultMap = snapshot.data();
+      Map? resultMap = snapshot.data() as Map?;
 
-      for(var entry in resultMap.entries) {
+      for(var entry in resultMap!.entries) {
         String key = entry.key;
         var value = entry.value;
         double averageScore = value['totalScore'] / value['days'] * 10;

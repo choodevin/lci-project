@@ -16,16 +16,16 @@ class User extends ChangeNotifier {
   bool isCoach;
 
   User(
-      {this.id,
-      this.email,
-      this.password,
-      this.name,
-      this.gender,
-      this.country,
-      this.dateOfBirth,
-      this.subscription,
-      this.currentEnrolledCampaign,
-      this.isCoach});
+      {this.id = "",
+      this.email = "",
+      this.password = "",
+      this.name = "",
+      this.gender = "",
+      this.country = "",
+      this.dateOfBirth = "",
+      this.subscription = "",
+      this.currentEnrolledCampaign = "",
+      this.isCoach = false});
 
   User.fromMap(Map snapshot, String id)
       : id = id ?? "",

@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseService {
   final FirebaseFirestore db = FirebaseFirestore.instance;
-  final String path;
   var ref;
-  String endAt;
+  late String endAt;
+  late final String path;
 
   static const COL = "COL";
   static const DOC = "DOC";
@@ -32,7 +32,7 @@ class FirebaseService {
     ref = fullCollection;
   }
 
-  Future<dynamic> getData() {
+  Future<dynamic>? getData() {
     if(endAt == COL) {
       return getCollection();
     } else if (endAt == DOC) {

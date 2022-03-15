@@ -10,7 +10,7 @@ import 'custom-components.dart';
 class GroupChat extends StatefulWidget {
   final campaignId;
 
-  const GroupChat({Key key, this.campaignId}) : super(key: key);
+  const GroupChat({Key? key, this.campaignId}) : super(key: key);
 
   @override
   _GroupChatState createState() => _GroupChatState(campaignId);
@@ -366,7 +366,7 @@ class CreatePoll extends StatefulWidget {
   final campaignId;
   final sevenThingsDeadline;
 
-  const CreatePoll({Key key, this.campaignId, this.sevenThingsDeadline}) : super(key: key);
+  const CreatePoll({Key? key, this.campaignId, this.sevenThingsDeadline}) : super(key: key);
 
   @override
   _CreatePollState createState() => _CreatePollState(campaignId, sevenThingsDeadline);

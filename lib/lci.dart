@@ -255,7 +255,7 @@ class QuestionForm extends StatefulWidget {
   final selected;
   final questions;
 
-  const QuestionForm({Key key, this.questions, this.selected}) : super(key: key);
+  const QuestionForm({Key? key, this.questions, this.selected}) : super(key: key);
 
   _QuestionFormState createState() => _QuestionFormState(questions, selected);
 }
@@ -500,7 +500,7 @@ class _QuestionFormState extends State<QuestionForm> {
 class PartTwo extends StatefulWidget {
   final selected;
 
-  const PartTwo({Key key, this.selected}) : super(key: key);
+  const PartTwo({Key? key, this.selected}) : super(key: key);
 
   _PartTwoState createState() => _PartTwoState(selected);
 }
@@ -689,7 +689,7 @@ class _PartTwoState extends State<PartTwo> {
 class AllQuestionForm extends StatefulWidget {
   final score;
 
-  const AllQuestionForm({Key key, this.score}) : super(key: key);
+  const AllQuestionForm({Key? key, this.score}) : super(key: key);
 
   _AllQuestionFormState createState() => _AllQuestionFormState(score);
 }
@@ -944,7 +944,7 @@ class LciResult extends StatelessWidget {
   final score;
   final view;
 
-  const LciResult({Key key, this.score, this.view}) : super(key: key);
+  const LciResult({Key? key, this.score, this.view}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

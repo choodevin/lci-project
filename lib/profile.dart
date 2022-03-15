@@ -14,7 +14,7 @@ import 'login.dart';
 class Profile extends StatefulWidget {
   final userdata;
 
-  const Profile({Key key, this.userdata}) : super(key: key);
+  const Profile({Key? key, this.userdata}) : super(key: key);
 
   _ProfileState createState() => _ProfileState(userdata);
 }

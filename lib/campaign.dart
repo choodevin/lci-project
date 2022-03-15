@@ -23,7 +23,7 @@ class LoadCampaign extends StatelessWidget {
   final userdata;
   final toSearchCampaign;
 
-  const LoadCampaign({Key key, this.userdata, this.toSearchCampaign}) : super(key: key);
+  const LoadCampaign({Key? key, this.userdata, this.toSearchCampaign}) : super(key: key);
 
   Widget build(BuildContext context) {
     var ref;
@@ -41,20 +41,22 @@ class LoadCampaign extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          var campaign = CampaignData();
-          campaign.name = snapshot.data.docs.last.get('name');
-          campaign.campaignAdmin = snapshot.data.docs.last.get('campaignAdmin');
-          campaign.duration = snapshot.data.docs.last.get('duration');
-          campaign.goalDecision = snapshot.data.docs.last.get('goalDecision');
-          campaign.invitationCode = snapshot.data.docs.last.get('invitationCode');
-          campaign.rules = snapshot.data.docs.last.get('rules');
-          campaign.selectedGoalReview = snapshot.data.docs.last.get('selectedGoalReview');
-          campaign.sevenThingsDeadline = snapshot.data.docs.last.get('sevenThingDeadline');
-          campaign.sevenThingsPenaltyDecision = snapshot.data.docs.last.get('sevenThingsPenaltyDecision');
-          campaign.sevenThingsPenalty = snapshot.data.docs.last.get('sevenThingsPenalties');
-          campaign.startDate = snapshot.data.docs.last.get('startDate');
-          campaign.campaignModerator = snapshot.data.docs.last.get('campaignModerator');
-          return CampaignMain(campaign: campaign, campaignId: snapshot.data.docs.last.id, isCoach: toSearchCampaign != null ? true : false);
+          var campaign = new CampaignData();
+
+          campaign.name = snapshot.data?.docs.last.get('name');
+          campaign.campaignAdmin = snapshot.data?.docs.last.get('campaignAdmin');
+          campaign.duration = snapshot.data?.docs.last.get('duration');
+          campaign.goalDecision = snapshot.data?.docs.last.get('goalDecision');
+          campaign.invitationCode = snapshot.data?.docs.last.get('invitationCode');
+          campaign.rules = snapshot.data?.docs.last.get('rules');
+          campaign.selectedGoalReview = snapshot.data?.docs.last.get('selectedGoalReview');
+          campaign.sevenThingsDeadline = snapshot.data?.docs.last.get('sevenThingDeadline');
+          campaign.sevenThingsPenaltyDecision = snapshot.data?.docs.last.get('sevenThingsPenaltyDecision');
+          campaign.sevenThingsPenalty = snapshot.data?.docs.last.get('sevenThingsPenalties');
+          campaign.startDate = snapshot.data?.docs.last.get('startDate');
+          campaign.campaignModerator = snapshot.data?.docs.last.get('campaignModerator');
+
+          return CampaignMain(campaign: campaign, campaignId: snapshot.data?.docs.last.id, isCoach: toSearchCampaign != null ? true : false);
         }
 
         return Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -66,7 +68,7 @@ class LoadCampaign extends StatelessWidget {
 class CampaignNew extends StatelessWidget {
   final userdata;
 
-  const CampaignNew({Key key, this.userdata}) : super(key: key);
+  const CampaignNew({Key? key, this.userdata}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +126,7 @@ class CampaignNew extends StatelessWidget {
 class JoinCampaign extends StatefulWidget {
   final userdata;
 
-  const JoinCampaign({Key key, this.userdata}) : super(key: key);
+  const JoinCampaign({Key? key, this.userdata}) : super(key: key);
 
   _JoinCampaignState createState() => _JoinCampaignState(userdata);
 }
@@ -226,7 +228,7 @@ class _JoinCampaignState extends State<JoinCampaign> {
 class SetupCampaign extends StatefulWidget {
   final userdata;
 
-  const SetupCampaign({Key key, this.userdata}) : super(key: key);
+  const SetupCampaign({Key? key, this.userdata}) : super(key: key);
 
   _SetupCampaignState createState() => _SetupCampaignState(userdata);
 }
@@ -369,10 +371,10 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                         ),
                                       );
                                     }).toList(),
-                                    onChanged: (int newValue) {
+                                    onChanged: (int? newValue) {
                                       setState(
                                         () {
-                                          selectedMonth = newValue;
+                                          selectedMonth = newValue!;
                                         },
                                       );
                                     },
@@ -810,7 +812,7 @@ class SetupCampaignFinal extends StatelessWidget {
   final CampaignData campaignData;
   final UserData userdata;
 
-  const SetupCampaignFinal({Key key, this.campaignData, this.userdata}) : super(key: key);
+  const SetupCampaignFinal({Key? key, this.campaignData, this.userdata}) : super(key: key);
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -909,7 +911,7 @@ class CampaignMain extends StatefulWidget {
   final campaignId;
   final isCoach;
 
-  const CampaignMain({Key key, this.campaign, this.campaignId, this.isCoach}) : super(key: key);
+  const CampaignMain({Key? key, this.campaign, this.campaignId, this.isCoach}) : super(key: key);
 
   _CampaignMainState createState() => _CampaignMainState(campaign, campaignId, isCoach);
 }
@@ -952,6 +954,8 @@ class _CampaignMainState extends State<CampaignMain> {
             "viewedCampaign": true,
           });
         }
+      }).catchError((e) {
+        print("Error while checking first time viewedCampaign");
       });
     });
   }
@@ -1376,7 +1380,7 @@ class CampaignUserDetails extends StatefulWidget {
   final goals;
   final score;
 
-  const CampaignUserDetails({Key key, this.userdata, this.goalExists, this.goals, this.score}) : super(key: key);
+  const CampaignUserDetails({Key? key, this.userdata, this.goalExists, this.goals, this.score}) : super(key: key);
 
   _CampaignUserDetailsState createState() => _CampaignUserDetailsState(userdata, goalExists, goals, score);
 }
@@ -1658,7 +1662,7 @@ class CampaignSettings extends StatefulWidget {
   final campaignId;
   final isCoach;
 
-  const CampaignSettings({Key key, this.campaignData, this.campaignId, this.isCoach}) : super(key: key);
+  const CampaignSettings({Key? key, this.campaignData, this.campaignId, this.isCoach}) : super(key: key);
 
   _CampaignSettingsState createState() => _CampaignSettingsState(campaignData, campaignId, isCoach);
 }

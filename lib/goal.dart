@@ -18,7 +18,7 @@ class LoadGoals extends StatelessWidget {
   final toGetUid;
   final isSelf;
 
-  const LoadGoals({Key key, this.userdata, this.isSelf = true, this.toGetUid}) : super(key: key);
+  const LoadGoals({Key? key, this.userdata, this.isSelf = true, this.toGetUid}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +300,7 @@ class LoadScore extends StatelessWidget {
   final goals;
   final edit;
 
-  const LoadScore({Key key, this.userdata, this.goals, this.edit}) : super(key: key);
+  const LoadScore({Key? key, this.userdata, this.goals, this.edit}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -389,7 +389,7 @@ class GoalSetting extends StatefulWidget {
   final displayedList;
   final edit;
 
-  const GoalSetting({Key key, this.userdata, this.score, this.goals, this.displayedList, this.edit}) : super(key: key);
+  const GoalSetting({Key? key, this.userdata, this.score, this.goals, this.displayedList, this.edit}) : super(key: key);
 
   _GoalSettingState createState() => _GoalSettingState(userdata, score, goals, displayedList, edit);
 }
@@ -817,7 +817,7 @@ class GoalStatus extends StatelessWidget {
   final score;
   final edit;
 
-  const GoalStatus({Key key, this.goals, this.score, this.goalDate, this.edit}) : super(key: key);
+  const GoalStatus({Key? key, this.goals, this.score, this.goalDate, this.edit}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
