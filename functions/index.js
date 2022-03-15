@@ -45,179 +45,221 @@ async function sevenThingsSchedulerFunction() {
     var campaignRef = admin.firestore().collection('CampaignData');
     var userRef = admin.firestore().collection('UserData');
 
-    campaignRef.where("sevenThingDeadline", "==", now).get().then(campaignSnapshot => {
-        campaignSnapshot.forEach(campaignData => {
-            var rankingsByMonthRef = admin.firestore().collection('CampaignData/' + campaignData.id + '/MonthlyRanking').doc(toSetRanking);
-            rankingsByMonthRef.get().then(rankingsSnapshot => {
-                var rankingsMap = rankingsSnapshot.data();
-                console.log(debugLogPrefix + "STATUS: CAMPAIGN FOUND, DOCUMENT ID " + campaignData.id);
-                userRef.where('currentEnrolledCampaign', "==", campaignData.get('invitationCode')).get().then(userSnapshot => {
-                    console.log(debugLogPrefix + ' TOTAL USER: ' + userSnapshot.size);
-                    userSnapshot.forEach(async userData => {
-                        var currentUserRef = admin.firestore().collection('UserData/' + userData.id + '/SevenThings');
+    try {
+        var campaignList = await campaignRef.where("sevenThingDeadline", "=", now).get();
+    } catch (e) {
+        console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING CAMPAIGN LIST: ' + e);
+    }
 
-                        rankingsMap = await currentUserRef.doc(dateOne).get().then(sevenThingsSnapshot => { // Calculate score (DATE ONE) 
-                            var totalScore = 0;
-                            var isOnLeave;
-                            if (sevenThingsSnapshot.exists) {
-                                var status = sevenThingsSnapshot.data()['status'];
-                                var content = sevenThingsSnapshot.data()['content'];
-                                isOnLeave = status['leave'] === null || status['leave'] === undefined || !status['leave'] ? false : true;
+    var rankingsMapList = new Map();
 
-                                status['locked'] = true; // Set status to full lock
+    for (var campaignData of campaignList.docs) {
+        var campaignId = campaignData.id;
+        var rankingsMap = {};
 
-                                currentUserRef.doc(dateOne).update({ "status": status }).catch(e => {
-                                    console.log(debugLogPrefix + "STATUS: ERROR WHILE UPDATING USER(" + userData.id + ") SEVEN THINGS'S STATUS -" + e);
-                                });
+        console.log(debugLogPrefix + "STATUS: CAMPAIGN FOUND, DOCUMENT ID " + campaignId);
 
-                                if (!isOnLeave) {
-                                    if (content !== null && content !== undefined) {
-                                        if (Object.entries(content.length > 0)) {
-                                            var primaryScore = 0;
-                                            var secondaryScore = 0;
+        try {
+            var userList = await userRef.where('currentEnrolledCampaign', "==", campaignData.get('invitationCode')).get();
+        } catch (e) {
+            console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING USER LIST: CAMPAIGN[' + campaignId + '] ' + e);
+        }
 
-                                            content = Object.entries(content);
+        console.log(debugLogPrefix + ' TOTAL USER: ' + userList.size);
 
-                                            for (const [key, value] of content) {
-                                                if (value['status']) {
-                                                    if (value['type'] === 'Primary') {
-                                                        primaryScore = primaryScore + 2;
-                                                    } else if (value['type'] === 'Secondary') {
-                                                        secondaryScore = secondaryScore + 1;
-                                                    }
-                                                }
-                                            }
+        for (var userData of userList.docs) {
+            var userId = userData.id;
+            var totalScore = 0;
+            var isOnLeave = false;
 
-                                            totalScore = primaryScore + secondaryScore;
-                                        }
-                                    }
+            var currentUserRef = admin.firestore().collection('UserData/' + userId + '/SevenThings');
 
-                                    if (status['penalty'] !== null && status['penalty']) {
-                                        if (campaignData.get('sevenThingsPenalties') !== null) {
-                                            var penalty = campaignData.get('sevenThingsPenalties');
-                                            totalScore = totalScore * (100 - penalty) / 100;
-                                        }
-                                    }
-                                }
-                            } else {
-                                currentUserRef.doc(dateOne).set({
-                                    "content": {},
-                                    "contentOrder": [],
-                                    "status": {
-                                        "penalty": true,
-                                        "locked": true
-                                    }
-                                });
-                            }
+            console.log(debugLogPrefix + 'PROCESSING USER: ' + userId);
 
-                            if (rankingsMap[userData.id] === undefined) {
-                                rankingsMap[userData.id] = {
-                                    'days': isOnLeave ? 0 : 1,
-                                    'totalLeave': isOnLeave ? 1 : 0,
-                                    'totalScore': totalScore
-                                }
-                            } else {
-                                rankingsMap[userData.id]['days'] = isOnLeave ? rankingsMap[userData.id]['days'] : rankingsMap[userData.id]['days'] + 1;
-                                rankingsMap[userData.id]['totalLeave'] = isOnLeave ? rankingsMap[userData.id]['totalLeave'] = rankingsMap[userData.id]['totalLeave'] + 1 : rankingsMap[userData.id]['totalLeave'];
-                                if (!isOnLeave) {
-                                    rankingsMap[userData.id]['totalScore'] = rankingsMap[userData.id]['totalScore'] + totalScore;
-                                }
-                            }
+            try {
+                var dateOneSevenThings = await currentUserRef.doc(dateOne).get();
+            } catch (e) {
+                console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING USER DATEONE SEVENTHINGS: USER[' + userId + '] ' + e);
+            }
 
-                            console.log('1' + rankingsMap);
-                            return rankingsMap;
-                        }).catch(e => {
-                            console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING " + dateOne + " USER SEVEN THINGS -" + e);
-                        });
+            console.log(debugLogPrefix + 'PROCESSING USER FOR DATE ONE');
 
-                        rankingsByMonthRef.set(rankingsMap);
+            if (dateOneSevenThings != undefined && dateOneSevenThings.exists) {
+                var status = dateOneSevenThings.data()['status'];
+                var content = dateOneSevenThings.data()['content'];
+                isOnLeave = status['leave'] === null || status['leave'] === undefined || !status['leave'] ? false : true;
 
-                        currentUserRef.doc(dateTwo).get().then(sevenThingsSnapshot => { // LockEdit (DATE TWO)
-                            if (sevenThingsSnapshot.exists) {
-                                var content = sevenThingsSnapshot.data()['content'];
-                                var status = sevenThingsSnapshot.data()['status'];
+                status['locked'] = true; // Set status to full lock
 
-                                if (content !== null && content !== undefined) {
-                                    if (Object.entries(content).length == 7) {
-                                        status['lockEdit'] = true;
-                                    } else {
-                                        status['penalty'] = true;
-                                    }
-                                } else {
-                                    status['penalty'] = true;
-                                }
-
-                                currentUserRef.doc(dateTwo).update({
-                                    "status": status
-                                });
-                            } else {
-                                currentUserRef.doc(dateTwo).set({
-                                    "content": {},
-                                    "contentOrder": [],
-                                    "status": {
-                                        "lockEdit": true,
-                                        "penalty": true
-                                    }
-                                });
-                            }
-
-                            return null;
-                        }).catch(e => {
-                            console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING " + dateTwo + " USER SEVEN THINGS -" + e);
-                        });
-
-                        currentUserRef.doc(today).get().then(sevenThingsSnapshot => { // (TODAY)
-                            var penalty = false;
-                            if (sevenThingsSnapshot.exists) {
-                                var content = sevenThingsSnapshot.data()['content'];
-
-                                if (content !== null && content !== undefined) {
-                                    if (Object.entries(content).length == 7) {
-                                        currentUserRef.doc(today).update({
-                                            "status": {
-                                                "lockEdit": true,
-                                            }
-                                        });
-                                    } else {
-                                        penalty = true;
-                                    }
-                                } else {
-                                    penalty = true;
-                                }
-
-                                if (penalty) {
-                                    currentUserRef.doc(today).update({
-                                        "status": {
-                                            "penalty": true,
-                                        }
-                                    });
-                                }
-                            } else {
-                                currentUserRef.doc(today).set({
-                                    "status": {
-                                        "penalty": true
-                                    }
-                                });
-                            }
-                        }).catch(e => {
-                            console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING " + today + " USER SEVEN THINGS -" + e);
-                        });
-                    });
-                    return null;
-                }).catch(e => {
-                    console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING USER DATA -" + e);
+                currentUserRef.doc(dateOne).update({ "status": status }).catch(e => {
+                    console.log(debugLogPrefix + "STATUS: ERROR WHILE UPDATING USER(" + userData.id + ") SEVEN THINGS'S STATUS -" + e);
                 });
 
-                return null;
-            }).catch(e => {
-                console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING MONTHLY RANKING " + campaignData.id + " " + toSetRanking + e);
-            });
-        });
-        return null;
-    }).catch(e => {
-        console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING CAMPAIGN DATA -" + e);
-    });
-    return null;
+                if (!isOnLeave) {
+                    if (content !== null && content !== undefined) {
+                        if (Object.entries(content.length > 0)) {
+                            var primaryScore = 0;
+                            var secondaryScore = 0;
+
+                            content = Object.entries(content);
+
+                            for (const [key, value] of content) {
+                                if (value['status']) {
+                                    if (value['type'] === 'Primary') {
+                                        primaryScore = primaryScore + 2;
+                                    } else if (value['type'] === 'Secondary') {
+                                        secondaryScore = secondaryScore + 1;
+                                    }
+                                }
+                            }
+
+                            totalScore = primaryScore + secondaryScore;
+                        }
+                    }
+
+                    if (status['penalty'] !== null && status['penalty']) {
+                        if (campaignData.get('sevenThingsPenalties') !== null) {
+                            var penalty = campaignData.get('sevenThingsPenalties');
+                            totalScore = totalScore * (100 - penalty) / 100;
+                        }
+                    }
+                }
+            } else {
+                await currentUserRef.doc(dateOne).set({
+                    "content": {},
+                    "contentOrder": [],
+                    "status": {
+                        "penalty": true,
+                        "locked": true
+                    }
+                });
+            }
+
+            if (rankingsMap[userData.id] === undefined) {
+                rankingsMap[userData.id] = {
+                    'leave': isOnLeave,
+                    'score': totalScore
+                }
+            } else {
+                rankingsMap[userData.id]['leave'] = isOnLeave;
+                rankingsMap[userData.id]['score'] = totalScore;
+            }
+
+            console.log(debugLogPrefix + 'PROCESSING USER FOR DATE TWO');
+
+            try {
+                var dateTwoSevenThings = await currentUserRef.doc(dateTwo).get();
+            } catch (e) {
+                console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING USER DATETWO SEVENTHINGS: USER[' + userId + '] ' + e);
+            }
+
+            if (dateTwoSevenThings != undefined && dateTwoSevenThings.exists) {
+                var content = dateTwoSevenThings.data()['content'];
+                var status = dateTwoSevenThings.data()['status'];
+
+                if (content !== null && content !== undefined) {
+                    if (Object.entries(content).length == 7) {
+                        status['lockEdit'] = true;
+                    } else {
+                        status['penalty'] = true;
+                    }
+                } else {
+                    status['penalty'] = true;
+                }
+
+                currentUserRef.doc(dateTwo).update({
+                    "status": status
+                });
+            } else {
+                currentUserRef.doc(dateTwo).set({
+                    "content": {},
+                    "contentOrder": [],
+                    "status": {
+                        "lockEdit": true,
+                        "penalty": true
+                    }
+                });
+            }
+
+            try {
+                var todaySevenThings = await currentUserRef.doc(today).get();
+            } catch (e) {
+                console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING USER TODAY SEVENTHINGS: USER[' + userId + '] ' + e);
+            }
+
+            console.log(debugLogPrefix + 'PROCESSING USER FOR TODAY');
+
+            var penalty = false;
+
+            if (todaySevenThings.exists) {
+                var content = todaySevenThings.data()['content'];
+
+                if (content !== null && content !== undefined) {
+                    if (Object.entries(content).length == 7) {
+                        currentUserRef.doc(today).update({
+                            "status": {
+                                "lockEdit": true,
+                            }
+                        });
+                    } else {
+                        penalty = true;
+                    }
+                } else {
+                    penalty = true;
+                }
+
+                if (penalty) {
+                    currentUserRef.doc(today).update({
+                        "status": {
+                            "penalty": true,
+                        }
+                    });
+                }
+            } else {
+                currentUserRef.doc(today).set({
+                    "status": {
+                        "penalty": true
+                    }
+                });
+            }
+
+        }
+
+        rankingsMapList[campaignId] = rankingsMap;
+    }
+
+    for (const [id, data] of Object.entries(rankingsMapList)) {
+        console.log(debugLogPrefix + 'UPDATING MONTHLY RANKINGS FOR CAMPAIGN: ' + id);
+
+        var rankingsData = await admin.firestore().collection('CampaignData/' + id + '/MonthlyRanking').doc(toSetRanking).get();
+        var tempRankings;
+
+        if (!rankingsData.exists) {
+            tempRankings = new Map();
+        } else {
+            tempRankings = rankingsData.data();
+        }
+
+        for (const [key, value] of Object.entries(data)) {
+            var isLeave = value['leave'];
+            var score = value['score'];
+            if (tempRankings[key] === undefined) {
+                tempRankings[key] = {
+                    'days': isLeave ? 0 : 1,
+                    'totalLeave': isLeave ? 1 : 0,
+                    'totalScore': score
+                }
+            } else {
+                tempRankings[key]['days'] = isLeave ? tempRankings[key]['days'] : tempRankings[key]['days'] + 1;
+                tempRankings[key]['totalLeave'] = isLeave ? tempRankings[key]['totalLeave'] + 1 : tempRankings[key]['totalLeave'];
+                tempRankings[key]['totalScore'] = tempRankings[key]['totalScore'] + score;
+            }
+        }
+
+        console.log(debugLogPrefix + "TO UPDATE MONTHLY RANKINGS: " + tempRankings);
+
+        await admin.firestore().collection('CampaignData/' + id + '/MonthlyRanking').doc(toSetRanking).set(JSON.parse(JSON.stringify(tempRankings)));
+    }
 }
 
 function chatPushNotificationFunction() {
@@ -277,7 +319,8 @@ function monthlyRankingPatching() {
                     var sevenThingsMonth = sevenThingsDate.split(' ')[0].split('-')[1].padStart(2, '0');
                     var sevenThingsDay = parseInt(sevenThingsDate.split(' ')[0].split('-')[2]);
                     //var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 15 ? true : false;
-                    var toCount = sevenThingsMonth == '12' && sevenThingsDay <= '15' ? true : false;
+                    var toCount = sevenThingsMonth == '03' && sevenThingsDay <= '01' && sevenThingsYear == '2022' ? true : false;
+                    console.log(toCount + " " + sevenThingsDate);
                     if (toCount) {
                         var toSetRanking = sevenThingsMonth + '-' + sevenThingsYear;
                         if (parentMap[toSetRanking] === undefined) {
@@ -308,8 +351,6 @@ function monthlyRankingPatching() {
                             } else {
                                 isLeave = true;
                             }
-                        } else {
-                            isLeave = true;
                         }
 
                         if (parentMap[toSetRanking][userId] === undefined) {
@@ -330,6 +371,8 @@ function monthlyRankingPatching() {
 
                 let newList = new Map(Object.entries(parentMap));
 
+                console.log(newList);
+
                 newList.forEach((v, k) => {
                     var rankingsByMonthRef = admin.firestore().collection('CampaignData/PAvObgSFiHc6u4yGxTGE/MonthlyRanking').doc(k);
                     rankingsByMonthRef.set(v);
@@ -345,7 +388,7 @@ function monthlyRankingPatching() {
 
 
 exports.sevenThingsScheduler = functions.region('asia-southeast1').pubsub.schedule('0 * * * *').timeZone('Asia/Kuala_Lumpur').onRun(async(context) => {
-    await sevenThingsSchedulerFunction();
+    sevenThingsSchedulerFunction();
 });
 
 exports.chatPushNotification = functions.region('asia-southeast1').firestore.document("ChatData/content/{campaignId}/{messsageId}").onCreate((messageData, context) => {
