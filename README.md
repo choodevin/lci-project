@@ -23,11 +23,11 @@ lci-project
 └─── Screen (Views)
 │    - UI of the application
 │
-└─── Services (Interface)
-│    - Interface of the controllers, improve maintainability
+└─── Services (Functions)
+│    - Main functions implemented here
 │
 └─── Controllers/Action
-│    - Main functions are declared here, communication between user interface and backend functions/data
+│    - Communication between user interface and backend functions/data
 │
 └─── main.dart
 ```
