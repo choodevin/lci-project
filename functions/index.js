@@ -1,82 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const { user } = require('firebase-functions/lib/providers/auth');
 
 admin.initializeApp();
-
-sevenThingsScheduler2();
-//monthlyRankingPatching();
-
-function sevenThingsScheduler2() {
-    var debugLogPrefix = "DEBUG : "
-    var now = new Date().toLocaleString('en-us', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: 'numeric' });
-    now = parseInt(now) + ':00';
-
-    console.log(debugLogPrefix + 'TIME PERIOD: ' + now);
-
-    var dateOne = new Date(); // 2 days before
-    var dateTwo = new Date(); // 1 day before
-    var today = new Date();
-
-    dateOne.setDate(dateOne.getDate() - 2);
-    dateTwo.setDate(dateTwo.getDate() - 1);
-
-    var tMonth = (today.getMonth() + 1).toString().padStart(2, "0");
-    var tDay = (today.getDate()).toString().padStart(2, "0");
-    today = today.getFullYear() + '-' + tMonth + '-' + tDay + ' 00:00:00.000';
-
-    var month;
-    var day;
-
-    month = (dateTwo.getMonth() + 1).toString().padStart(2, "0");
-    day = (dateTwo.getDate()).toString().padStart(2, "0");
-
-    dateTwo = dateTwo.getFullYear() + '-' + month + '-' + day + ' 00:00:00.000';
-
-    month = (dateOne.getMonth() + 1).toString().padStart(2, "0");
-    day = (dateOne.getDate()).toString().padStart(2, "0");
-
-    var toSetRanking = month + '-' + dateOne.getFullYear();
-
-    console.log(debugLogPrefix + 'TO SET RANKING: ' + toSetRanking);
-
-    dateOne = dateOne.getFullYear() + '-' + month + '-' + day + ' 00:00:00.000';
-
-    console.log(debugLogPrefix + 'DATE 1: ' + dateOne);
-    console.log(debugLogPrefix + 'DATE 2: ' + dateTwo);
-    console.log(debugLogPrefix + 'DAY TODAY: ' + today);
-
-    var campaignRef = admin.firestore().collection('CampaignData');
-    var userRef = admin.firestore().collection('UserData');
-
-    now = "10:00"
-
-    campaignRef.where("sevenThingDeadline", "=", now).get().then(campaignSnapshot => {
-        campaignSnapshot.forEach(async campaignData => {
-            console.log(debugLogPrefix + "STATUS: CAMPAIGN FOUND, DOCUMENT ID " + campaignData.id);
-
-            var rankingsByMonthRef = admin.firestore().collection('CampaignData/' + campaignData.id + '/MonthlyRanking').doc(toSetRanking);
-            var rankingsMap = await rankingsByMonthRef.get().then(rankingsSnapshot => { return rankingsSnapshot.data() });
-
-            if (rankingsMap === undefined) {
-                rankingsMap = new Map();
-            }
-
-            var usersMap = await userRef.where('currentEnrolledCampaign', "==", campaignData.get('invitationCode')).get().then(async userSnapshot => {
-                var result = [];
-
-                userSnapshot.forEach(userData => {
-                    var item = userData.data();
-                    var id = userData.id;
-
-                });
-            });
-
-            console.log("r2" + usersMap);
-        });
-    });
-
-}
 
 async function sevenThingsSchedulerFunction() {
     var debugLogPrefix = "DEBUG LOG: ";
@@ -120,79 +45,25 @@ async function sevenThingsSchedulerFunction() {
     var campaignRef = admin.firestore().collection('CampaignData');
     var userRef = admin.firestore().collection('UserData');
 
-    campaignRef.where("sevenThingDeadline", "==", now).get().then(campaignSnapshot => {
-        campaignSnapshot.forEach(campaignData => {
-            var rankingsByMonthRef = admin.firestore().collection('CampaignData/' + campaignData.id + '/MonthlyRanking').doc(toSetRanking);
-            rankingsByMonthRef.get().then(async rankingsSnapshot => {
-                var rankingsMap = rankingsSnapshot.data();
-
-                console.log(debugLogPrefix + "STATUS: CAMPAIGN FOUND, DOCUMENT ID " + campaignData.id);
-
-                userRef.where('currentEnrolledCampaign', "==", campaignData.get('invitationCode')).get().then(async userSnapshot => {
-                    console.log(debugLogPrefix + ' TOTAL USER: ' + userSnapshot.size);
-                    userSnapshot.forEach(async userData => {
-                        var currentUserRef = admin.firestore().collection('UserData/' + userData.id + '/SevenThings');
-
-                        rankingsMap = await currentUserRef.doc(dateOne).get().then(sevenThingsSnapshot => { // Calculate score (DATE ONE) 
-                            var totalScore = 0;
-                            var isOnLeave;
-                            if (sevenThingsSnapshot.exists) {
-                                var status = sevenThingsSnapshot.data()['status'];
-                                var content = sevenThingsSnapshot.data()['content'];
-                                isOnLeave = status['leave'] === null || status['leave'] === undefined || !status['leave'] ? false : true;
-
-                                status['locked'] = true; // Set status to full lock
-
-                                currentUserRef.doc(dateOne).update({ "status": status }).catch(e => {
-                                    console.log(debugLogPrefix + "STATUS: ERROR WHILE UPDATING USER(" + userData.id + ") SEVEN THINGS'S STATUS -" + e);
-                                });
-
-                                if (!isOnLeave) {
-                                    if (content !== null && content !== undefined) {
-                                        if (Object.entries(content.length > 0)) {
-                                            var primaryScore = 0;
-                                            var secondaryScore = 0;
-
-                                            content = Object.entries(content);
-
-                                            for (const [key, value] of content) {
-                                                if (value['status']) {
-                                                    if (value['type'] === 'Primary') {
-                                                        primaryScore = primaryScore + 2;
-                                                    } else if (value['type'] === 'Secondary') {
-                                                        secondaryScore = secondaryScore + 1;
-                                                    }
-                                                }
-                                            }
-
-                                            totalScore = primaryScore + secondaryScore;
-                                        }
-                                    }
+    try {
+        var campaignList = await campaignRef.where("sevenThingDeadline", "=", now).get();
+    } catch (e) {
+        console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING CAMPAIGN LIST: ' + e);
+    }
 
     var rankingsMapList = new Map();
 
-                            if (rankingsMap === undefined) {
-                                rankingsMap = new Map();
-                            }
+    for (var campaignData of campaignList.docs) {
+        var campaignId = campaignData.id;
+        var rankingsMap = {};
 
-                            if (rankingsMap[userData.id] === undefined) {
-                                rankingsMap[userData.id] = {
-                                    'days': isOnLeave ? 0 : 1,
-                                    'totalLeave': isOnLeave ? 1 : 0,
-                                    'totalScore': totalScore
-                                }
-                            } else {
-                                rankingsMap[userData.id]['days'] = isOnLeave ? rankingsMap[userData.id]['days'] : rankingsMap[userData.id]['days'] + 1;
-                                rankingsMap[userData.id]['totalLeave'] = isOnLeave ? rankingsMap[userData.id]['totalLeave'] = rankingsMap[userData.id]['totalLeave'] + 1 : rankingsMap[userData.id]['totalLeave'];
-                                if (!isOnLeave) {
-                                    rankingsMap[userData.id]['totalScore'] = rankingsMap[userData.id]['totalScore'] + totalScore;
-                                }
-                            }
+        console.log(debugLogPrefix + "STATUS: CAMPAIGN FOUND, DOCUMENT ID " + campaignId);
 
-                            return rankingsMap;
-                        }).catch(e => {
-                            console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING " + dateOne + " USER SEVEN THINGS - " + e);
-                        });
+        try {
+            var userList = await userRef.where('currentEnrolledCampaign', "==", campaignData.get('invitationCode')).get();
+        } catch (e) {
+            console.log(debugLogPrefix + 'AN ERROR OCCURED WHILE RETRIEVING USER LIST: CAMPAIGN[' + campaignId + '] ' + e);
+        }
 
         console.log(debugLogPrefix + ' TOTAL USER: ' + userList.size);
 
@@ -329,14 +200,26 @@ async function sevenThingsSchedulerFunction() {
                             "status": {
                                 "lockEdit": true,
                             }
-                        }).catch(e => {
-                            console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING " + today + " USER SEVEN THINGS - " + e);
                         });
-                        console.log(rankingsMap);
-                        rankingsByMonthRef.set(rankingsMap);
+                    } else {
+                        penalty = true;
+                    }
+                } else {
+                    penalty = true;
+                }
+
+                if (penalty) {
+                    currentUserRef.doc(today).update({
+                        "status": {
+                            "penalty": true,
+                        }
                     });
-                }).catch(e => {
-                    console.log(debugLogPrefix + "STATUS: ERROR WHILE RETRIEVING USER DATA - " + e);
+                }
+            } else {
+                currentUserRef.doc(today).set({
+                    "status": {
+                        "penalty": true
+                    }
                 });
             }
 
@@ -436,7 +319,7 @@ function monthlyRankingPatching() {
                     var sevenThingsMonth = sevenThingsDate.split(' ')[0].split('-')[1].padStart(2, '0');
                     var sevenThingsDay = parseInt(sevenThingsDate.split(' ')[0].split('-')[2]);
                     //var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 15 ? true : false;
-                    var toCount = sevenThingsMonth == '01' && sevenThingsDay <= '05' && sevenThingsYear == '2022' ? true : false;
+                    var toCount = sevenThingsMonth == '03' && sevenThingsDay <= '01' && sevenThingsYear == '2022' ? true : false;
                     console.log(toCount + " " + sevenThingsDate);
                     if (toCount) {
                         var toSetRanking = sevenThingsMonth + '-' + sevenThingsYear;
@@ -468,12 +351,6 @@ function monthlyRankingPatching() {
                             } else {
                                 isLeave = true;
                             }
-                        }
-
-                        if (sevenThingsDay == "01" || sevenThingsDay == "02") {
-                            isLeave = true;
-                        } else {
-                            isLeave = false;
                         }
 
                         if (parentMap[toSetRanking][userId] === undefined) {
