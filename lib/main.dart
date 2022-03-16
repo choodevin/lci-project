@@ -1,5 +1,5 @@
+import 'package:LCI/Screen/SplashScreen.dart';
 import 'package:LCI/notification/NotificationListener.dart';
-import 'package:LCI/splash.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,7 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Model/Campaign.dart';
-import 'Screen/SplashScreen.dart';
+import 'Route/Routes.dart';
 import 'home.dart';
 import 'login.dart';
 
@@ -28,10 +28,22 @@ class BuildApp extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           FirebaseMessaging.onBackgroundMessage(notificationReceiver);
           if (FirebaseAuth.instance.currentUser != null) {
-            return LoggedInMain();
           } else {
-            return NonLoggedInMain();
           }
+          return MaterialApp(
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+            ),
+            onGenerateRoute: Routes.generateRoute,
+            builder: (context, child) {
+              return ScrollConfiguration(
+                behavior: NoGlowScroll(),
+                child: child!,
+              );
+            },
+            home: GetUserData(),
+          );
         }
 
         return SplashScreen();
@@ -45,7 +57,7 @@ class LoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<Campaign>(create: (c) => Campaign()),
+        ChangeNotifierProvider<Campaign>(create: (c) => Campaign.emptyConstructor()),
       ],
       child: MaterialApp(
         theme: ThemeData(
@@ -55,7 +67,7 @@ class LoggedInMain extends StatelessWidget {
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: NoGlowScroll(),
-            child: child,
+            child: child!,
           );
         },
         home: GetUserData(),
@@ -69,7 +81,7 @@ class NonLoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<Campaign>(create: (c) => Campaign()),
+        ChangeNotifierProvider<Campaign>(create: (c) => Campaign.emptyConstructor()),
       ],
       child: MaterialApp(
         theme: ThemeData(
@@ -79,7 +91,7 @@ class NonLoggedInMain extends StatelessWidget {
         builder: (context, child) {
           return ScrollConfiguration(
             behavior: NoGlowScroll(),
-            child: child,
+            child: child!,
           );
         },
         home: Login(),

@@ -43,8 +43,8 @@ class LoginForm extends StatefulWidget {
 class _LoginFormState extends State<LoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  FocusNode focusNodePassword;
-  FocusNode focusNodeEmail;
+  FocusNode? focusNodePassword;
+  FocusNode? focusNodeEmail;
   bool passwordVisible = true;
 
   void dispose() {
@@ -57,10 +57,10 @@ class _LoginFormState extends State<LoginForm> {
     super.initState();
     focusNodePassword = FocusNode();
     focusNodeEmail = FocusNode();
-    focusNodePassword.addListener(() {
+    focusNodePassword!.addListener(() {
       setState(() {});
     });
-    focusNodeEmail.addListener(() {
+    focusNodeEmail!.addListener(() {
       setState(() {});
     });
   }
@@ -83,7 +83,7 @@ class _LoginFormState extends State<LoginForm> {
             ),
           ),
           InputBox(
-            focusNode: focusNodeEmail,
+            focusNode: focusNodeEmail!,
             focusNodeNext: focusNodePassword,
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -229,13 +229,13 @@ class ForgotPassword extends StatefulWidget {
 
 class _ForgotPasswordState extends State<ForgotPassword> {
   final _emailController = TextEditingController();
-  FocusNode focusNodeEmail;
+  FocusNode? focusNodeEmail;
 
   @override
   void initState(){
     super.initState();
     focusNodeEmail = new FocusNode();
-    focusNodeEmail.addListener(() {
+    focusNodeEmail!.addListener(() {
       setState(() {
 
       });
@@ -270,7 +270,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       ),
                     ),
                     InputBox(
-                      focusNode: focusNodeEmail,
+                      focusNode: focusNodeEmail!,
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                     ),

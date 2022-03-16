@@ -1,8 +1,6 @@
 import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -22,16 +20,16 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
 
   _SevenThingsMainState(this.date);
 
-  DateTime selectedDate;
-  DateTime startDate = FirebaseAuth.instance.currentUser.metadata.creationTime;
-  DateTime initialDate;
-  DateTime endingDate;
-  int daysBetween;
-  ItemScrollController _itemScrollController = ItemScrollController();
-  ItemPositionsListener _itemPositionsListener = ItemPositionsListener.create();
-  GetSevenThingList sevenThingList;
-  Function recallFunction;
-  Function addCallBack;
+  DateTime? selectedDate;
+  DateTime? startDate = FirebaseAuth.instance.currentUser?.metadata.creationTime;
+  DateTime? initialDate;
+  DateTime? endingDate;
+  int? daysBetween;
+  ItemScrollController? _itemScrollController = ItemScrollController();
+  ItemPositionsListener? _itemPositionsListener = ItemPositionsListener.create();
+  GetSevenThingList? sevenThingList;
+  Function? recallFunction;
+  Function? addCallBack;
 
   var isEdit = false;
 
@@ -51,15 +49,15 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
     super.initState();
     if (date == null) {
       selectedDate = getTime();
-      initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
-      endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
-      daysBetween = endingDate.difference(initialDate).inDays;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
-        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+      initialDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day - 7);
+      endingDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day + 7);
+      daysBetween = endingDate!.difference(initialDate!).inDays;
+      WidgetsBinding.instance?.addPostFrameCallback((_) async {
+        _itemScrollController?.jumpTo(index: (daysBetween! / 2).ceil(), alignment: 0.44);
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
           if (!value.get('viewedSevenThings')) {
             infoVideo();
-            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
               "viewedSevenThings": true,
             });
           }
@@ -67,15 +65,15 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
       });
     } else {
       selectedDate = date;
-      initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
-      endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
-      daysBetween = endingDate.difference(initialDate).inDays;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
-        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+      initialDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day - 7);
+      endingDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day + 7);
+      daysBetween = endingDate!.difference(initialDate!).inDays;
+      WidgetsBinding.instance?.addPostFrameCallback((_) async {
+        _itemScrollController!.jumpTo(index: (daysBetween! / 2).ceil(), alignment: 0.44);
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
           if (!value.get('viewedSevenThings')) {
             infoVideo();
-            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+            await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
               "viewedSevenThings": true,
             });
           }
@@ -99,7 +97,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
       });
     };
 
-    Future<bool> showSaveChanges() {
+    Future<bool?> showSaveChanges() {
       return showDialog(
           context: context,
           builder: (builder) {
@@ -129,7 +127,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
             onWillPop: () async {
               if (isEdit) {
                 showSaveChanges().then((value) {
-                  if (value) {
+                  if (value!) {
                     Navigator.of(context).pop();
                   }
                 });
@@ -147,10 +145,10 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                     backgroundColor: isEdit ? Color(0xFF299E45) : Color(0xFF170E9A),
                     onPressed: isEdit
                         ? () {
-                            recallFunction(0);
+                            recallFunction!(0);
                           }
                         : () {
-                            recallFunction();
+                            recallFunction!();
                           },
                   ),
                 ],
@@ -173,7 +171,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                               onTap: () {
                                 showDatePicker(
                                   context: context,
-                                  initialDate: selectedDate,
+                                  initialDate: selectedDate!,
                                   firstDate: DateTime(2010),
                                   lastDate: DateTime(2050),
                                   confirmText: 'Confirm',
@@ -190,7 +188,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                               child: Container(
                                 padding: EdgeInsets.symmetric(vertical: 15),
                                 child: Text(
-                                  "${DateFormat.MMMM().format(selectedDate)} ${selectedDate.year}".toUpperCase(),
+                                  "${DateFormat.MMMM().format(selectedDate!)} ${selectedDate?.year}".toUpperCase(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
@@ -206,9 +204,9 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                                 scrollDirection: Axis.horizontal,
                                 itemCount: daysBetween,
                                 itemBuilder: (c, i) {
-                                  var toGet = DateTime(initialDate.year, initialDate.month, initialDate.day + i);
+                                  var toGet = DateTime(initialDate!.year, initialDate!.month, initialDate!.day + i);
                                   var selected = false;
-                                  if (toGet.compareTo(selectedDate) == 0) {
+                                  if (toGet.compareTo(selectedDate!) == 0) {
                                     selected = true;
                                   }
                                   return GestureDetector(
@@ -306,7 +304,7 @@ class _GetSevenThingListState extends State<GetSevenThingList> {
 
   _GetSevenThingListState(this.date, this.editingCallBack, this.addCallBack);
 
-  Map<String, dynamic> content;
+  Map<String, dynamic>? content;
 
   var ref;
   var gRef;
@@ -314,8 +312,8 @@ class _GetSevenThingListState extends State<GetSevenThingList> {
   @override
   void initState() {
     super.initState();
-    ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(date.toString()).get();
-    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').doc(date.toString()).get();
+    ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('SevenThings').doc(date.toString()).get();
+    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals').doc(date.toString()).get();
   }
 
   @override
@@ -331,7 +329,7 @@ class _GetSevenThingListState extends State<GetSevenThingList> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> sevenThings = snapshot.data.data();
+          Map<String, dynamic>? sevenThings = snapshot.data?.data() as Map<String, dynamic>?;
           return SevenThingList(sevenThings: sevenThings, editingCallBack: editingCallBack, date: date, addCallBack: addCallBack);
         }
 
@@ -395,8 +393,8 @@ class _SevenThingListState extends State<SevenThingList> {
   @override
   void initState() {
     super.initState();
-    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection("Goals").get();
-    if (sevenThings == null || sevenThings['content'] == null || sevenThings['content'].length == 0) {
+    gRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection("Goals").get();
+    if (sevenThings['content'] == null || sevenThings['content'].length == 0) {
       progressPercent = 0.0;
       contentOrder = ["", "", "", "", "", "", ""];
       if (sevenThings != null) {
@@ -463,7 +461,7 @@ class _SevenThingListState extends State<SevenThingList> {
       progressPercent = getProgress();
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
       addCallBack(() async {
         if (state == Status.NORMAL) {
           if (contentOrder.contains("")) {
@@ -533,7 +531,7 @@ class _SevenThingListState extends State<SevenThingList> {
                     }
                   }
                   await FirebaseFirestore.instance
-                      .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                      .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
                       .set(sevenThings)
                       .then((value) {
                     Navigator.of(context).pop();
@@ -627,7 +625,7 @@ class _SevenThingListState extends State<SevenThingList> {
                     break;
                   }
                 }
-                await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
                   Navigator.of(context).pop();
                   _newSevenThings.text = "";
                   progressPercent = getProgress();
@@ -663,7 +661,7 @@ class _SevenThingListState extends State<SevenThingList> {
             }
           }
         }
-        await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+        await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
           Navigator.of(context).pop();
           progressPercent = getProgress();
         }).catchError((error) {
@@ -718,7 +716,7 @@ class _SevenThingListState extends State<SevenThingList> {
 
     return Column(
       children: [
-        sevenThings != null && sevenThings['content'] != null
+        sevenThings['content'] != null
             ? PrimaryCard(
                 child: Column(
                   children: [
@@ -801,7 +799,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                               sevenThings['content'][value] = details;
                                                             });
                                                             await FirebaseFirestore.instance
-                                                                .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                                .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
                                                                 .set(sevenThings)
                                                                 .then((value) {
                                                               Navigator.of(context).pop();
@@ -819,7 +817,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                           });
                                                           _newSevenThings.text = "";
                                                           await FirebaseFirestore.instance
-                                                              .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                              .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
                                                               .set(sevenThings)
                                                               .then((value) {
                                                             Navigator.of(context).pop();
@@ -967,10 +965,10 @@ class _SevenThingListState extends State<SevenThingList> {
                         }
 
                         if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.data != null && snapshot.data.docs.length > 0) {
-                            Map<String, dynamic> goals = snapshot.data.docs.last.data();
+                          if (snapshot.data != null && snapshot.data!.docs.length > 0) {
+                            Map<String, dynamic>? goals = snapshot.data!.docs.last.data() as Map<String, dynamic>?;
                             var toShow = [];
-                            goals.forEach((k, v) {
+                            goals?.forEach((k, v) {
                               if (k != 'targetLCI') {
                                 if (v['selected']) {
                                   toShow.add(v['q3']);
@@ -1039,7 +1037,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                   if (k.isEmpty) {
                                                     setState(() {
                                                       contentOrder[i] = value;
-                                                      if (sevenThings == null || sevenThings['content'] == null) {
+                                                      if (sevenThings['content'] == null) {
                                                         sevenThings = {
                                                           "content": {},
                                                           "status": {},
@@ -1060,7 +1058,7 @@ class _SevenThingListState extends State<SevenThingList> {
                                                   }
                                                 }
                                                 await FirebaseFirestore.instance
-                                                    .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                    .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
                                                     .set(sevenThings)
                                                     .then((value) {
                                                   Navigator.of(context).pop();

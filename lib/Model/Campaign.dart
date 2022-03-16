@@ -1,28 +1,23 @@
-import 'package:LCI/Service/FirebaseService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
-import 'MonthlyRankings.dart';
-
 class Campaign extends ChangeNotifier {
+  String? name;
+  int? duration;
+  Timestamp? startDate;
+  String? goalDecision;
+  String? sevenThingsDeadline;
+  bool? sevenThingsPenaltyDecision;
+  String? sevenThingsPenalty;
+  String? invitationCode;
+  String? campaignAdmin;
+  List<dynamic>? campaignModerator;
+  int? selectedGoalReview;
+  String? rules;
 
-  Future<List<MonthlyRankings>> getRankings(String campaignId, String rankingsDate) async {
-    if (rankingsDate.length == 0) {
-      DateTime now = DateTime.now();
-      int currentMonth = now.month;
-      int currentYear = now.year;
-      String monthString = currentMonth.toString().padLeft(2, '0');
+  Campaign(this.name, this.duration, this.startDate, this.goalDecision, this.sevenThingsDeadline, this.sevenThingsPenaltyDecision, this.sevenThingsPenalty,
+      this.invitationCode, this.campaignAdmin, this.campaignModerator, this.selectedGoalReview, this.rules);
 
-      rankingsDate = "$monthString-$currentYear";
-    }
+  Campaign.emptyConstructor();
 
-    FirebaseService db = FirebaseService("CampaignData/$campaignId/MonthlyRanking/$rankingsDate");
-    MonthlyRankings rankingsModel = MonthlyRankings();
-
-    DocumentSnapshot result = await db.getData();
-
-    print(result.exists);
-
-    return await rankingsModel.documentToList(result);
-  }
 }

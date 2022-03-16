@@ -13,7 +13,7 @@ import 'lci.dart';
 class LoadWheelOfLife extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
+    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore');
 
     return FutureBuilder<QuerySnapshot>(
       future: ref.get(),
@@ -23,7 +23,7 @@ class LoadWheelOfLife extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          QuerySnapshot score = snapshot.data;
+          QuerySnapshot? score = snapshot.data;
           return WheelOfLife(scoreBundle: score);
         }
 
@@ -67,11 +67,11 @@ class _WheelOfLife extends State<WheelOfLife> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedWheelOfLife')) {
           infoVideo();
-          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
             "viewedWheelOfLife": true,
           });
         }
@@ -86,14 +86,14 @@ class _WheelOfLife extends State<WheelOfLife> {
       score = scoreBundle;
     } else {
       DateFormat df = new DateFormat("dd-MM-yyyy");
-      DateTime latestDate;
+      DateTime? latestDate;
       scoreBundle.docs.forEach((element) {
         DateTime tempDate = df.parse(element.id);
         if(latestDate == null) {
           latestDate = tempDate;
           score = element.data();
         } else {
-          if(latestDate.isBefore(tempDate)) {
+          if(latestDate!.isBefore(tempDate)) {
             latestDate = tempDate;
             score = element.data();
           }
@@ -151,16 +151,16 @@ class _WheelOfLife extends State<WheelOfLife> {
                                   borderColor: Color(0xFFFF8000),
                                   backgroundColor: Color(0xFFFF8000).withOpacity(0.2),
                                   values: [
-                                    subScore['Spiritual Life'] / 10,
-                                    subScore['Romance Relationship'] / 10,
-                                    subScore['Family'] / 10,
-                                    subScore['Social Life'] / 10,
-                                    subScore['Health & Fitness'] / 10,
-                                    subScore['Hobby & Leisure'] / 10,
-                                    subScore['Physical Environment'] / 10,
-                                    subScore['Self-Development'] / 10,
-                                    subScore['Career or Study'] / 10,
-                                    subScore['Finance'] / 10,
+                                    subScore['Spiritual Life']! / 10,
+                                    subScore['Romance Relationship']! / 10,
+                                    subScore['Family']! / 10,
+                                    subScore['Social Life']! / 10,
+                                    subScore['Health & Fitness']! / 10,
+                                    subScore['Hobby & Leisure']! / 10,
+                                    subScore['Physical Environment']! / 10,
+                                    subScore['Self-Development']! / 10,
+                                    subScore['Career or Study']! / 10,
+                                    subScore['Finance']! / 10,
                                   ],
                                 ),
                               ],
@@ -268,15 +268,15 @@ class _WheelOfLife extends State<WheelOfLife> {
                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                   ),
                                   Text(
-                                    ((subScore[e] * 10).toStringAsFixed(0)) + "%",
+                                    ((subScore[e]! * 10).toStringAsFixed(0)) + "%",
                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                   ),
                                 ],
                               ),
                               Padding(padding: EdgeInsets.all(5)),
                               RoundedLinearProgress(
-                                color: colors[e],
-                                value: subScore[e] / 10,
+                                color: colors[e]!,
+                                value: subScore[e]! / 10,
                               ),
                             ],
                           ),

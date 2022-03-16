@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -108,7 +107,7 @@ class _PartOne extends State<PartOne> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> questions = snapshot.data.data();
+          Map<String, dynamic>? questions = snapshot.data?.data() as Map<String, dynamic>?;
           return Scaffold(
             body: SafeArea(
               child: SingleChildScrollView(
@@ -265,14 +264,14 @@ class _QuestionFormState extends State<QuestionForm> {
   final Map<String, dynamic> questions;
 
   int currentPage = 1;
-  int totalPage;
+  int? totalPage;
   double progress = 0.0;
   bool allowSubmit = false;
   List<String> randomizedList = [];
   List<String> completedList = [];
   List<String> skipList = [];
   List<double> scoreList = [];
-  DateTime dateNow;
+  DateTime? dateNow;
   Map<String, dynamic> score = {};
 
   PageController _pageController = new PageController();
@@ -309,9 +308,9 @@ class _QuestionFormState extends State<QuestionForm> {
       }
       await FirebaseFirestore.instance
           .collection('UserData')
-          .doc(FirebaseAuth.instance.currentUser.uid)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
           .collection('LCIScore')
-          .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
+          .doc(DateFormat('d-M-y').format(DateTime(dateNow!.year, dateNow!.month, dateNow!.day)).toString())
           .set(score)
           .then((value) {
         Navigator.of(context).pop();
@@ -349,7 +348,7 @@ class _QuestionFormState extends State<QuestionForm> {
                   });
                 },
                 children: [
-                  for (var page = 1; page <= totalPage; page++)
+                  for (var page = 1; page <= totalPage!; page++)
                     Container(
                       padding: EdgeInsets.fromLTRB(25, 0, 25, 0),
                       child: SingleChildScrollView(
@@ -406,7 +405,7 @@ class _QuestionFormState extends State<QuestionForm> {
                                           key = questions[randomizedList[i].toString()]['type'];
                                         }
                                         Map<String, double> scoreContent = score[key];
-                                        if (scoreContent == null) {
+                                        if (scoreContent.isEmpty) {
                                           scoreContent = {
                                             "q1": scoreList[i],
                                           };
@@ -427,7 +426,7 @@ class _QuestionFormState extends State<QuestionForm> {
                                 currentPage != 1
                                     ? GestureDetector(
                                         onTap: () {
-                                          _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                                          _pageController.jumpToPage(_pageController.page!.toInt() - 1);
                                         },
                                         child: Container(
                                             padding: EdgeInsets.all(16),
@@ -438,11 +437,11 @@ class _QuestionFormState extends State<QuestionForm> {
                                             child: SvgPicture.asset('assets/chevron-left.svg', color: Colors.white, height: 14, width: 14)),
                                       )
                                     : SizedBox(width: 41),
-                                Text(currentPage.toString() + "/" + totalPage.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
+                                Text(currentPage.toString() + "/" + totalPage!.toStringAsFixed(0), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF6E6E6E))),
                                 currentPage != totalPage
                                     ? GestureDetector(
                                         onTap: () {
-                                          _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                                          _pageController.jumpToPage(_pageController.page!.toInt() + 1);
                                         },
                                         child: Container(
                                             padding: EdgeInsets.all(16),
@@ -634,17 +633,17 @@ class _PartTwoState extends State<PartTwo> {
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 20),
                                   child: Text(
-                                    questions.get(q)['title'],
+                                    questions!.get(q)['title'],
                                     textAlign: TextAlign.center,
                                     style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xFF170E9A)),
                                   ),
                                 ),
                                 Padding(padding: EdgeInsets.all(24)),
                                 AnswerSlider(
-                                  value: score['Romance Relationship'][q],
+                                  value: score['Romance Relationship']?[q],
                                   callBack: (value) {
                                     setState(() {
-                                      score['Romance Relationship'][q] = value;
+                                      score['Romance Relationship']?[q] = value;
                                     });
                                   },
                                 ),
@@ -710,7 +709,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
   var currentPage = 1;
   var allowSubmit = false;
 
-  DateTime dateNow;
+  DateTime? dateNow;
   PageController _pageController = new PageController();
 
   @override
@@ -741,9 +740,9 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
       }
       await FirebaseFirestore.instance
           .collection('UserData')
-          .doc(FirebaseAuth.instance.currentUser.uid)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
           .collection('LCIScore')
-          .doc(DateFormat('d-M-y').format(DateTime(dateNow.year, dateNow.month, dateNow.day)).toString())
+          .doc(DateFormat('d-M-y').format(DateTime(dateNow!.year, dateNow!.month, dateNow!.day)).toString())
           .set(score)
           .then((value) {
         Navigator.of(context).pop();
@@ -790,7 +789,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
                         currentPage != 1
                             ? GestureDetector(
                                 onTap: () {
-                                  _pageController.jumpToPage(_pageController.page.toInt() - 1);
+                                  _pageController.jumpToPage(_pageController.page!.toInt() - 1);
                                 },
                                 child: Container(
                                     padding: EdgeInsets.all(16),
@@ -805,7 +804,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
                         currentPage != totalPage
                             ? GestureDetector(
                                 onTap: () {
-                                  _pageController.jumpToPage(_pageController.page.toInt() + 1);
+                                  _pageController.jumpToPage(_pageController.page!.toInt() + 1);
                                 },
                                 child: Container(
                                     padding: EdgeInsets.all(16),
@@ -850,7 +849,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
                                         ),
                                         Padding(padding: EdgeInsets.all(20)),
                                         Text(
-                                          questions.get(q.toString())['title'],
+                                          questions!.get(q.toString())['title'],
                                           textAlign: TextAlign.center,
                                           style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: Color(0xFF170E9A)),
                                         ),
@@ -995,16 +994,16 @@ class LciResult extends StatelessWidget {
                                 borderColor: Color(0xFFFF8000),
                                 backgroundColor: Color(0xFFFF8000).withOpacity(0.2),
                                 values: [
-                                  subScore['Spiritual Life'] / 10,
-                                  subScore['Romance Relationship'] / 10,
-                                  subScore['Family'] / 10,
-                                  subScore['Social Life'] / 10,
-                                  subScore['Health & Fitness'] / 10,
-                                  subScore['Hobby & Leisure'] / 10,
-                                  subScore['Physical Environment'] / 10,
-                                  subScore['Self-Development'] / 10,
-                                  subScore['Career or Study'] / 10,
-                                  subScore['Finance'] / 10,
+                                  subScore['Spiritual Life']! / 10,
+                                  subScore['Romance Relationship']! / 10,
+                                  subScore['Family']! / 10,
+                                  subScore['Social Life']! / 10,
+                                  subScore['Health & Fitness']! / 10,
+                                  subScore['Hobby & Leisure']! / 10,
+                                  subScore['Physical Environment']! / 10,
+                                  subScore['Self-Development']! / 10,
+                                  subScore['Career or Study']! / 10,
+                                  subScore['Finance']! / 10,
                                 ],
                               ),
                             ],
@@ -1040,7 +1039,7 @@ class LciResult extends StatelessWidget {
                       : SizedBox.shrink(),
                   view != null
                       ? FutureBuilder(
-                          future: FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals').get(),
+                          future: FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals').get(),
                           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                             if (snapshot.hasError) {
                               return Padding(
@@ -1052,13 +1051,13 @@ class LciResult extends StatelessWidget {
                             }
 
                             if (snapshot.connectionState == ConnectionState.done) {
-                              if (snapshot.data.size != 0) {
-                                Map<String, dynamic> goal = snapshot.data.docs.last.data();
+                              if (snapshot.data?.size != 0) {
+                                Map<String, dynamic>? goal = snapshot.data?.docs.last.data() as Map<String, dynamic>? ;
                                 return ListView.builder(
                                     physics: NeverScrollableScrollPhysics(),
                                     shrinkWrap: true,
                                     scrollDirection: Axis.vertical,
-                                    itemCount: goal.length,
+                                    itemCount: goal!.length,
                                     itemBuilder: (c, i) {
                                       if (goal.entries.elementAt(i).key != "targetLCI" && goal.entries.elementAt(i).value['selected']) {
                                         return Padding(
@@ -1074,15 +1073,15 @@ class LciResult extends StatelessWidget {
                                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                   ),
                                                   Text(
-                                                    (subScore[goal.entries.elementAt(i).key] * 10).toStringAsFixed(0) + "%",
+                                                    (subScore[goal.entries.elementAt(i).key]! * 10).toStringAsFixed(0) + "%",
                                                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                   ),
                                                 ],
                                               ),
                                               Padding(padding: EdgeInsets.all(3)),
                                               RoundedLinearProgress(
-                                                color: colors[goal.entries.elementAt(i).key],
-                                                value: subScore[goal.entries.elementAt(i).key] / 10,
+                                                color: colors[goal.entries.elementAt(i).key]!,
+                                                value: subScore[goal.entries.elementAt(i).key]! / 10,
                                               ),
                                             ],
                                           ),
@@ -1133,15 +1132,15 @@ class LciResult extends StatelessWidget {
                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                 ),
                                 Text(
-                                  ((subScore[e] * 10).toStringAsFixed(0)) + "%",
+                                  ((subScore[e]! * 10).toStringAsFixed(0)) + "%",
                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                 ),
                               ],
                             ),
                             Padding(padding: EdgeInsets.all(3)),
                             RoundedLinearProgress(
-                              color: colors[e],
-                              value: subScore[e] / 10,
+                              color: colors[e]!,
+                              value: subScore[e]! / 10,
                             ),
                           ],
                         ),
@@ -1189,11 +1188,11 @@ class _LCIMainState extends State<LCIMain> {
   @override
   void initState() {
     super.initState();
-    ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore').get();
-    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+    ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore').get();
+    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
       if (!value.get('viewedLCI')) {
         infoVideo();
-        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+        await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
           "viewedLCI": true,
         });
       }
@@ -1232,16 +1231,16 @@ class _LCIMainState extends State<LCIMain> {
                         }
 
                         if (snapshot.connectionState == ConnectionState.done) {
-                          Map<dynamic, dynamic> data = snapshot.data.docs.asMap();
-                          data.forEach((key, value) {
+                          Map<dynamic, dynamic>? data = snapshot.data?.docs.asMap();
+                          data?.forEach((key, value) {
 
                           });
                           return ListView.builder(
                             shrinkWrap: true,
                             scrollDirection: Axis.vertical,
-                            itemCount: data.length,
+                            itemCount: data?.length,
                             itemBuilder: (context, index) {
-                              var id = data[index].id.split("-");
+                              var id = data?[index].id.split("-");
                               var day = int.parse(id[0]);
                               var month = int.parse(id[1]);
                               var year = int.parse(id[2]);
@@ -1250,7 +1249,7 @@ class _LCIMainState extends State<LCIMain> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data?[index].data(), view: true)));
                                   },
                                   child: PrimaryCard(
                                     padding: EdgeInsets.symmetric(vertical: 15),

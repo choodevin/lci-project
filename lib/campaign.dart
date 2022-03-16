@@ -8,10 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
 import 'Model/Campaign.dart';
 import 'Model/MonthlyRankings.dart';
-import 'entity/CampaignData.dart';
+import 'Service/CampaignService.dart';
 import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
@@ -41,7 +40,7 @@ class LoadCampaign extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          var campaign = new CampaignData();
+          var campaign = new Campaign.emptyConstructor();
 
           campaign.name = snapshot.data?.docs.last.get('name');
           campaign.campaignAdmin = snapshot.data?.docs.last.get('campaignAdmin');
@@ -132,9 +131,9 @@ class JoinCampaign extends StatefulWidget {
 }
 
 class _JoinCampaignState extends State<JoinCampaign> {
-  UserData userdata;
+  late UserData userdata;
+  late FocusNode _campaignCodeNode;
 
-  FocusNode _campaignCodeNode;
   var _campaignCodeController = new TextEditingController();
   var loading = false;
 
@@ -210,12 +209,12 @@ class _JoinCampaignState extends State<JoinCampaign> {
         .where('invitationCode', isEqualTo: _campaignCodeController.text)
         .get()
         .then((value) async {
-      if (value == null || value.size == 0) {
+      if (value.size == 0) {
         return 'No campaign found';
       } else {
         await FirebaseFirestore.instance
             .collection('UserData')
-            .doc(FirebaseAuth.instance.currentUser.uid)
+            .doc(FirebaseAuth.instance.currentUser?.uid)
             .update({'currentEnrolledCampaign': _campaignCodeController.text});
         Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
@@ -234,7 +233,7 @@ class SetupCampaign extends StatefulWidget {
 }
 
 class _SetupCampaignState extends State<SetupCampaign> {
-  final CampaignData campaignData = CampaignData();
+  final Campaign campaignData = Campaign.emptyConstructor();
   final _scorePenaltyController = new TextEditingController();
   final _campaignNameController = new TextEditingController();
   final userdata;
@@ -245,8 +244,8 @@ class _SetupCampaignState extends State<SetupCampaign> {
   bool penaltyDecision = false;
   int selectedMonth = 1;
   int selectedGoalReview = 1;
-  FocusNode _scorePenaltyNode;
-  FocusNode _campaignNameNode;
+  late FocusNode _scorePenaltyNode;
+  late FocusNode _campaignNameNode;
 
   _SetupCampaignState(this.userdata);
 
@@ -496,10 +495,10 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                     ),
                                   );
                                 }).toList(),
-                                onChanged: (String newValue) {
+                                onChanged: (String? newValue) {
                                   setState(
                                     () {
-                                      selectedDeadline = newValue;
+                                      selectedDeadline = newValue!;
                                     },
                                   );
                                 },
@@ -620,10 +619,10 @@ class _SetupCampaignState extends State<SetupCampaign> {
                                     ),
                                   );
                                 }).toList(),
-                                onChanged: (int newValue) {
+                                onChanged: (int? newValue) {
                                   setState(
                                     () {
-                                      selectedGoalReview = newValue;
+                                      selectedGoalReview = newValue!;
                                     },
                                   );
                                 },
@@ -664,8 +663,8 @@ class _SetupCampaignState extends State<SetupCampaign> {
                         campaignData.selectedGoalReview = selectedGoalReview;
                         if (penaltyDecision) {
                           campaignData.sevenThingsPenalty = _scorePenaltyController.text;
-                          if (int.tryParse(campaignData.sevenThingsPenalty) != null) {
-                            var tempPenalty = int.parse(campaignData.sevenThingsPenalty);
+                          if (int.tryParse(campaignData.sevenThingsPenalty!) != null) {
+                            var tempPenalty = int.parse(campaignData.sevenThingsPenalty!);
                             if (tempPenalty > 0 && tempPenalty <= 100) {
                               Navigator.of(context)
                                   .push(MaterialPageRoute(builder: (context) => SetupCampaignRules(campaignData: campaignData, userdata: userdata)));
@@ -695,22 +694,22 @@ class _SetupCampaignState extends State<SetupCampaign> {
 }
 
 class SetupCampaignRules extends StatefulWidget {
-  final CampaignData campaignData;
+  final Campaign campaignData;
   final userdata;
 
-  const SetupCampaignRules({this.campaignData, this.userdata});
+  const SetupCampaignRules({required this.campaignData, this.userdata});
 
   _SetupCampaignRulesState createState() => _SetupCampaignRulesState(campaignData, userdata);
 }
 
 class _SetupCampaignRulesState extends State<SetupCampaignRules> {
-  final CampaignData campaignData;
+  final Campaign campaignData;
   final userdata;
   final _rulesController = new TextEditingController();
 
   _SetupCampaignRulesState(this.campaignData, this.userdata);
 
-  FocusNode _rulesNode;
+  late FocusNode _rulesNode;
 
   Future<String> generateInvitationCode() async {
     var code;
@@ -720,7 +719,7 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
     code = String.fromCharCodes(Iterable.generate(5, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
     while (duplicate) {
       await FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: code).get().then((value) {
-        if (value == null || value.size == 0) {
+        if (value.size == 0) {
           duplicate = false;
         }
       });
@@ -775,7 +774,7 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
                       text: 'Next',
                       color: Color(0xFF299E45),
                       onClickFunction: () async {
-                        campaignData.campaignAdmin = FirebaseAuth.instance.currentUser.uid;
+                        campaignData.campaignAdmin = FirebaseAuth.instance.currentUser?.uid;
                         DocumentReference campaignRef = FirebaseFirestore.instance.collection('CampaignData').doc();
                         campaignData.invitationCode = await generateInvitationCode();
                         campaignData.rules = _rulesController.text;
@@ -809,10 +808,10 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
 }
 
 class SetupCampaignFinal extends StatelessWidget {
-  final CampaignData campaignData;
+  final Campaign campaignData;
   final UserData userdata;
 
-  const SetupCampaignFinal({Key? key, this.campaignData, this.userdata}) : super(key: key);
+  const SetupCampaignFinal({Key? key, required this.campaignData, required this.userdata}) : super(key: key);
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -854,7 +853,7 @@ class SetupCampaignFinal extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            campaignData.invitationCode,
+                            campaignData.invitationCode!,
                             style: TextStyle(
                               color: Color(0xFF6E6E6E),
                               fontSize: 16,
@@ -889,10 +888,10 @@ class SetupCampaignFinal extends StatelessWidget {
                   text: 'Finish',
                   color: Color(0xFF170E9A),
                   onClickFunction: () async {
-                    await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+                    await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
                       "currentEnrolledCampaign": campaignData.invitationCode,
                     });
-                    userdata.currentEnrolledCampaign = campaignData.invitationCode;
+                    userdata.currentEnrolledCampaign = campaignData.invitationCode!;
                     Navigator.of(context).popUntil((route) => route.isFirst);
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoadCampaign(userdata: userdata)));
                   },
@@ -917,13 +916,13 @@ class CampaignMain extends StatefulWidget {
 }
 
 class _CampaignMainState extends State<CampaignMain> {
-  CampaignData campaign;
+  late Campaign campaign;
   final campaignId;
   final isCoach;
 
   _CampaignMainState(this.campaign, this.campaignId, this.isCoach);
 
-  DocumentSnapshot selectedUser;
+  late DocumentSnapshot selectedUser;
 
   Future<void> infoVideo() {
     return showDialog<void>(
@@ -946,11 +945,11 @@ class _CampaignMainState extends State<CampaignMain> {
     userRef = FirebaseFirestore.instance.collection('CampaignData').doc(campaignId).collection('Rankings');
     nameRef = FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaign.invitationCode);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedCampaign')) {
           infoVideo();
-          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
             "viewedCampaign": true,
           });
         }
@@ -962,7 +961,7 @@ class _CampaignMainState extends State<CampaignMain> {
 
   @override
   Widget build(BuildContext context) {
-    final campaignProvider = Provider.of<Campaign>(context);
+    final campaignService = new CampaignService();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -1031,7 +1030,7 @@ class _CampaignMainState extends State<CampaignMain> {
                           ),
                           Padding(padding: EdgeInsets.all(5)),
                           FutureBuilder<List<MonthlyRankings>>(
-                              future: campaignProvider.getRankings(campaignId, null),
+                              future: campaignService.getRankings(campaignId, ""),
                               builder: (context, AsyncSnapshot<List<MonthlyRankings>> snapshot) {
                                 if (snapshot.hasError) {
                                   return Padding(
@@ -1041,7 +1040,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                 }
 
                                 if (snapshot.connectionState == ConnectionState.done) {
-                                  List<MonthlyRankings> rankingsList = snapshot.data;
+                                  List<MonthlyRankings> rankingsList = snapshot.data!;
 
                                   return ListView.builder(
                                     shrinkWrap: true,
@@ -1103,7 +1102,7 @@ class _CampaignMainState extends State<CampaignMain> {
                     Padding(padding: EdgeInsets.all(7.6)),
                     PrimaryCard(
                       child: Text(
-                        campaign.rules,
+                        campaign.rules!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black,
@@ -1160,7 +1159,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                 ),
                               ),
                               Text(
-                                campaign.goalDecision,
+                                campaign.goalDecision!,
                                 style: TextStyle(
                                   color: Color(0xFF6E6E6E),
                                   fontSize: 16,
@@ -1187,7 +1186,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                 ),
                               ),
                               Text(
-                                campaign.sevenThingsDeadline,
+                                campaign.sevenThingsDeadline!,
                                 style: TextStyle(
                                   color: Color(0xFF6E6E6E),
                                   fontSize: 16,
@@ -1206,7 +1205,7 @@ class _CampaignMainState extends State<CampaignMain> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '7 Things Penalty (' + (campaign.sevenThingsPenaltyDecision ? 'On' : 'Off') + ')',
+                                '7 Things Penalty (' + (campaign.sevenThingsPenaltyDecision! ? 'On' : 'Off') + ')',
                                 style: TextStyle(
                                   color: Color(0xFF6E6E6E),
                                   fontSize: 16,
@@ -1215,7 +1214,7 @@ class _CampaignMainState extends State<CampaignMain> {
                               ),
                               campaign.sevenThingsPenalty != null
                                   ? Text(
-                                      campaign.sevenThingsPenalty + "%",
+                                      campaign.sevenThingsPenalty! + "%",
                                       style: TextStyle(
                                         color: Color(0xFF6E6E6E),
                                         fontSize: 16,
@@ -1290,7 +1289,7 @@ class _CampaignMainState extends State<CampaignMain> {
                 itemCount: users.size,
                 itemBuilder: (context, index) {
                   DocumentSnapshot user = users.docs[index];
-                  if (user.id != FirebaseAuth.instance.currentUser.uid) {
+                  if (user.id != FirebaseAuth.instance.currentUser?.uid) {
                     return GestureDetector(
                       onTap: () {
                         Navigator.of(context).push(
@@ -1404,8 +1403,8 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
   @override
   Widget build(BuildContext context) {
     var goalDetails = new GoalsDetails();
-    Map<String, dynamic> goalsTemp;
-    Map<String, dynamic> subScore;
+    Map<String, dynamic>? goalsTemp;
+    Map<String, dynamic>? subScore;
     var scoreObj;
 
     Map<String, dynamic> getSelected() {
@@ -1447,7 +1446,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                     ),
                     goalExists
                         ? Column(
-                            children: goalsTemp.keys.map((key) {
+                            children: goalsTemp!.keys.map((key) {
                               return Column(
                                 children: [
                                   PrimaryCard(
@@ -1463,7 +1462,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                                         ),
                                         Padding(padding: EdgeInsets.all(7.5)),
                                         MultiColorProgressBar(
-                                            subScore[key] / 10, double.parse(goalsTemp[key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
+                                            subScore![key] / 10, double.parse(goalsTemp![key]['target'].toString()) / 10, Color(0xFF170E9A), Color(0xFF0DC5B2)),
                                         Padding(padding: EdgeInsets.all(15)),
                                         Text(
                                           "Definition of Success/Goal",
@@ -1547,7 +1546,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          Map<String, dynamic> data = snapshot.data.data();
+          Map<String, dynamic>? data = snapshot.data?.data() as Map<String, dynamic>?;
           List<dynamic> contentOrder = [];
           if (data != null && data.isNotEmpty) {
             if (data.containsKey('contentOrder')) {
@@ -1620,7 +1619,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                                                 child: Checkbox(
                                                   activeColor: Color(0xFFF48A1D),
                                                   checkColor: Colors.white,
-                                                  value: data['content'][contentOrder[i]]['status'],
+                                                  value: data!['content'][contentOrder[i]]['status'],
                                                   onChanged: null,
                                                 ),
                                               ),
@@ -1669,13 +1668,13 @@ class CampaignSettings extends StatefulWidget {
 
 class _CampaignSettingsState extends State<CampaignSettings> {
   final campaignId;
-  CampaignData campaignData;
+  Campaign campaignData;
   final isCoach;
 
   _CampaignSettingsState(this.campaignData, this.campaignId, this.isCoach);
 
   final _scorePenaltyController = new TextEditingController();
-  FocusNode _scorePenaltyNode;
+  late FocusNode _scorePenaltyNode;
 
   var authLevel;
   var goalDecision;
@@ -1689,10 +1688,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
     _scorePenaltyNode.addListener(() {
       setState(() {});
     });
-    var currentUid = FirebaseAuth.instance.currentUser.uid;
+    var currentUid = FirebaseAuth.instance.currentUser!.uid;
     if (campaignData.campaignAdmin == currentUid) {
       authLevel = AuthLevel.ADMIN;
-    } else if (campaignData.campaignModerator.contains(currentUid)) {
+    } else if (campaignData.campaignModerator!.contains(currentUid)) {
       authLevel = AuthLevel.MOD;
     } else {
       authLevel = AuthLevel.NORMAL;
@@ -1704,8 +1703,8 @@ class _CampaignSettingsState extends State<CampaignSettings> {
       goalDecision = false;
     }
 
-    if (campaignData.sevenThingsPenaltyDecision) {
-      _scorePenaltyController.text = campaignData.sevenThingsPenalty;
+    if (campaignData.sevenThingsPenaltyDecision!) {
+      _scorePenaltyController.text = campaignData.sevenThingsPenalty!;
     }
   }
 
@@ -1720,14 +1719,14 @@ class _CampaignSettingsState extends State<CampaignSettings> {
             TextButton(
               onPressed: () async {
                 if (isCoach) {
-                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").get().then((value) async {
+                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser?.uid}").get().then((value) async {
                     var coachingList = value.get("coachingList");
                     coachingList.remove(campaignData.invitationCode);
-                    await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'coachingList': coachingList});
+                    await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser?.uid}").update({'coachingList': coachingList});
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   });
                 } else {
-                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser.uid}").update({'currentEnrolledCampaign': ""});
+                  await FirebaseFirestore.instance.doc("UserData/${FirebaseAuth.instance.currentUser?.uid}").update({'currentEnrolledCampaign': ""});
                   Navigator.of(context).popUntil((route) => route.isFirst);
                   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData(point: 1)));
                 }
@@ -1782,7 +1781,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
     return WillPopScope(
       onWillPop: () async {
         showLoading(context);
-        if (campaignData.sevenThingsPenaltyDecision) {
+        if (campaignData.sevenThingsPenaltyDecision!) {
           if (_scorePenaltyController.text.isNotEmpty) {
             if (int.parse(_scorePenaltyController.text) > 100) {
               Navigator.of(context).pop();
@@ -1895,10 +1894,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                       ),
                                                     );
                                                   }).toList(),
-                                                  onChanged: (int newValue) {
+                                                  onChanged: (int? newValue) {
                                                     setState(
                                                       () {
-                                                        campaignData.duration = newValue;
+                                                        campaignData.duration = newValue!;
                                                       },
                                                     );
                                                   },
@@ -1941,7 +1940,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                         mainAxisAlignment: MainAxisAlignment.end,
                                         children: [
                                           Text(
-                                            campaignData.goalDecision,
+                                            campaignData.goalDecision!,
                                             style: TextStyle(
                                               color: goalDecision ? Color(0xFF36C164) : Color(0xFF999999),
                                               fontSize: 14,
@@ -2022,10 +2021,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                   ),
                                                 );
                                               }).toList(),
-                                              onChanged: (String newValue) {
+                                              onChanged: (String? newValue) {
                                                 setState(
                                                   () {
-                                                    campaignData.sevenThingsDeadline = newValue;
+                                                    campaignData.sevenThingsDeadline = newValue!;
                                                   },
                                                 );
                                               },
@@ -2055,7 +2054,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                       ),
                                       CupertinoSwitch(
                                         activeColor: Color(0xFF36C164),
-                                        value: campaignData.sevenThingsPenaltyDecision,
+                                        value: campaignData.sevenThingsPenaltyDecision!,
                                         onChanged: (value) {
                                           setState(() {
                                             campaignData.sevenThingsPenaltyDecision = value;
@@ -2081,7 +2080,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                       Text(
                                         '7 Things Score Penalty %',
                                         style: TextStyle(
-                                          color: campaignData.sevenThingsPenaltyDecision ? Color(0xFF6E6E6E) : Color(0xFFAAAAAA),
+                                          color: campaignData.sevenThingsPenaltyDecision! ? Color(0xFF6E6E6E) : Color(0xFFAAAAAA),
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -2093,7 +2092,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                           focusNode: _scorePenaltyNode,
                                           controller: _scorePenaltyController,
                                           textAlign: TextAlign.center,
-                                          readOnly: !campaignData.sevenThingsPenaltyDecision,
+                                          readOnly: !campaignData.sevenThingsPenaltyDecision!,
                                           keyboardType: TextInputType.number,
                                         ),
                                       ),
@@ -2158,10 +2157,10 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                   ),
                                                 );
                                               }).toList(),
-                                              onChanged: (int newValue) {
+                                              onChanged: (int? newValue) {
                                                 setState(
                                                   () {
-                                                    campaignData.selectedGoalReview = newValue;
+                                                    campaignData.selectedGoalReview = newValue!;
                                                   },
                                                 );
                                               },
@@ -2197,16 +2196,16 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                           }
 
                           if (snapshot.connectionState == ConnectionState.done) {
-                            var users = snapshot.data.docs.asMap();
+                            var users = snapshot.data?.docs.asMap();
                             return ListView.builder(
                                 shrinkWrap: true,
                                 scrollDirection: Axis.vertical,
-                                itemCount: users.length,
+                                itemCount: users?.length,
                                 itemBuilder: (context, index) {
-                                  Map<String, dynamic> userData = users[index].data();
-                                  var uid = users[index].id;
+                                  Map<String, dynamic>? userData = users?[index]?.data() as Map<String, dynamic>?;
+                                  var uid = users?[index]?.id;
                                   return Container(
-                                    padding: authLevel != AuthLevel.NORMAL && uid != FirebaseAuth.instance.currentUser.uid && uid != campaignData.campaignAdmin
+                                    padding: authLevel != AuthLevel.NORMAL && uid != FirebaseAuth.instance.currentUser?.uid && uid != campaignData.campaignAdmin
                                         ? EdgeInsets.symmetric(vertical: 0)
                                         : EdgeInsets.symmetric(vertical: 15),
                                     decoration: BoxDecoration(
@@ -2220,17 +2219,17 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(uid == FirebaseAuth.instance.currentUser.uid ? userData['name'] + " (You)" : userData['name'], style: titleStyle),
+                                        Text(uid == FirebaseAuth.instance.currentUser?.uid ? userData!['name'] + " (You)" : userData!['name'], style: titleStyle),
                                         Row(
                                           children: [
                                             Text(
                                                 uid == campaignData.campaignAdmin
                                                     ? "Owner"
-                                                    : campaignData.campaignModerator.contains(uid)
+                                                    : campaignData.campaignModerator!.contains(uid)
                                                         ? "Admin"
                                                         : "Member",
                                                 style: titleStyle),
-                                            authLevel != AuthLevel.NORMAL && uid != FirebaseAuth.instance.currentUser.uid && uid != campaignData.campaignAdmin
+                                            authLevel != AuthLevel.NORMAL && uid != FirebaseAuth.instance.currentUser?.uid && uid != campaignData.campaignAdmin
                                                 ? DropdownButtonHideUnderline(
                                                     child: SizedBox(
                                                       width: 24,
@@ -2239,7 +2238,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                           if (value == 1) {
                                                             showLoading(context);
                                                             setState(() {
-                                                              campaignData.campaignModerator.remove(uid);
+                                                              campaignData.campaignModerator?.remove(uid);
                                                             });
                                                             await FirebaseFirestore.instance.collection('CampaignData').doc(campaignId).update({
                                                               "campaignModerator": campaignData.campaignModerator,
@@ -2274,7 +2273,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                           } else if (value == 3) {
                                                             showLoading(context);
                                                             setState(() {
-                                                              campaignData.campaignModerator.add(uid);
+                                                              campaignData.campaignModerator?.add(uid);
                                                             });
                                                             await FirebaseFirestore.instance.collection('CampaignData').doc(campaignId).update({
                                                               "campaignModerator": campaignData.campaignModerator,
@@ -2294,7 +2293,7 @@ class _CampaignSettingsState extends State<CampaignSettings> {
                                                         },
                                                         icon: SvgPicture.asset('assets/ellipsis-v.svg', color: Color(0xFF6E6E6E), height: 14, width: 14),
                                                         itemBuilder: (context) => [
-                                                          campaignData.campaignModerator.contains(uid)
+                                                          campaignData.campaignModerator!.contains(uid)
                                                               ? PopupMenuItem(
                                                                   height: 48,
                                                                   child: Text('Demote to Member'),

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_svg/svg.dart';
@@ -21,16 +20,16 @@ class _GroupChatState extends State<GroupChat> {
 
   _GroupChatState(this.campaignId);
 
-  TextEditingController _messageController = new TextEditingController();
-  FocusNode _messageFocusNode;
-  Stream chatStream;
-  Map<String, String> nameList = {};
-  bool showPoll = true;
+  late TextEditingController _messageController = new TextEditingController();
+  late FocusNode _messageFocusNode;
+  late Stream chatStream;
+  late Map<String, String> nameList = {};
+  late bool showPoll = true;
 
   void sendMessage(String message) {
     FirebaseFirestore.instance.collection('ChatData').doc('content').collection(campaignId).doc().set({
       "content": message,
-      "sender": FirebaseAuth.instance.currentUser.uid,
+      "sender": FirebaseAuth.instance.currentUser?.uid,
       "timestamp": FieldValue.serverTimestamp(),
     });
   }
@@ -90,18 +89,19 @@ class _GroupChatState extends State<GroupChat> {
                           Timestamp timestamp = data['timestamp'];
                           String contentId = document.id;
                           String sender = data['sender'];
-                          String senderName = nameList[sender] != null ? nameList[sender] : "";
+                          String? senderName = nameList[sender] != null ? nameList[sender] : "";
                           String time = timestamp != null ? "${timestamp.toDate().hour}:${timestamp.toDate().minute.toString().padLeft(2, '0')}" : "Sending...";
                           var content = data['content'];
                           if (content is String) {
                             //When content is message
-                            if (data['sender'] == FirebaseAuth.instance.currentUser.uid) {
+                            if (data['sender'] == FirebaseAuth.instance.currentUser?.uid) {
                               return Align(
                                 alignment: Alignment.centerRight,
                                 child: ChatBubble(
                                   content: content,
                                   owner: true,
                                   timeStamp: time,
+                                  targetName: '',
                                 ),
                               );
                             } else {
@@ -143,7 +143,7 @@ class _GroupChatState extends State<GroupChat> {
                                     ),
                                     ChatBubble(
                                       content: content,
-                                      targetName: senderName,
+                                      targetName: senderName!,
                                       owner: false,
                                       timeStamp: time,
                                     ),
@@ -154,7 +154,7 @@ class _GroupChatState extends State<GroupChat> {
                           } else if (content is Map) {
                             //When content is poll
                             DateTime expireTime = content['pollEndDate'].toDate();
-                            String uid = FirebaseAuth.instance.currentUser.uid;
+                            String? uid = FirebaseAuth.instance.currentUser?.uid;
                             String votedOn = "";
                             String sevenThingsDate = "${expireTime.year}-${expireTime.month.toString().padLeft(2, '0')}-${expireTime.day} 00:00:00.000";
                             print(sevenThingsDate);
@@ -164,9 +164,11 @@ class _GroupChatState extends State<GroupChat> {
                             int totalVotes = yesList.length + noList.length;
                             double yesValue = totalVotes == 0 ? 0.0 : yesList.length / totalVotes;
                             double noValue = totalVotes == 0 ? 0.0 : noList.length / totalVotes;
-                            DocumentReference chatContentRef = FirebaseFirestore.instance.collection('ChatData').doc('content').collection(campaignId).doc(contentId);
-                            DocumentReference userSevenThingsRef = FirebaseFirestore.instance.collection('UserData').doc(senderId).collection('SevenThings').doc(sevenThingsDate);
-                            Map<dynamic, dynamic> tempSevenThingsStatus;
+                            DocumentReference chatContentRef =
+                                FirebaseFirestore.instance.collection('ChatData').doc('content').collection(campaignId).doc(contentId);
+                            DocumentReference userSevenThingsRef =
+                                FirebaseFirestore.instance.collection('UserData').doc(senderId).collection('SevenThings').doc(sevenThingsDate);
+                            Map<dynamic, dynamic> tempSevenThingsStatus = {};
                             Function yesCallback = () async {
                               if (noList.contains(uid)) {
                                 noList.remove(uid);
@@ -200,7 +202,7 @@ class _GroupChatState extends State<GroupChat> {
                             if (noList.contains(uid)) {
                               votedOn = "No";
                             }
-                            if (data['sender'] == FirebaseAuth.instance.currentUser.uid) {
+                            if (data['sender'] == FirebaseAuth.instance.currentUser?.uid) {
                               return Align(
                                 alignment: Alignment.centerRight,
                                 child: ChatPoll(
@@ -308,7 +310,8 @@ class _GroupChatState extends State<GroupChat> {
                             onTap: () async {
                               await FirebaseFirestore.instance.collection("CampaignData").doc(campaignId).get().then((campaignData) async {
                                 String sevenThingsDeadline = campaignData.get('sevenThingDeadline');
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => CreatePoll(campaignId: campaignId, sevenThingsDeadline: sevenThingsDeadline)));
+                                Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => CreatePoll(campaignId: campaignId, sevenThingsDeadline: sevenThingsDeadline)));
                               }).catchError((e) {
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                   content: Text(e),
@@ -376,8 +379,8 @@ class _CreatePollState extends State<CreatePoll> {
   final campaignId;
   final sevenThingsDeadline;
 
-  DateTime selectedDate;
-  DateTime minTime;
+  late DateTime selectedDate;
+  late DateTime minTime;
 
   _CreatePollState(this.campaignId, this.sevenThingsDeadline);
 
@@ -459,14 +462,15 @@ class _CreatePollState extends State<CreatePoll> {
                           List<String> splitTime = "8:00".split(':');
                           DateTime currentDate = selectedDate;
 
-                          DateTime pollEndDate = DateTime(currentDate.year, currentDate.month, currentDate.day, int.parse(splitTime[0]), int.parse(splitTime[1]));
+                          DateTime pollEndDate =
+                              DateTime(currentDate.year, currentDate.month, currentDate.day, int.parse(splitTime[0]), int.parse(splitTime[1]));
                           pollContent['pollEndDate'] = pollEndDate;
                           pollContent['yesList'] = [];
                           pollContent['noList'] = [];
 
                           FirebaseFirestore.instance.collection('ChatData').doc('content').collection(campaignId).doc().set({
                             "content": pollContent,
-                            "sender": FirebaseAuth.instance.currentUser.uid,
+                            "sender": FirebaseAuth.instance.currentUser?.uid,
                             "timestamp": FieldValue.serverTimestamp(),
                           });
                           Navigator.of(context).pop();

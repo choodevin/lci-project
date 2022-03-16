@@ -1,14 +1,17 @@
-import 'package:LCI/Screen/SplashScreen.dart';
 import 'package:LCI/main.dart';
 import 'package:flutter/material.dart';
 
+import '../Screen/Login.dart';
+
 class Routes {
-  Route<dynamic> generateRoute(RouteSettings settings) {
+  static Route<dynamic>? generateRoute(RouteSettings settings) {
     switch(settings.name) {
       case "/" :
-        return MaterialPageRoute(builder: (_) => LoggedInMain());
+        return MaterialPageRoute(builder: (_) => Login());
+      case "home" :
+        //return MaterialPageRoute(builder: (_) => Home());
     }
 
-    return MaterialPageRoute(builder: (_) => SplashScreen());
+    return null;
   }
 }

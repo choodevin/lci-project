@@ -4,8 +4,8 @@ class SlideLeftRoute extends MaterialPageRoute {
   final Widget previousPage;
 
   SlideLeftRoute(
-      {this.previousPage, WidgetBuilder builder, RouteSettings settings})
-      : super(builder: builder, settings: settings);
+      {required this.previousPage, required WidgetBuilder builder})
+      : super(builder: builder);
 
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation,

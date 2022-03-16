@@ -9,9 +9,7 @@ import 'package:LCI/wheeloflife.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:radar_chart/radar_chart.dart';
 import 'campaign.dart';
@@ -20,7 +18,7 @@ import 'entity/UserData.dart';
 import 'goal.dart';
 
 class Home extends StatefulWidget {
-  final UserData userdata;
+  final UserData? userdata;
   final wheelData;
   final sevenThings;
   final goals;
@@ -32,27 +30,27 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  UserData userdata = UserData();
+  UserData? userdata = UserData();
   final wheelData;
-  Map<String, dynamic> sevenThings;
+  Map<String, dynamic> sevenThings = {};
   Map<String, dynamic> goals;
   List<dynamic> contentOrder = [];
 
   _HomeState(this.userdata, this.wheelData, this.sevenThings, this.goals);
 
-  CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings');
+  CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('SevenThings');
 
-  DateTime toChange;
+  late DateTime toChange;
 
   @override
   void initState() {
     super.initState();
     toChange = getTime();
 
-    if (sevenThings != null && sevenThings.containsKey('contentOrder')) {
+    if (sevenThings.containsKey('contentOrder')) {
       contentOrder = sevenThings['contentOrder'];
     } else {
-      if (sevenThings == null) {
+      if (sevenThings.isEmpty) {
         sevenThings = {'content': {}, 'status': {}, 'contentOrder': {}};
         contentOrder = [];
       } else {
@@ -114,9 +112,8 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () {
+        onRefresh: () async {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => GetUserData()));
-          return;
         },
         child: SafeArea(
           child: SingleChildScrollView(
@@ -189,7 +186,7 @@ class _HomeState extends State<Home> {
                                       ],
                                     ),
                                   ),
-                                  userdata.subscription != "Premium"
+                                  userdata?.subscription != "Premium"
                                       ? Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
@@ -245,7 +242,7 @@ class _HomeState extends State<Home> {
                                     text: 'Your Goals',
                                   ),
                                   Padding(padding: EdgeInsets.all(10)),
-                                  goals != null && goals.length != 0
+                                  goals.length != 0
                                       ? Column(
                                           crossAxisAlignment: CrossAxisAlignment.stretch,
                                           children: goals.keys.map((key) {
@@ -323,7 +320,7 @@ class _HomeState extends State<Home> {
                                 ],
                               ),
                             ),
-                            userdata.subscription != "Premium"
+                            userdata?.subscription != "Premium"
                                 ? Positioned.fill(
                                     child: UnlockPremium(),
                                   )
@@ -365,53 +362,53 @@ class _GetUserDataState extends State<GetUserData> {
 
   @override
   Widget build(BuildContext context) {
-    DocumentReference userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid);
-    DocumentReference sThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(toSearch.toString());
-    Query wheelRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
-    CollectionReference goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+    DocumentReference userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid);
+    DocumentReference sThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('SevenThings').doc(toSearch.toString());
+    Query wheelRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore');
+    CollectionReference goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals');
 
     return FutureBuilder<List<dynamic>>(
       future: Future.wait([userRef.get(), sThingsRef.get(), wheelRef.get(), goalsRef.get()]),
       builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          DocumentSnapshot ud = snapshot.data[0];
+          DocumentSnapshot ud = snapshot.data?[0];
           if (ud.exists) {
             var userdata = UserData();
             var wheelData;
             var sevenThings;
             var goals;
-            if (snapshot.data[2].docs.length != 0) {
-              wheelData = LCIScore(snapshot.data[2].docs.last.data());
+            if (snapshot.data?[2].docs.length != 0) {
+              wheelData = LCIScore(snapshot.data?[2].docs.last.data());
             }
-            if (snapshot.data[3].docs.length != 0) {
-              goals = snapshot.data[3].docs.last.data();
+            if (snapshot.data?[3].docs.length != 0) {
+              goals = snapshot.data?[3].docs.last.data();
             }
-            if (snapshot.data[1].data() != null) {
-              sevenThings = snapshot.data[1].data();
+            if (snapshot.data?[1].data() != null) {
+              sevenThings = snapshot.data?[1].data();
             }
-            userdata.name = snapshot.data[0].get('name');
-            userdata.gender = snapshot.data[0].get('gender');
-            userdata.country = snapshot.data[0].get('country');
-            userdata.dateOfBirth = snapshot.data[0].get('dateOfBirth');
-            userdata.subscription = snapshot.data[0].get('subscription');
-            Map<String, dynamic> udx = ud.data();
-            if (udx.containsKey('currentEnrolledCampaign')) {
-              userdata.currentEnrolledCampaign = snapshot.data[0].get('currentEnrolledCampaign');
+            userdata.name = snapshot.data?[0].get('name');
+            userdata.gender = snapshot.data?[0].get('gender');
+            userdata.country = snapshot.data?[0].get('country');
+            userdata.dateOfBirth = snapshot.data?[0].get('dateOfBirth');
+            userdata.subscription = snapshot.data?[0].get('subscription');
+            Map<String, dynamic>? udx = ud.data() as Map<String, dynamic>?;
+            if (udx!.containsKey('currentEnrolledCampaign')) {
+              userdata.currentEnrolledCampaign = snapshot.data?[0].get('currentEnrolledCampaign');
             } else {
               userdata.currentEnrolledCampaign = "";
             }
             if (udx.containsKey('isCoach')) {
-              userdata.isCoach = snapshot.data[0].get('isCoach');
+              userdata.isCoach = snapshot.data?[0].get('isCoach');
             } else {
               userdata.isCoach = false;
             }
-            userdata.email = FirebaseAuth.instance.currentUser.email;
+            userdata.email = FirebaseAuth.instance.currentUser?.email;
 
             return HomeBase(userdata: userdata, wheeldata: wheelData, sevenThings: sevenThings, goals: goals, point: point);
           } else {
             var userdata = UserData();
             var sso = true;
-            userdata.email = FirebaseAuth.instance.currentUser.email;
+            userdata.email = FirebaseAuth.instance.currentUser?.email!;
             return RegisterDetails(user: userdata, sso: sso);
           }
         }
@@ -423,8 +420,8 @@ class _GetUserDataState extends State<GetUserData> {
 }
 
 class HomeBase extends StatefulWidget {
-  final UserData userdata;
-  final LCIScore wheeldata;
+  final UserData? userdata;
+  final LCIScore? wheeldata;
   final sevenThings;
   final goals;
   final point;
@@ -438,8 +435,8 @@ class HomeBase extends StatefulWidget {
 class _HomeBaseState extends State<HomeBase> {
   final point;
   final isViewed;
-  UserData userdata;
-  LCIScore wheelData;
+  UserData? userdata;
+  LCIScore? wheelData;
   var sevenThings;
   var goals;
 
@@ -447,12 +444,12 @@ class _HomeBaseState extends State<HomeBase> {
 
   int index = 0;
 
-  FirebaseMessaging messaging;
+  late FirebaseMessaging messaging;
 
   _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals, this.point, this.isViewed);
 
   Future<void> updateToken(String token) async {
-    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({"token": token});
+    FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({"token": token});
   }
 
   @override
@@ -460,10 +457,10 @@ class _HomeBaseState extends State<HomeBase> {
     super.initState();
     messaging = FirebaseMessaging.instance;
     messaging.getToken().then((token) {
-      updateToken(token);
+      updateToken(token!);
     });
 
-    campaignPage = userdata.currentEnrolledCampaign.isNotEmpty
+    campaignPage = userdata!.currentEnrolledCampaign!.isNotEmpty
         ? LoadCampaign(userdata: userdata)
         : CampaignNew(
             userdata: userdata,
@@ -481,7 +478,7 @@ class _HomeBaseState extends State<HomeBase> {
     });
   }
 
-  Future<bool> showConfirmExit() {
+  Future<bool?> showConfirmExit() {
     return showDialog<bool>(
       context: context,
       builder: (c) {
@@ -530,7 +527,7 @@ class _HomeBaseState extends State<HomeBase> {
           });
           return false;
         } else {
-          return await showConfirmExit();
+          return (await showConfirmExit())!;
         }
       },
       child: Scaffold(

@@ -3,7 +3,6 @@ import 'package:LCI/entity/GoalsDetails.dart';
 import 'package:LCI/entity/LCIScore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -25,8 +24,8 @@ class LoadGoals extends StatelessWidget {
     var goalsRef;
     var scoreRef;
     if (isSelf) {
-      goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
-      scoreRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
+      goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals');
+      scoreRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore');
     } else {
       goalsRef = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('Goals');
       scoreRef = FirebaseFirestore.instance.collection('UserData').doc(toGetUid).collection('LCIScore');
@@ -40,10 +39,10 @@ class LoadGoals extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          var goals = snapshot.data[0];
-          var scores = snapshot.data[1];
+          var goals = snapshot.data?[0];
+          var scores = snapshot.data?[1];
 
-          if (goals == null || goals.size == 0) {
+          if (goals?.size == 0) {
             if (isSelf) {
               return Goals(userdata: userdata, edit: false);
             } else {
@@ -53,7 +52,7 @@ class LoadGoals extends StatelessWidget {
             var latestDate;
             var goal;
             var score;
-            goals.docs.forEach((element) {
+            goals?.docs.forEach((element) {
               var idDate = DateTime.parse(element.id);
               if (latestDate == null) {
                 latestDate = idDate;
@@ -68,7 +67,7 @@ class LoadGoals extends StatelessWidget {
 
             latestDate = null;
 
-            scores.docs.forEach((element) {
+            scores?.docs.forEach((element) {
               DateFormat df = new DateFormat("dd-MM-yyyy");
               var idDate = df.parse(element.id);
               if (latestDate == null) {
@@ -109,11 +108,11 @@ class Goals extends StatefulWidget {
 class _GoalsState extends State<Goals> {
   final userdata;
   final edit;
-  Map<String, dynamic> goals;
+  Map<String, dynamic>? goals;
 
   _GoalsState({this.userdata, this.edit, this.goals});
 
-  int totalSelected;
+  late int totalSelected;
 
   Future<void> infoVideo() {
     return showDialog<void>(
@@ -131,19 +130,19 @@ class _GoalsState extends State<Goals> {
     super.initState();
     if (!edit) {
       goals = Map<String, dynamic>();
-      goals['Spiritual Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Romance Relationship'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Family'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Social Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Health & Fitness'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Hobby & Leisure'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Physical Environment'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Self-Development'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Career or Study'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
-      goals['Finance'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Spiritual Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Romance Relationship'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Family'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Social Life'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Health & Fitness'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Hobby & Leisure'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Physical Environment'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Self-Development'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Career or Study'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
+      goals?['Finance'] = {"selected": false, "q1": "", "q2": "", "q3": "", "q4": "", "target": 0.0};
     }
     int i = 0;
-    goals.forEach((key, value) {
+    goals?.forEach((key, value) {
       if (key != "targetLCI") {
         if (value['selected']) {
           i++;
@@ -152,11 +151,11 @@ class _GoalsState extends State<Goals> {
     });
     totalSelected = i;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get().then((value) async {
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedGoals')) {
           infoVideo();
-          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({
+          await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).update({
             "viewedGoals": true,
           });
         }
@@ -213,17 +212,17 @@ class _GoalsState extends State<Goals> {
                             ],
                           ),
                           Column(
-                            children: goals.keys.map((key) {
+                            children: goals!.keys.map((key) {
                               if (key != "targetLCI") {
                                 return Padding(
                                   padding: EdgeInsets.only(top: 25),
                                   child: GoalSelection(
                                     title: key,
                                     description: goalDetails.getDesc(key),
-                                    value: goals[key]['selected'],
+                                    value: goals?[key]['selected'],
                                     assetPath: goalDetails.getAssetPath(key),
                                     callBack: (bool newValue) {
-                                      goals[key]['selected'] = newValue;
+                                      goals?[key]['selected'] = newValue;
                                       setState(
                                         () {
                                           newValue ? totalSelected++ : totalSelected--;
@@ -304,7 +303,7 @@ class LoadScore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
+    var ref = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore');
 
     return FutureBuilder<QuerySnapshot>(
       future: ref.get(),
@@ -404,15 +403,15 @@ class _GoalSettingState extends State<GoalSetting> {
   final _qThreeController = new TextEditingController();
   final _qFourController = new TextEditingController();
 
-  List<String> displayedList;
-  Map<String, dynamic> goals;
-  String toDisplay;
-  FocusNode _targetNode;
-  FocusNode _qOneNode;
-  FocusNode _qTwoNode;
-  FocusNode _qThreeNode;
-  FocusNode _qFourNode;
-  Map<String, double> subScore;
+  List<String> displayedList = [];
+  late Map<String, dynamic> goals;
+  late String toDisplay;
+  late FocusNode _targetNode;
+  late FocusNode _qOneNode;
+  late FocusNode _qTwoNode;
+  late FocusNode _qThreeNode;
+  late FocusNode _qFourNode;
+  late Map<String, double> subScore;
 
   var goalDetails = new GoalsDetails();
   var targetScore = 0.0;
@@ -444,10 +443,6 @@ class _GoalSettingState extends State<GoalSetting> {
       setState(() {});
     });
 
-    if (displayedList == null) {
-      displayedList = [];
-    }
-
     goals.entries.forEach((element) {
       if (element.key != "targetLCI") {
         if (element.value['selected']) {
@@ -477,7 +472,7 @@ class _GoalSettingState extends State<GoalSetting> {
 
   @override
   Widget build(BuildContext context) {
-    CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
+    CollectionReference user = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals');
 
     Future<void> updateGoals() {
       var dateNow = DateTime.now();
@@ -548,7 +543,7 @@ class _GoalSettingState extends State<GoalSetting> {
                             ],
                           ),
                           Text(
-                            subScore[toDisplay].toStringAsFixed(2),
+                            subScore[toDisplay]!.toStringAsFixed(2),
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 18,
@@ -559,7 +554,7 @@ class _GoalSettingState extends State<GoalSetting> {
                       ),
                       Padding(padding: EdgeInsets.all(2)),
                       RoundedLinearProgress(
-                        value: subScore[toDisplay] / 10,
+                        value: subScore[toDisplay]! / 10,
                         color: Color(0xFF170E9A),
                       ),
                       Padding(padding: EdgeInsets.all(12)),
@@ -714,7 +709,7 @@ class _GoalSettingState extends State<GoalSetting> {
                         onClickFunction: () async {
                           var targetScore = double.tryParse(_targetController.text);
                           if (targetScore != null) {
-                            if (targetScore <= subScore[toDisplay] || targetScore > 10) {
+                            if (targetScore <= subScore[toDisplay]! || targetScore > 10) {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Text('Goal input cannot be lesser than current value and cannot be higher than 10'),
                               ));

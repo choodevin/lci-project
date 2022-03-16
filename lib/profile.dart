@@ -42,7 +42,7 @@ class _ProfileState extends State<Profile> {
     return "v0.6.0";
   }
 
-  Future<bool> showConfirmLogout() {
+  Future<bool?> showConfirmLogout() {
     return showDialog<bool>(
       context: context,
       builder: (c) {
@@ -131,7 +131,7 @@ class _ProfileState extends State<Profile> {
                       },
                     ),
                     Padding(padding: EdgeInsets.all(20)),
-                    userData.isCoach
+                    userData.isCoach!
                         ? PrimaryButton(
                             text: 'Coach Screen',
                             color: Color(0xFF170E9A),
@@ -152,9 +152,9 @@ class _ProfileState extends State<Profile> {
                       textColor: Colors.white,
                       onClickFunction: () async {
                         await showConfirmLogout().then((value) {
-                          if (value) {
+                          if (value!) {
                             showLoading(context);
-                            FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
+                            FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser?.uid).update({"token": ""}).whenComplete(() {
                               FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
                             });
                           }

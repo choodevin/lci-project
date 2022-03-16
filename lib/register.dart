@@ -20,9 +20,9 @@ class _RegisterState extends State<Register> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  FocusNode focusNodePassword;
-  FocusNode focusNodeCfmPassword;
-  FocusNode focusNodeEmail;
+  FocusNode? focusNodePassword;
+  FocusNode? focusNodeCfmPassword;
+  FocusNode? focusNodeEmail;
   bool passwordVisible = true;
 
   void dispose() {
@@ -37,13 +37,13 @@ class _RegisterState extends State<Register> {
     focusNodePassword = FocusNode();
     focusNodeEmail = FocusNode();
     focusNodeCfmPassword = FocusNode();
-    focusNodePassword.addListener(() {
+    focusNodePassword!.addListener(() {
       setState(() {});
     });
-    focusNodeEmail.addListener(() {
+    focusNodeEmail!.addListener(() {
       setState(() {});
     });
-    focusNodeCfmPassword.addListener(() {
+    focusNodeCfmPassword!.addListener(() {
       setState(() {});
     });
   }
@@ -77,7 +77,7 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                       InputBox(
-                        focusNode: focusNodeEmail,
+                        focusNode: focusNodeEmail!,
                         focusNodeNext: focusNodePassword,
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -165,13 +165,13 @@ class _RegisterState extends State<Register> {
 }
 
 class RegisterDetails extends StatefulWidget {
-  final UserData user;
+  final UserData? user;
   final sso;
 
   RegisterDetails({this.user, this.sso});
 
   @override
-  _RegisterDetailsState createState() => _RegisterDetailsState(user, sso);
+  _RegisterDetailsState createState() => _RegisterDetailsState(user!, sso);
 }
 
 class _RegisterDetailsState extends State<RegisterDetails> {
@@ -431,9 +431,9 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                           child: Center(child: Text(value)),
                                                         );
                                                       }).toList(),
-                                                      onChanged: (String newValue) {
+                                                      onChanged: (String? newValue) {
                                                         setState(() {
-                                                          selectedCountry = newValue;
+                                                          selectedCountry = newValue!;
                                                         });
                                                       },
                                                     ),
@@ -509,10 +509,10 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                               child: Center(child: Text(value)),
                                                             );
                                                           }).toList(),
-                                                          onChanged: (String newValue) {
+                                                          onChanged: (String? newValue) {
                                                             setState(
                                                                   () {
-                                                                selectedYear = newValue;
+                                                                selectedYear = newValue!;
                                                               },
                                                             );
                                                           },
@@ -566,10 +566,10 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                               child: Center(child: Text(value)),
                                                             );
                                                           }).toList(),
-                                                          onChanged: (String newValue) {
+                                                          onChanged: (String? newValue) {
                                                             setState(
                                                                   () {
-                                                                selectedMonth = newValue;
+                                                                selectedMonth = newValue!;
                                                               },
                                                             );
                                                           },
@@ -627,10 +627,10 @@ class _RegisterDetailsState extends State<RegisterDetails> {
                                                               ),
                                                             );
                                                           }).toList(),
-                                                          onChanged: (String newValue) {
+                                                          onChanged: (String? newValue) {
                                                             setState(
                                                                   () {
-                                                                selectedDay = newValue;
+                                                                selectedDay = newValue!;
                                                               },
                                                             );
                                                           },
@@ -697,7 +697,7 @@ class _RegisterDetailsState extends State<RegisterDetails> {
 }
 
 class RegisterTC extends StatefulWidget {
-  final UserData user;
+  final UserData? user;
 
   RegisterTC({this.user});
 
@@ -706,7 +706,7 @@ class RegisterTC extends StatefulWidget {
 }
 
 class _RegisterTCState extends State<RegisterTC> {
-  final UserData user;
+  final UserData? user;
 
   _RegisterTCState(this.user);
 
@@ -809,7 +809,7 @@ class _RegisterTCState extends State<RegisterTC> {
                           color: (isAccept ? Color(0xFF299E45) : Color(0xFFAFAFAF)),
                           onClickFunction: (isAccept
                               ? () {
-                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterTC(), builder: (context) => RegisterKnowMore(user: user)));
+                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterTC(), builder: (context) => RegisterKnowMore(user: user!)));
                           }
                               : null),
                         ),
@@ -827,7 +827,7 @@ class _RegisterTCState extends State<RegisterTC> {
 }
 
 class RegisterKnowMore extends StatefulWidget {
-  final UserData user;
+  final UserData? user;
 
   RegisterKnowMore({this.user});
 
@@ -836,7 +836,7 @@ class RegisterKnowMore extends StatefulWidget {
 }
 
 class _RegisterKnowMoreState extends State<RegisterKnowMore> {
-  final UserData user;
+  final UserData? user;
   final _othersController = TextEditingController();
 
   _RegisterKnowMoreState(this.user);
@@ -860,7 +860,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
           child: Column(
             children: [
               PageHeadings(
-                text: 'Welcome, ' + user.name + '!',
+                text: 'Welcome, ' + user!.name! + '!',
                 metaText: 'Before starting, do allow us to get to know more about you.',
                 popAvailable: true,
               ),
@@ -906,7 +906,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                                           value: isChecked[0],
                                           onChanged: (value) {
                                             setState(() {
-                                              isChecked[0] = value;
+                                              isChecked[0] = value!;
                                               if (isChecked.contains(true)) {
                                                 isComplete = true;
                                               } else {
@@ -931,7 +931,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                                           value: isChecked[1],
                                           onChanged: (value) {
                                             setState(() {
-                                              isChecked[1] = value;
+                                              isChecked[1] = value!;
                                               if (isChecked.contains(true)) {
                                                 isComplete = true;
                                               } else {
@@ -956,7 +956,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                                           value: isChecked[2],
                                           onChanged: (value) {
                                             setState(() {
-                                              isChecked[2] = value;
+                                              isChecked[2] = value!;
                                               if (isChecked.contains(true)) {
                                                 isComplete = true;
                                               } else {
@@ -981,7 +981,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                                           value: isChecked[3],
                                           onChanged: (value) {
                                             setState(() {
-                                              isChecked[3] = value;
+                                              isChecked[3] = value!;
                                               if (isChecked.contains(true)) {
                                                 isComplete = true;
                                               } else {
@@ -1006,7 +1006,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                                           value: isChecked[4],
                                           onChanged: (value) {
                                             setState(() {
-                                              isChecked[4] = value;
+                                              isChecked[4] = value!;
                                               if (isChecked.contains(true)) {
                                                 isComplete = true;
                                               } else {
@@ -1062,7 +1062,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
                           color: (isComplete ? Color(0xFF299E45) : Color(0xFFAFAFAF)),
                           onClickFunction: (isComplete
                               ? () {
-                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterPlan(user: user)));
+                            Navigator.of(context).push(SlideLeftRoute(previousPage: RegisterKnowMore(user: user), builder: (context) => RegisterPlan(user: user!)));
                           }
                               : null),
                         ),
@@ -1080,7 +1080,7 @@ class _RegisterKnowMoreState extends State<RegisterKnowMore> {
 }
 
 class RegisterPlan extends StatefulWidget {
-  final UserData user;
+  final UserData? user;
 
   RegisterPlan({this.user});
 
@@ -1090,7 +1090,7 @@ class RegisterPlan extends StatefulWidget {
 
 class _RegisterPlanState extends State<RegisterPlan> {
   final globalKey = GlobalKey<ScaffoldState>();
-  final UserData user;
+  final UserData? user;
 
   _RegisterPlanState(this.user);
 
@@ -1366,24 +1366,24 @@ class _RegisterPlanState extends State<RegisterPlan> {
                     PrimaryButton(
                       onClickFunction: () async {
                         if (isPremium) {
-                          user.subscription = "Premium";
+                          user!.subscription = "Premium";
                         } else if (isStandard) {
-                          user.subscription = "Premium";
+                          user!.subscription = "Premium";
                         }
 
                         try {
-                          await FirebaseAuth.instance.createUserWithEmailAndPassword(email: user.email, password: user.password);
+                          await FirebaseAuth.instance.createUserWithEmailAndPassword(email: user!.email!, password: user!.password!);
                         } on FirebaseAuthException catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('There was an error occurred. ' + e.code)));
                         } finally {
                           CollectionReference userData = FirebaseFirestore.instance.collection('UserData');
-                          var uid = FirebaseAuth.instance.currentUser.uid;
+                          var uid = FirebaseAuth.instance.currentUser?.uid;
                           await userData.doc(uid).set({
-                            'name': user.name,
-                            'gender': user.gender,
-                            'country': user.country,
-                            'dateOfBirth': user.dateOfBirth,
-                            'subscription': user.subscription,
+                            'name': user?.name,
+                            'gender': user?.gender,
+                            'country': user?.country,
+                            'dateOfBirth': user?.dateOfBirth,
+                            'subscription': user?.subscription,
                             'viewedGoals' : false,
                             'viewedCampaign' : false,
                             'viewedHome' : false,
@@ -1395,7 +1395,7 @@ class _RegisterPlanState extends State<RegisterPlan> {
                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => GetUserData()));
                           }).catchError((error) =>
                               () async {
-                            await FirebaseAuth.instance.currentUser.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
+                            await FirebaseAuth.instance.currentUser?.delete().then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Login())));
                           });
                         }
                       },

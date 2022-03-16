@@ -1,13 +1,13 @@
 class UserData {
-  late String email;
-  late String password;
-  late String name;
-  late String gender;
-  late String country;
-  late String dateOfBirth;
-  late String subscription;
-  late String currentEnrolledCampaign;
-  late bool isCoach;
+  String? email;
+  String? password;
+  String? name;
+  String? gender;
+  String? country;
+  String? dateOfBirth;
+  String? subscription;
+  String? currentEnrolledCampaign;
+  bool? isCoach;
 
   UserData();
 }

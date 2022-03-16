@@ -1,8 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_login_web/flutter_facebook_login_web.dart' as FBWeb;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -13,22 +10,22 @@ import 'home.dart';
 
 class InputBox extends StatelessWidget {
   final FocusNode focusNode;
-  final FocusNode focusNodeNext;
+  final FocusNode? focusNodeNext;
   final TextEditingController controller;
-  final TextInputType keyboardType;
+  final TextInputType? keyboardType;
   final int minLines;
   final int maxLines;
-  final BorderRadiusGeometry borderRadius;
+  final BorderRadiusGeometry? borderRadius;
   final TextAlign textAlign;
   final bool readOnly;
   final Color color;
-  final String hint;
-  final Function onChanged;
+  final String? hint;
+  final Function(String)? onChanged;
 
   const InputBox({
-    this.focusNode,
+    required this.focusNode,
     this.focusNodeNext,
-    this.controller,
+    required this.controller,
     this.keyboardType,
     this.minLines = 1,
     this.maxLines = 1,
@@ -102,9 +99,9 @@ class InputBox extends StatelessWidget {
 }
 
 class PasswordBox extends StatefulWidget {
-  final FocusNode focusNode;
-  final FocusNode focusNodeNext;
-  final TextEditingController controller;
+  final FocusNode? focusNode;
+  final FocusNode? focusNodeNext;
+  final TextEditingController? controller;
 
   const PasswordBox({
     this.focusNode,
@@ -117,9 +114,9 @@ class PasswordBox extends StatefulWidget {
 }
 
 class _PasswordBoxState extends State<PasswordBox> {
-  final FocusNode focusNode;
-  final FocusNode focusNodeNext;
-  final TextEditingController controller;
+  final FocusNode? focusNode;
+  final FocusNode? focusNodeNext;
+  final TextEditingController? controller;
   bool passwordVisible = true;
 
   _PasswordBoxState(this.focusNode, this.focusNodeNext, this.controller);
@@ -130,7 +127,7 @@ class _PasswordBoxState extends State<PasswordBox> {
         borderRadius: BorderRadius.all(Radius.circular(90)),
         border: Border.all(color: Colors.transparent),
         boxShadow: [
-          BoxShadow(color: (focusNode.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent), blurRadius: (focusNode.hasFocus ? 3 : 0)),
+          BoxShadow(color: (focusNode!.hasFocus ? Color(0xFFB9B9B9) : Colors.transparent), blurRadius: (focusNode!.hasFocus ? 3 : 0)),
         ],
       ),
       child: TextField(
@@ -180,28 +177,23 @@ class GoogleSignInButton extends StatelessWidget {
   final GoogleSignIn googleSignIn = GoogleSignIn();
 
   Future<String> signInWithGoogle() async {
-    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
+    final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+    final GoogleSignInAuthentication? googleSignInAuthentication = await googleSignInAccount?.authentication;
 
     final AuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleSignInAuthentication.accessToken,
-      idToken: googleSignInAuthentication.idToken,
+      accessToken: googleSignInAuthentication?.accessToken,
+      idToken: googleSignInAuthentication?.idToken,
     );
 
     final UserCredential authResult = await _auth.signInWithCredential(credential);
-    final User user = authResult.user;
+    final User? user = authResult.user;
 
-    if (user != null) {
-      assert(!user.isAnonymous);
-      assert(await user.getIdToken() != null);
+    assert(!user!.isAnonymous);
 
-      final User currentUser = _auth.currentUser;
-      assert(user.uid == currentUser.uid);
+    final User? currentUser = _auth.currentUser;
+    assert(user?.uid == currentUser?.uid);
 
-      return '$user';
-    }
-
-    return null;
+    return '$user';
   }
 
   Widget build(BuildContext build) {
@@ -216,9 +208,7 @@ class GoogleSignInButton extends StatelessWidget {
         elevation: 3,
         padding: EdgeInsets.only(top: 11.0, bottom: 11.0),
         onPressed: () async {
-          await signInWithGoogle().then((result) => {
-                if (result != null) {Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => GetUserData()))}
-              });
+          await signInWithGoogle().then((result) => Navigator.pushReplacement(build, MaterialPageRoute(builder: (build) => GetUserData())));
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -375,7 +365,7 @@ class PrimaryButton extends StatelessWidget {
   final String text;
   final Color color;
   final Color textColor;
-  final Function onClickFunction;
+  final Function()? onClickFunction;
   final double borderRadius;
   final EdgeInsets padding;
 
@@ -416,7 +406,7 @@ class PrimaryButton extends StatelessWidget {
 class SecondaryButton extends StatelessWidget {
   final String text;
   final Color color;
-  final Function onClickFunction;
+  final Function()? onClickFunction;
   final disabled;
 
   SecondaryButton({this.onClickFunction, this.text = "Sample Text", this.color = Colors.white, this.disabled = false});
@@ -449,7 +439,7 @@ class SecondaryButton extends StatelessWidget {
 }
 
 class PrimaryCard extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
   final EdgeInsetsGeometry padding;
   final Color color;
   final BorderSide borderSide;
@@ -492,11 +482,11 @@ class PrimaryCard extends StatelessWidget {
 }
 
 class ClickablePrimaryCard extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
   final EdgeInsetsGeometry padding;
   final Color color;
   final BorderSide borderSide;
-  final Function onClickFunction;
+  final Function()? onClickFunction;
 
   ClickablePrimaryCard({
     this.child,
@@ -587,8 +577,8 @@ class TextWithIcon extends StatelessWidget {
   final Color assetColor;
 
   TextWithIcon(
-      {this.assetPath,
-      this.text,
+      {required this.assetPath,
+      required this.text,
       this.textStyle = const TextStyle(
         color: Colors.black,
         fontSize: 20,
@@ -754,23 +744,23 @@ class UnlockPremium extends StatelessWidget {
 }
 
 class GoalSelection extends StatefulWidget {
-  final String title;
-  final String description;
-  final bool value;
+  final String? title;
+  final String? description;
+  final bool? value;
   final String assetPath;
-  final Function(bool) callBack;
+  final Function(bool)? callBack;
 
-  const GoalSelection({this.title, this.description, this.value, this.assetPath, this.callBack});
+  const GoalSelection({this.title, this.description, this.value, required this.assetPath, this.callBack});
 
   _GoalSelectionState createState() => _GoalSelectionState(title, description, value, assetPath, callBack);
 }
 
 class _GoalSelectionState extends State<GoalSelection> {
-  final String title;
-  final String description;
+  final String? title;
+  final String? description;
   final String assetPath;
-  Function(bool) callBack;
-  bool value;
+  Function(bool)? callBack;
+  bool? value;
 
   _GoalSelectionState(this.title, this.description, this.value, this.assetPath, this.callBack);
 
@@ -779,12 +769,12 @@ class _GoalSelectionState extends State<GoalSelection> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          value = !value;
+          value = !value!;
         });
-        callBack(value);
+        callBack!(value!);
       },
       child: PrimaryCard(
-        color: value ? Color(0xFF299E45) : Colors.white,
+        color: value! ? Color(0xFF299E45) : Colors.white,
         borderSide: BorderSide(
           color: Colors.white,
           width: 10,
@@ -798,15 +788,15 @@ class _GoalSelectionState extends State<GoalSelection> {
                   assetPath,
                   height: 22,
                   width: 22,
-                  color: value ? Colors.white : Color(0xFF6E6E6E),
+                  color: value! ? Colors.white : Color(0xFF6E6E6E),
                 ),
                 Padding(padding: EdgeInsets.all(10)),
                 Text(
-                  title,
+                  title!,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: value ? Colors.white : Color(0xFF6E6E6E),
+                    color: value! ? Colors.white : Color(0xFF6E6E6E),
                   ),
                 ),
                 Padding(padding: EdgeInsets.all(5)),
@@ -815,10 +805,10 @@ class _GoalSelectionState extends State<GoalSelection> {
             Padding(
               padding: EdgeInsets.only(left: 40, top: 10),
               child: Text(
-                description,
+                description!,
                 style: TextStyle(
                   fontSize: 16,
-                  color: value ? Colors.white : Color(0xFF6E6E6E),
+                  color: value! ? Colors.white : Color(0xFF6E6E6E),
                 ),
               ),
             )
@@ -1089,7 +1079,7 @@ class ChatPollState extends State<ChatPoll> {
   Widget build(BuildContext context) {
     DateTime currentTime = DateTime.now();
     bool isExpire = currentTime.isBefore(expireTime) ? false : true;
-    String timeLeft = isExpire ? null : "${expireTime.difference(currentTime).inHours}hour(s)";
+    String? timeLeft = isExpire ? null : "${expireTime.difference(currentTime).inHours}hour(s)";
     return AnimatedContainer(
       margin: EdgeInsets.symmetric(vertical: 8),
       constraints: BoxConstraints(
@@ -1214,7 +1204,7 @@ class ChatBubble extends StatelessWidget {
   final String targetName;
   final bool owner;
 
-  ChatBubble({this.content, this.timeStamp, this.owner, this.targetName});
+  ChatBubble({required this.content, required this.timeStamp, required this.owner, required this.targetName});
 
   @override
   Widget build(BuildContext context) {

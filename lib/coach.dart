@@ -11,13 +11,13 @@ class CoachMain extends StatefulWidget {
 }
 
 class _CoachMainState extends State<CoachMain> {
-  Future<DocumentSnapshot> coachingListRef;
-  Future<QuerySnapshot> campaignNameRef;
+  late Future<DocumentSnapshot> coachingListRef;
+  late Future<QuerySnapshot> campaignNameRef;
 
   @override
   void initState() {
     super.initState();
-    coachingListRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get();
+    coachingListRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get();
     campaignNameRef = FirebaseFirestore.instance.collection('CampaignData').get();
   }
 
@@ -56,12 +56,12 @@ class _CoachMainState extends State<CoachMain> {
                             if (snapshot.connectionState == ConnectionState.done) {
                               List<dynamic> coachingList;
                               Map<String, String> campaignNameList = {};
-                              QuerySnapshot campaignSnapshot = snapshot.data[1];
+                              QuerySnapshot campaignSnapshot = snapshot.data![1];
                               campaignSnapshot.docs.forEach((element) {
                                 campaignNameList[element.get('invitationCode')] = element.get('name');
                               });
                               try {
-                                coachingList = snapshot.data[0].get('coachingList');
+                                coachingList = snapshot.data?[0].get('coachingList');
                               } catch (e) {
                                 return Text("There are no campaign joined as coach");
                               }
@@ -80,7 +80,7 @@ class _CoachMainState extends State<CoachMain> {
                                       child: PrimaryCard(
                                         padding: EdgeInsets.symmetric(vertical: 15),
                                         child: Text(
-                                          campaignName,
+                                          campaignName!,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 18,
@@ -107,7 +107,7 @@ class _CoachMainState extends State<CoachMain> {
                         await Navigator.of(context).push(MaterialPageRoute(builder: (context) => JoinCampaignAsCoach())).then((changes) {
                           if (changes) {
                             setState(() {
-                              coachingListRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).get();
+                              coachingListRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get();
                             });
                           }
                         });
@@ -129,7 +129,7 @@ class JoinCampaignAsCoach extends StatefulWidget {
 }
 
 class _JoinCampaignAsCoachState extends State<JoinCampaignAsCoach> {
-  FocusNode _campaignCodeNode;
+  late FocusNode _campaignCodeNode;
   var _campaignCodeController = new TextEditingController();
   var changes = false;
 
@@ -146,10 +146,10 @@ class _JoinCampaignAsCoachState extends State<JoinCampaignAsCoach> {
 
   Future<String> joinCampaign() async {
     return await FirebaseFirestore.instance.collection('CampaignData').where('invitationCode', isEqualTo: _campaignCodeController.text).get().then((value) async {
-      if (value == null || value.size == 0) {
+      if (value.size == 0) {
         return 'No campaign found';
       } else {
-        var userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid);
+        var userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid);
         return await userRef.get().then((value) async {
           List<dynamic> coachingList;
           try {
@@ -194,7 +194,7 @@ class _JoinCampaignAsCoachState extends State<JoinCampaignAsCoach> {
                   children: [
                     InputBox(
                       focusNode: _campaignCodeNode,
-                      controller: _campaignCodeController,
+                      controller: _campaignCodeController, keyboardType: null,
                     ),
                     Padding(padding: EdgeInsets.all(10)),
                     PrimaryButton(
