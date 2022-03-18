@@ -14,19 +14,14 @@ Current project structure is a mess, the projected/expected project sturcture wi
 lci-project
 │
 └─── Model
-│    - Just like ordinary entity object class Example: User.dart
 │
 └─── Route
-│    - Routing class, for easier navigation and application routes
 │
 └─── Screen (Views)
-│    - UI of the application
 │
-└─── Services (Functions)
-│    - Main functions implemented here
+└─── Services
 │
-└─── Controllers/Action
-│    - Communication between user interface and backend functions/data
+└─── View Model
 │
 └─── main.dart
 ```
