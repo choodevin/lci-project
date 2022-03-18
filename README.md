@@ -9,8 +9,7 @@ An application that supports [4WARD Life Compass](https://4wardlc.com/), include
 - Goals Settings (goals based on LCI Test)
 
 ## Project Structure
-Current project structure is a mess, the projected/expected project sturcture will be as follows:
->Directories such as firebase functions and flutter web build will be excluded from this tree
+Current project structure is a mess, the projected/expected project sturcture will be as follows (adopting to MVVM with Provider):
 ```
 lci-project
 │
