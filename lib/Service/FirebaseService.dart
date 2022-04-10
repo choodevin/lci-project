@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseService {
   final FirebaseFirestore db = FirebaseFirestore.instance;
+  final String path;
   var ref;
-  late String endAt;
-  late final String path;
+  String? endAt;
 
   static const COL = "COL";
   static const DOC = "DOC";

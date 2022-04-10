@@ -202,7 +202,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                               height: 66,
                               child: ScrollablePositionedList.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: daysBetween,
+                                itemCount: daysBetween!,
                                 itemBuilder: (c, i) {
                                   var toGet = DateTime(initialDate!.year, initialDate!.month, initialDate!.day + i);
                                   var selected = false;

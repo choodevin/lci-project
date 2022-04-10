@@ -1,26 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'User.dart';
+import 'UserModel.dart';
 
-class MonthlyRankings {
-  late String id;
-  late int days;
-  late int totalLeave;
-  late double totalScore;
-  late String name;
-  late double averageScore;
+class MonthlyRankingsModel {
+  String? id;
+  int? days;
+  int? totalLeave;
+  double? totalScore;
+  String? name;
+  double? averageScore;
 
-  MonthlyRankings({this.id = "", this.days = 0, this.totalLeave = 0, this.totalScore = 0, this.name = "", this.averageScore = 0});
+  MonthlyRankingsModel({this.id = "", this.days = 0, this.totalLeave = 0, this.totalScore = 0, this.name = "", this.averageScore = 0});
 
-  MonthlyRankings.fromMap(Map snapshot, String id)
-      : id = id ?? "",
+  MonthlyRankingsModel.fromMap(Map snapshot, String id)
+      : id = id,
         days = snapshot['days'] ?? 0,
         totalLeave = snapshot['totalLeave'] ?? 0,
         totalScore = snapshot['totalScore'] ?? 0.0;
 
-  Future<List<MonthlyRankings>> documentToList(DocumentSnapshot snapshot) async {
-    List<MonthlyRankings> result = [];
-    User userModel = User();
+  Future<List<MonthlyRankingsModel>> documentToList(DocumentSnapshot snapshot) async {
+    List<MonthlyRankingsModel> result = [];
+    UserModel userModel = UserModel.emptyConstructor();
     if (snapshot.exists) {
       Map? resultMap = snapshot.data() as Map?;
 
@@ -29,7 +29,7 @@ class MonthlyRankings {
         var value = entry.value;
         double averageScore = value['totalScore'] / value['days'] * 10;
         String name = await userModel.getName(key);
-        result.add(MonthlyRankings(
+        result.add(MonthlyRankingsModel(
           id: key,
           name: name,
           days: value['days'],
@@ -39,7 +39,8 @@ class MonthlyRankings {
         ));
       }
     }
-    result.sort((a, b) => b.averageScore.compareTo(a.averageScore));
+    result.sort((a, b) => b.averageScore!.compareTo(a.averageScore!));
+
     return result;
   }
 }

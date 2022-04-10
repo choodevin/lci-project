@@ -8,8 +8,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'Model/Campaign.dart';
-import 'Model/MonthlyRankings.dart';
+import 'Model/CampaignModel.dart';
+import 'Model/MonthlyRankingsModel.dart';
 import 'Service/CampaignService.dart';
 import 'entity/GoalsDetails.dart';
 import 'entity/LCIScore.dart';
@@ -40,7 +40,7 @@ class LoadCampaign extends StatelessWidget {
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
-          var campaign = new Campaign.emptyConstructor();
+          var campaign = new CampaignModel.emptyConstructor();
 
           campaign.name = snapshot.data?.docs.last.get('name');
           campaign.campaignAdmin = snapshot.data?.docs.last.get('campaignAdmin');
@@ -233,7 +233,7 @@ class SetupCampaign extends StatefulWidget {
 }
 
 class _SetupCampaignState extends State<SetupCampaign> {
-  final Campaign campaignData = Campaign.emptyConstructor();
+  final CampaignModel campaignData = CampaignModel.emptyConstructor();
   final _scorePenaltyController = new TextEditingController();
   final _campaignNameController = new TextEditingController();
   final userdata;
@@ -694,7 +694,7 @@ class _SetupCampaignState extends State<SetupCampaign> {
 }
 
 class SetupCampaignRules extends StatefulWidget {
-  final Campaign campaignData;
+  final CampaignModel campaignData;
   final userdata;
 
   const SetupCampaignRules({required this.campaignData, this.userdata});
@@ -703,7 +703,7 @@ class SetupCampaignRules extends StatefulWidget {
 }
 
 class _SetupCampaignRulesState extends State<SetupCampaignRules> {
-  final Campaign campaignData;
+  final CampaignModel campaignData;
   final userdata;
   final _rulesController = new TextEditingController();
 
@@ -808,7 +808,7 @@ class _SetupCampaignRulesState extends State<SetupCampaignRules> {
 }
 
 class SetupCampaignFinal extends StatelessWidget {
-  final Campaign campaignData;
+  final CampaignModel campaignData;
   final UserData userdata;
 
   const SetupCampaignFinal({Key? key, required this.campaignData, required this.userdata}) : super(key: key);
@@ -916,7 +916,7 @@ class CampaignMain extends StatefulWidget {
 }
 
 class _CampaignMainState extends State<CampaignMain> {
-  late Campaign campaign;
+  late CampaignModel campaign;
   final campaignId;
   final isCoach;
 
@@ -1029,9 +1029,9 @@ class _CampaignMainState extends State<CampaignMain> {
                             assetPath: 'assets/medal.svg',
                           ),
                           Padding(padding: EdgeInsets.all(5)),
-                          FutureBuilder<List<MonthlyRankings>>(
+                          FutureBuilder<List<MonthlyRankingsModel>>(
                               future: campaignService.getRankings(campaignId, ""),
-                              builder: (context, AsyncSnapshot<List<MonthlyRankings>> snapshot) {
+                              builder: (context, AsyncSnapshot<List<MonthlyRankingsModel>> snapshot) {
                                 if (snapshot.hasError) {
                                   return Padding(
                                     padding: EdgeInsets.all(50),
@@ -1040,7 +1040,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                 }
 
                                 if (snapshot.connectionState == ConnectionState.done) {
-                                  List<MonthlyRankings> rankingsList = snapshot.data!;
+                                  List<MonthlyRankingsModel> rankingsList = snapshot.data!;
 
                                   return ListView.builder(
                                     shrinkWrap: true,
@@ -1057,11 +1057,11 @@ class _CampaignMainState extends State<CampaignMain> {
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Text(
-                                                  rankingsList[index].name,
+                                                  rankingsList[index].name!,
                                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                 ),
                                                 Text(
-                                                  rankingsList[index].averageScore.toStringAsFixed(2) + "%",
+                                                  rankingsList[index].averageScore!.toStringAsFixed(2) + "%",
                                                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                                                 ),
                                               ],
@@ -1075,7 +1075,7 @@ class _CampaignMainState extends State<CampaignMain> {
                                                       : index == 2
                                                           ? Color(0XFFCD7F32)
                                                           : Color(0XFF299E45),
-                                              value: rankingsList[index].averageScore / 100,
+                                              value: rankingsList[index].averageScore! / 100,
                                             ),
                                           ],
                                         ),
@@ -1668,7 +1668,7 @@ class CampaignSettings extends StatefulWidget {
 
 class _CampaignSettingsState extends State<CampaignSettings> {
   final campaignId;
-  Campaign campaignData;
+  CampaignModel campaignData;
   final isCoach;
 
   _CampaignSettingsState(this.campaignData, this.campaignId, this.isCoach);

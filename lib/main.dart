@@ -6,10 +6,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Model/Campaign.dart';
+import 'Notifier/CampaignNotifier.dart';
 import 'Route/Routes.dart';
-import 'home.dart';
-import 'login.dart';
+import 'Screen/Home.dart';
+import 'Screen/Landing.dart';
+import 'Screen/Utility/BaseTheme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,16 +26,14 @@ class BuildApp extends StatelessWidget {
     return FutureBuilder(
       future: _initialization,
       builder: (context, snapshot) {
+        bool isLoggedIn = false;
         if (snapshot.connectionState == ConnectionState.done) {
           FirebaseMessaging.onBackgroundMessage(notificationReceiver);
           if (FirebaseAuth.instance.currentUser != null) {
-          } else {
+            isLoggedIn = true;
           }
           return MaterialApp(
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-            ),
+            theme: BaseTheme.defaultTheme,
             onGenerateRoute: Routes.generateRoute,
             builder: (context, child) {
               return ScrollConfiguration(
@@ -42,7 +41,7 @@ class BuildApp extends StatelessWidget {
                 child: child!,
               );
             },
-            home: GetUserData(),
+            home: isLoggedIn ? Home() : Landing(),
           );
         }
 
@@ -57,7 +56,7 @@ class LoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<Campaign>(create: (c) => Campaign.emptyConstructor()),
+        ChangeNotifierProvider<CampaignNotifier>(create: (c) => CampaignNotifier()),
       ],
       child: MaterialApp(
         theme: ThemeData(
@@ -70,7 +69,7 @@ class LoggedInMain extends StatelessWidget {
             child: child!,
           );
         },
-        home: GetUserData(),
+        home: Home(),
       ),
     );
   }
@@ -81,7 +80,7 @@ class NonLoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<Campaign>(create: (c) => Campaign.emptyConstructor()),
+        ChangeNotifierProvider<CampaignNotifier>(create: (c) => CampaignNotifier()),
       ],
       child: MaterialApp(
         theme: ThemeData(
@@ -94,7 +93,7 @@ class NonLoggedInMain extends StatelessWidget {
             child: child!,
           );
         },
-        home: Login(),
+        home: Landing(),
       ),
     );
   }

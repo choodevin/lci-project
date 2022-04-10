@@ -1,9 +1,9 @@
 import 'package:LCI/Service/FirebaseService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Model/MonthlyRankings.dart';
+import '../Model/MonthlyRankingsModel.dart';
 
 class CampaignService {
-  Future<List<MonthlyRankings>> getRankings(String campaignId, String rankingsDate) async {
+  Future<List<MonthlyRankingsModel>> getRankings(String campaignId, String rankingsDate) async {
     if (rankingsDate.length == 0) {
       DateTime now = DateTime.now();
       int currentMonth = now.month;
@@ -14,7 +14,7 @@ class CampaignService {
     }
 
     FirebaseService db = FirebaseService("CampaignData/$campaignId/MonthlyRanking/$rankingsDate");
-    MonthlyRankings rankingsModel = MonthlyRankings();
+    MonthlyRankingsModel rankingsModel = MonthlyRankingsModel();
 
     DocumentSnapshot result = await db.getData();
 
