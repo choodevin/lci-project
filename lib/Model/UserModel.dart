@@ -1,37 +1,61 @@
-import 'package:LCI/Service/FirebaseService.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
 
-class UserModel extends ChangeNotifier {
-  String? id;
+import 'package:LCI/Model/BaseModel.dart';
+
+class UserModel extends BaseModel {
+  static String TABLE_NAME = "Users"; // Table name for Firebase DB usage
+
+  // Column names
   String? email;
   String? password;
   String? name;
   String? gender;
   String? country;
-  String? dateOfBirth;
-  String? subscription;
+  DateTime? dateOfBirth;
+  String? subscriptionType;
   String? currentEnrolledCampaign;
   bool? isCoach;
 
-  UserModel.emptyConstructor();
+  // Storage file name
+  File? profilePicture;
 
-  UserModel.fromMap(Map snapshot, String id)
-      : id = id,
-        email = snapshot['email'] ?? "",
-        password = snapshot['password'] ?? "",
-        name = snapshot['name'] ?? "",
-        gender = snapshot['gender'] ?? "",
-        country = snapshot['country'] ?? "",
-        dateOfBirth = snapshot['dateOfBirth'] ?? "",
-        subscription = snapshot['subscription'] ?? "",
-        currentEnrolledCampaign = snapshot['currentEnrolledCampaign'] ?? "",
-        isCoach = snapshot['isCoach'] ?? "";
+  UserModel() : super(tableName: TABLE_NAME); // Must initialize BaseModel's table name
 
-  Future<String> getName(String id) async {
-    var result;
-    FirebaseService db = FirebaseService("UserData");
-    result = await db.getDocumentById(id);
-    result = result.get("name");
-    return result;
+  void toObject(String id, Object? obj) {
+    super.toObject(id, obj);
+
+    Map<String, dynamic> map;
+
+    map = obj! as Map<String, dynamic>;
+
+    this.email = map['email'];
+    this.name = map['name'];
+    this.gender = map['gender'];
+    this.country = map['country'];
+    this.dateOfBirth = map['dateOfBirth'];
+    this.subscriptionType = map['subscriptionType'];
+    this.currentEnrolledCampaign = map['currentEnrolledCampaign'];
+    this.isCoach = map['isCoach'];
+  }
+
+  Map<String, dynamic> toMap() {
+    super.toMap();
+
+    this.objectMap["email"] = this.email;
+    this.objectMap["name"] = this.name;
+    this.objectMap["gender"] = this.gender;
+    this.objectMap["country"] = this.country;
+    this.objectMap["dateOfBirth"] = this.dateOfBirth;
+    this.objectMap["subscriptionType"] = this.subscriptionType;
+    this.objectMap["currentEnrolledCampaign"] = this.currentEnrolledCampaign;
+    this.objectMap["isCoach"] = this.isCoach;
+
+    return this.objectMap;
+  }
+
+  Map<String, File> getFileList() {
+    this.fileList["profilePicture"] = this.profilePicture!;
+
+    return fileList;
   }
 }

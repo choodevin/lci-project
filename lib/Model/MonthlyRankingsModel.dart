@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'UserModel.dart';
+import '../Service/UserService.dart';
 
 class MonthlyRankingsModel {
   String? id;
@@ -20,7 +20,6 @@ class MonthlyRankingsModel {
 
   Future<List<MonthlyRankingsModel>> documentToList(DocumentSnapshot snapshot) async {
     List<MonthlyRankingsModel> result = [];
-    UserModel userModel = UserModel.emptyConstructor();
     if (snapshot.exists) {
       Map? resultMap = snapshot.data() as Map?;
 
@@ -28,7 +27,7 @@ class MonthlyRankingsModel {
         String key = entry.key;
         var value = entry.value;
         double averageScore = value['totalScore'] / value['days'] * 10;
-        String name = await userModel.getName(key);
+        String name = await UserService.getName(key);
         result.add(MonthlyRankingsModel(
           id: key,
           name: name,

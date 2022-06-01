@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../Screen/Home.dart';
 import '../Screen/Landing.dart';
-import '../Screen/Register.dart';
+import '../Screen/register/Register.dart';
 
 class Routes {
+  static const String LANDING = "/";
+  static const String REGISTER = "register";
+  static const String HOME = "home";
+
   static Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case "/":
+      case LANDING:
         return MaterialPageRoute(builder: (_) => Landing());
-      case "register":
+      case REGISTER:
         return MaterialPageRoute(builder: (_) => Register());
-      case "home":
+      case HOME:
         return MaterialPageRoute(builder: (_) => Home());
     }
 

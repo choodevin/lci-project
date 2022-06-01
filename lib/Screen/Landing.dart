@@ -1,21 +1,20 @@
-import 'package:LCI/Notifier/StateNotifier.dart';
-import 'package:LCI/Screen/Utility/PrimaryButton.dart';
-import 'package:LCI/Screen/Utility/Labels.dart';
-import 'package:LCI/Screen/Utility/PrimaryInput.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:LCI/Screen/_Utility/Camera.dart';
+import 'package:LCI/Screen/_Utility/PrimaryButton.dart';
+import 'package:LCI/Screen/_Utility/Labels.dart';
+import 'package:LCI/Screen/_Utility/PrimaryInput.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../ViewModel/LandingViewModel.dart';
-import 'Utility/BaseScreen.dart';
-import 'Utility/BaseTheme.dart';
-import 'Utility/Regex.dart';
+import '_Utility/BaseScreen.dart';
+import '_Utility/BaseTheme.dart';
+import '_Utility/Regex.dart';
 
 class Landing extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => StateNotifier()),
+        ChangeNotifierProvider(create: (context) => LandingViewModel()),
       ],
       child: _Landing(),
     );
@@ -30,14 +29,15 @@ class _Landing extends StatefulWidget {
 class StateLanding extends State<_Landing> {
   final GlobalKey<FormState> loginFormKey = GlobalKey();
 
-  LandingViewModel landingViewModel = new LandingViewModel();
-
   String email = "";
   String password = "";
 
   @override
   Widget build(BuildContext context) {
-    StateNotifier stateNotifier = Provider.of<StateNotifier>(context, listen: false);
+    LandingViewModel landingViewModel = Provider.of<LandingViewModel>(context);
+
+    TextEditingController emailController = new TextEditingController(text: email);
+    TextEditingController passwordController = new TextEditingController(text: password);
 
     return BaseScreen(
       resizeToAvoidBottomInset: false,
@@ -47,13 +47,14 @@ class StateLanding extends State<_Landing> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            PageTitle(text: "Login", margin: BaseTheme.DEFAULT_HEADINGS_MARGIN),
-            MetaText(text: 'Welcome to LCI Life Compass', margin: EdgeInsets.only(top: 8, bottom: 22)),
+            PageTitle(text: "Login"),
+            MetaText(text: 'Welcome to LCI Life Compass'),
             PrimaryInput(
+              enabled: landingViewModel.isStateLoading() ? false : true,
               labelText: "Email",
               textInputType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
-              margin: BaseTheme.DEFAULT_MARGIN,
+              textEditingController: emailController,
               onSaved: (value) {
                 email = value;
               },
@@ -64,9 +65,10 @@ class StateLanding extends State<_Landing> {
               },
             ),
             PasswordInput(
+                enabled: landingViewModel.isStateLoading() ? false : true,
                 labelText: "Password",
                 textInputAction: TextInputAction.done,
-                margin: BaseTheme.DEFAULT_MARGIN,
+                textEditingController: passwordController,
                 validator: (value) {
                   if (value == null || value.isEmpty) return "Please enter your password";
                   return null;
@@ -85,17 +87,8 @@ class StateLanding extends State<_Landing> {
               color: BaseTheme.DEFAULT_DISPLAY_COLOR,
             ),
             PrimaryButton(
-              onPressed: () async {
-                FirebaseAuth.instance.signOut();
-                if (loginFormKey.currentState!.validate()) {
-                  loginFormKey.currentState!.save();
-                  bool validate = await landingViewModel.login(stateNotifier, email, password);
-
-                  if (validate) {
-                    Navigator.of(context).pushNamedAndRemoveUntil('home', (Route<dynamic> route) => false);
-                  }
-                }
-              },
+              isLoading: landingViewModel.isStateLoading() ? true : false,
+              onPressed: () => landingViewModel.login(email, password, loginFormKey, context),
               text: "LOGIN",
             ),
           ],

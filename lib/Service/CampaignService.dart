@@ -1,5 +1,3 @@
-import 'package:LCI/Service/FirebaseService.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Model/MonthlyRankingsModel.dart';
 
 class CampaignService {
@@ -13,13 +11,8 @@ class CampaignService {
       rankingsDate = "$monthString-$currentYear";
     }
 
-    FirebaseService db = FirebaseService("CampaignData/$campaignId/MonthlyRanking/$rankingsDate");
-    MonthlyRankingsModel rankingsModel = MonthlyRankingsModel();
+    List<MonthlyRankingsModel> result = [];
 
-    DocumentSnapshot result = await db.getData();
-
-    print(result.exists);
-
-    return await rankingsModel.documentToList(result);
+    return result;
   }
 }

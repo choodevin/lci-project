@@ -1,6 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-
-import 'Utility/BaseScreen.dart';
+import '_Utility/BaseScreen.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -8,10 +8,12 @@ class Home extends StatefulWidget {
 }
 
 class StateHome extends State<Home> {
-  @override
+  FirebaseAuth auth = FirebaseAuth.instance;
+
   Widget build(BuildContext context) {
+    auth.signOut();
     return BaseScreen(
-      child: Text("Welcome")
+      child: Text("Welcome"),
     );
   }
 }

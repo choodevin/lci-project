@@ -6,11 +6,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Notifier/CampaignNotifier.dart';
 import 'Route/Routes.dart';
 import 'Screen/Home.dart';
 import 'Screen/Landing.dart';
-import 'Screen/Utility/BaseTheme.dart';
+import 'Screen/_Utility/BaseTheme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,7 +55,6 @@ class LoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<CampaignNotifier>(create: (c) => CampaignNotifier()),
       ],
       child: MaterialApp(
         theme: ThemeData(
@@ -80,7 +78,6 @@ class NonLoggedInMain extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<CampaignNotifier>(create: (c) => CampaignNotifier()),
       ],
       child: MaterialApp(
         theme: ThemeData(

@@ -141,7 +141,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                   FloatingActionButton(
                     child: isEdit
                         ? SvgPicture.asset('assets/check.svg', color: Colors.white, height: 16, width: 16)
-                        : SvgPicture.asset('assets/plus.svg', color: Colors.white, height: 16, width: 16),
+                        : SvgPicture.asset('assets/plus_bak.svg', color: Colors.white, height: 16, width: 16),
                     backgroundColor: isEdit ? Color(0xFF299E45) : Color(0xFF170E9A),
                     onPressed: isEdit
                         ? () {

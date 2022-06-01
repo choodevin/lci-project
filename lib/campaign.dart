@@ -1286,7 +1286,7 @@ class _CampaignMainState extends State<CampaignMain> {
               height: 120,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: users.size,
+                itemCount: users.finalSize,
                 itemBuilder: (context, index) {
                   DocumentSnapshot user = users.docs[index];
                   if (user.id != FirebaseAuth.instance.currentUser?.uid) {
