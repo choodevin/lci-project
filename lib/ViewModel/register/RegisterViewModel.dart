@@ -60,7 +60,7 @@ class RegisterViewModel extends BaseViewModel {
   }
 
   updateProfilePictureData(XFile? file) {
-    if (file != null) this.user.profilePicture = File(file.path);
+    if (file != null) this.user.profilePictureFile = File(file.path);
     notifyListeners();
   }
 

@@ -70,4 +70,8 @@ class UserService {
       return false;
     }
   }
+
+  static Future<UserModel> getUserById(String id) async {
+    return await UserDAO.findUserById(id);
+  }
 }

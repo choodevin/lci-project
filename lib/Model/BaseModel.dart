@@ -21,8 +21,8 @@ abstract class BaseModel {
     map = obj! as Map<String, dynamic>;
 
     this.creationTime = map['creationTime'];
-    this.creationTime = map['updateTime'];
-    this.creationTime = map['id'];
+    this.updateTime = map['updateTime'];
+    this.id = id;
   }
 
   @mustCallSuper

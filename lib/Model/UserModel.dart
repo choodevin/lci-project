@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:LCI/Model/BaseModel.dart';
 
@@ -17,7 +18,8 @@ class UserModel extends BaseModel {
   bool? isCoach;
 
   // Storage file name
-  File? profilePicture;
+  File? profilePictureFile;
+  Uint8List? profilePictureBits;
 
   UserModel() : super(tableName: TABLE_NAME); // Must initialize BaseModel's table name
 
@@ -32,7 +34,7 @@ class UserModel extends BaseModel {
     this.name = map['name'];
     this.gender = map['gender'];
     this.country = map['country'];
-    this.dateOfBirth = map['dateOfBirth'];
+    this.dateOfBirth = map['dateOfBirth'].toDate();
     this.subscriptionType = map['subscriptionType'];
     this.currentEnrolledCampaign = map['currentEnrolledCampaign'];
     this.isCoach = map['isCoach'];
@@ -54,7 +56,7 @@ class UserModel extends BaseModel {
   }
 
   Map<String, File> getFileList() {
-    this.fileList["profilePicture"] = this.profilePicture!;
+    this.fileList["profilePicture"] = this.profilePictureFile!;
 
     return fileList;
   }

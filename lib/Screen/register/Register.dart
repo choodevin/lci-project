@@ -91,9 +91,9 @@ class StateRegister extends State<_Register> {
                               height: 150,
                               width: 150,
                               child: ClipOval(
-                                child: registerViewModel.user.profilePicture != null
+                                child: registerViewModel.user.profilePictureFile != null
                                     ? Image.file(
-                                        registerViewModel.user.profilePicture!,
+                                        registerViewModel.user.profilePictureFile!,
                                         fit: BoxFit.cover,
                                       )
                                     : Icon(Icons.add, color: BaseTheme.DEFAULT_OUTLINE_COLOR, size: 28),

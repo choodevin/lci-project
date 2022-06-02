@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -73,7 +74,7 @@ class FirebaseService {
   }
 
   // firestore method
-  Future<bool> createDocument() async {
+  Future<bool> createDocument({String? id}) async {
     if (ref != null) {
       try {
         objectModel.creationTime = Timestamp.now();
@@ -81,7 +82,12 @@ class FirebaseService {
 
         Map<String, dynamic> doc = objectModel.toMap();
 
-        await ref!.add(doc).then((doc) => objectModel.id = doc.id);
+        if (id != null) {
+          await ref!.doc(id).set(doc);
+          objectModel.id = id;
+        } else {
+          await ref!.add(doc).then((doc) => objectModel.id = doc.id);
+        }
 
         return true;
       } catch (e) {
@@ -106,8 +112,7 @@ class FirebaseService {
             String fileName = map.key;
             File file = map.value;
 
-            print(storageRef!.child("${objectModel.id}/$fileName${Path.extension(file.path)}").fullPath);
-            await storageRef!.child("${objectModel.id}/$fileName${Path.extension(file.path)}").putFile(file);
+            await storageRef!.child("${objectModel.id}/$fileName").putFile(file);
           }
 
           return true;
@@ -117,6 +122,19 @@ class FirebaseService {
       } catch (e) {
         print("Error occurred while uploading file : $e");
         return false;
+      }
+    } else {
+      throw Exception("Storage reference is null, please verify if you are using firestore or storage");
+    }
+  }
+
+  Future<Uint8List?> downloadFile(String fileName) async {
+    if (storageRef != null) {
+      try {
+        return await storageRef!.child("${objectModel.id}/$fileName").getData();
+      } catch (e) {
+        print("Error occurred while downloading file : $e");
+        return null;
       }
     } else {
       throw Exception("Storage reference is null, please verify if you are using firestore or storage");
