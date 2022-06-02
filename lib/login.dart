@@ -178,7 +178,6 @@ class _LoginFormState extends State<LoginForm> {
                 Padding(
                   padding: EdgeInsets.only(top: 15),
                 ),
-                FacebookSignInButton(),
               ],
             ),
           ),

@@ -59,6 +59,10 @@ class _HomeState extends State<Home> {
         var primaryCounter = 0;
         var secondaryCounter = 0;
 
+        if(sevenThings['content'] == null) {
+          sevenThings['content'] = {};
+        }
+
         sevenThings['content'].forEach((k, v) {
           if (v['type'] == 'Primary') {
             contentOrder.add(k);

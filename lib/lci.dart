@@ -1212,6 +1212,7 @@ class _LCIMainState extends State<LCIMain> {
                 popAvailable: true,
               ),
               Container(
+                height: MediaQuery.of(context).size.height - 115,
                 padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1224,53 +1225,55 @@ class _LCIMainState extends State<LCIMain> {
                       ),
                     ),
                     Padding(padding: EdgeInsets.all(10)),
-                    FutureBuilder(
-                      future: ref,
-                      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (snapshot.hasError) {
-                          return Text('Something went wrong');
-                        }
+                    Expanded(
+                      child: FutureBuilder(
+                        future: ref,
+                        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          if (snapshot.hasError) {
+                            return Text('Something went wrong');
+                          }
 
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          var data = snapshot.data.docs.asMap();
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            scrollDirection: Axis.vertical,
-                            itemCount: data.length,
-                            itemBuilder: (context, index) {
-                              var id = data[index].id.split("-");
-                              var day = int.parse(id[0]);
-                              var month = int.parse(id[1]);
-                              var year = int.parse(id[2]);
-                              var displayDate = DateFormat('MMMM y - d/M/y').format(DateTime(year, month, day));
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
-                                  },
-                                  child: PrimaryCard(
-                                    padding: EdgeInsets.symmetric(vertical: 15),
-                                    child: Text(
-                                      displayDate,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
+                          if (snapshot.connectionState == ConnectionState.done) {
+                            var data = snapshot.data.docs.asMap();
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                var id = data[index].id.split("-");
+                                var day = int.parse(id[0]);
+                                var month = int.parse(id[1]);
+                                var year = int.parse(id[2]);
+                                var displayDate = DateFormat('MMMM y - d/M/y').format(DateTime(year, month, day));
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
+                                    },
+                                    child: PrimaryCard(
+                                      padding: EdgeInsets.symmetric(vertical: 15),
+                                      child: Text(
+                                        displayDate,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        }
+                                );
+                              },
+                            );
+                          }
 
-                        return Container(
-                          padding: EdgeInsets.all(30),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      },
+                          return Container(
+                            padding: EdgeInsets.all(30),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        },
+                      ),
                     ),
                     Padding(padding: EdgeInsets.all(10)),
                     PrimaryButton(
