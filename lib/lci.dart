@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
@@ -1205,89 +1204,91 @@ class _LCIMainState extends State<LCIMain> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              PageHeadings(
-                text: "Welcome to LCI Test",
-                popAvailable: true,
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height - 115,
-                padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Past LCI Results',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 20,
-                      ),
-                    ),
-                    Padding(padding: EdgeInsets.all(10)),
-                    Expanded(
-                      child: FutureBuilder(
-                        future: ref,
-                        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                          if (snapshot.hasError) {
-                            return Text('Something went wrong');
-                          }
+          child: Container(
+            height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.vertical,
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: "LCI Test",
+                  popAvailable: true,
+                ),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Past LCI Results',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.all(10)),
+                        Expanded(
+                          child: FutureBuilder(
+                            future: ref,
+                            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasError) {
+                                return Text('Something went wrong');
+                              }
 
-                          if (snapshot.connectionState == ConnectionState.done) {
-                            var data = snapshot.data.docs.asMap();
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              scrollDirection: Axis.vertical,
-                              itemCount: data.length,
-                              itemBuilder: (context, index) {
-                                var id = data[index].id.split("-");
-                                var day = int.parse(id[0]);
-                                var month = int.parse(id[1]);
-                                var year = int.parse(id[2]);
-                                var displayDate = DateFormat('MMMM y - d/M/y').format(DateTime(year, month, day));
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
-                                    },
-                                    child: PrimaryCard(
-                                      padding: EdgeInsets.symmetric(vertical: 15),
-                                      child: Text(
-                                        displayDate,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
+                              if (snapshot.connectionState == ConnectionState.done) {
+                                var data = snapshot.data.docs.asMap();
+                                return ListView.builder(
+                                  itemCount: data.length,
+                                  itemBuilder: (context, index) {
+                                    var id = data[index].id.split("-");
+                                    var day = int.parse(id[0]);
+                                    var month = int.parse(id[1]);
+                                    var year = int.parse(id[2]);
+                                    var displayDate = DateFormat('MMMM y - d/M/y').format(DateTime(year, month, day));
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
+                                        },
+                                        child: PrimaryCard(
+                                          padding: EdgeInsets.symmetric(vertical: 15),
+                                          child: Text(
+                                            displayDate,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
                                 );
-                              },
-                            );
-                          }
+                              }
 
-                          return Container(
-                            padding: EdgeInsets.all(30),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        },
-                      ),
+                              return Container(
+                                padding: EdgeInsets.all(30),
+                                child: Center(child: CircularProgressIndicator()),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(padding: EdgeInsets.all(10)),
+                        PrimaryButton(
+                          text: "Take New LCI Test",
+                          textColor: Colors.white,
+                          color: Color(0xFFBC7AFE),
+                          onClickFunction: () {
+                            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Lci()));
+                          },
+                        ),
+                      ],
                     ),
-                    Padding(padding: EdgeInsets.all(10)),
-                    PrimaryButton(
-                      text: "Take New LCI Test",
-                      textColor: Colors.white,
-                      color: Color(0xFFBC7AFE),
-                      onClickFunction: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => Lci()));
-                      },
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
