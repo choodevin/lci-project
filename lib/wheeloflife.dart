@@ -66,7 +66,7 @@ class _WheelOfLife extends State<WheelOfLife> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedWheelOfLife')) {
           infoVideo();

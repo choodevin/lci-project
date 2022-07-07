@@ -1,3 +1,4 @@
+import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:flutter/material.dart';
 
 class PrimaryLoading extends StatelessWidget {
@@ -13,7 +14,7 @@ class PrimaryLoading extends StatelessWidget {
       width: size ?? 12,
       child: CircularProgressIndicator(
         strokeWidth: 2.0,
-        color: color,
+        color: color ?? BaseTheme.PRIMARY_COLOR,
       ),
     );
   }

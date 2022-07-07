@@ -1,4 +1,3 @@
-import 'package:LCI/Screen/_Utility/Camera.dart';
 import 'package:LCI/Screen/_Utility/PrimaryButton.dart';
 import 'package:LCI/Screen/_Utility/Labels.dart';
 import 'package:LCI/Screen/_Utility/PrimaryInput.dart';
@@ -56,7 +55,7 @@ class StateLanding extends State<_Landing> {
               textInputAction: TextInputAction.next,
               textEditingController: emailController,
               onSaved: (value) {
-                email = value;
+                landingViewModel.user.email = value;
               },
               validator: (value) {
                 if (value == null || value.isEmpty) return "Please enter your email";
@@ -65,17 +64,18 @@ class StateLanding extends State<_Landing> {
               },
             ),
             PasswordInput(
-                enabled: landingViewModel.isStateLoading() ? false : true,
-                labelText: "Password",
-                textInputAction: TextInputAction.done,
-                textEditingController: passwordController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return "Please enter your password";
-                  return null;
-                },
-                onSaved: (value) {
-                  password = value;
-                }),
+              enabled: landingViewModel.isStateLoading() ? false : true,
+              labelText: "Password",
+              textInputAction: TextInputAction.done,
+              textEditingController: passwordController,
+              validator: (value) {
+                if (value == null || value.isEmpty) return "Please enter your password";
+                return null;
+              },
+              onSaved: (value) {
+                landingViewModel.user.password = value;
+              },
+            ),
             Spacer(),
             PrimaryButton(
               margin: EdgeInsets.only(bottom: 12),
@@ -88,7 +88,7 @@ class StateLanding extends State<_Landing> {
             ),
             PrimaryButton(
               isLoading: landingViewModel.isStateLoading() ? true : false,
-              onPressed: () => landingViewModel.login(email, password, loginFormKey, context),
+              onPressed: () => landingViewModel.login(loginFormKey, context),
               text: "LOGIN",
             ),
           ],

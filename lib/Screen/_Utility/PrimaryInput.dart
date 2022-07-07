@@ -76,7 +76,7 @@ class StatePrimaryInput extends State<PrimaryInput> {
         keyboardType: textInputType,
         textInputAction: textInputAction,
         controller: textEditingController,
-        textCapitalization: textInputType == TextInputType.name ? TextCapitalization.words : TextCapitalization.none,
+        textCapitalization: textInputType == TextInputType.name ? TextCapitalization.words : TextCapitalization.sentences,
         onEditingComplete: onEditingComplete,
         decoration: InputDecoration(
           floatingLabelStyle: MaterialStateTextStyle.resolveWith(BaseTheme.inputValidationLabelStyle),

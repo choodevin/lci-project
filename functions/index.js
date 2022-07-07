@@ -3,6 +3,8 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
+monthlyRankingPatching();
+
 async function sevenThingsSchedulerFunction() {
     var debugLogPrefix = "DEBUG LOG: ";
     var now = new Date().toLocaleString('en-us', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: 'numeric' });
@@ -319,7 +321,7 @@ function monthlyRankingPatching() {
                     var sevenThingsMonth = sevenThingsDate.split(' ')[0].split('-')[1].padStart(2, '0');
                     var sevenThingsDay = parseInt(sevenThingsDate.split(' ')[0].split('-')[2]);
                     //var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 15 ? true : false;
-                    var toCount = sevenThingsMonth == '03' && sevenThingsDay <= '01' && sevenThingsYear == '2022' ? true : false;
+                    var toCount = ((sevenThingsMonth == '03' || sevenThingsMonth == '04' || sevenThingsMonth == '05') && sevenThingsYear == '2022') ? true : false;
                     console.log(toCount + " " + sevenThingsDate);
                     if (toCount) {
                         var toSetRanking = sevenThingsMonth + '-' + sevenThingsYear;

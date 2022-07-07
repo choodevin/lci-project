@@ -4,15 +4,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
 abstract class BaseModel {
-  String? tableName;
-  Timestamp? creationTime;
-  Timestamp? updateTime;
+  String tableName;
+  DateTime? creationTime;
+  DateTime? updateTime;
   String? id;
+
+  BaseModel? parentTable;
 
   Map<String, dynamic> objectMap = {};
   Map<String, File> fileList = {};
 
-  BaseModel({this.tableName});
+  BaseModel({required this.tableName, this.parentTable});
 
   @mustCallSuper
   void toObject(String id, Object? obj) {
@@ -20,8 +22,8 @@ abstract class BaseModel {
 
     map = obj! as Map<String, dynamic>;
 
-    this.creationTime = map['creationTime'];
-    this.updateTime = map['updateTime'];
+    this.creationTime = map['creationTime'].toDate();
+    this.updateTime = map['updateTime'].toDate();
     this.id = id;
   }
 

@@ -14,11 +14,14 @@ class UserService {
   static const SUBSCRIPTION_TYPE_STANDARD = "STANDARD";
   static const SUBSCRIPTION_TYPE_PREMIUM = "PREMIUM";
 
+  static const List<String> GENDER_LIST = [GENDER_MALE, GENDER_FEMALE, GENDER_OTHERS];
+  static const List<String> COUNTRY_LIST = [COUNTRY_MALAYSIA, COUNTRY_SINGAPORE];
+
   static Future<String> getName(String id) async {
     String result = "";
-    UserModel? user = await UserDAO.findUserById(id);
+    UserModel? user = await UserDAO.findUserById(id, false);
 
-    if (user != null) result = user.name!;
+    result = user.name!;
 
     return result;
   }
@@ -71,7 +74,11 @@ class UserService {
     }
   }
 
-  static Future<UserModel> getUserById(String id) async {
-    return await UserDAO.findUserById(id);
+  static Future<UserModel> getUserById(String id, bool loadProfilePicture) async {
+    return await UserDAO.findUserById(id, loadProfilePicture);
+  }
+
+  static loadProfilePicture(UserModel user) async {
+    return await UserDAO.loadProfilePicture(user);
   }
 }

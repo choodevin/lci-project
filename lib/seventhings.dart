@@ -52,7 +52,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
       initialDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day - 7);
       endingDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day + 7);
       daysBetween = endingDate!.difference(initialDate!).inDays;
-      WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         _itemScrollController?.jumpTo(index: (daysBetween! / 2).ceil(), alignment: 0.44);
         await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
           if (!value.get('viewedSevenThings')) {
@@ -68,7 +68,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
       initialDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day - 7);
       endingDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day + 7);
       daysBetween = endingDate!.difference(initialDate!).inDays;
-      WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         _itemScrollController!.jumpTo(index: (daysBetween! / 2).ceil(), alignment: 0.44);
         await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
           if (!value.get('viewedSevenThings')) {
@@ -461,7 +461,7 @@ class _SevenThingListState extends State<SevenThingList> {
       progressPercent = getProgress();
     }
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       addCallBack(() async {
         if (state == Status.NORMAL) {
           if (contentOrder.contains("")) {

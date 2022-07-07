@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:LCI/Model/BaseModel.dart';
+import 'package:LCI/Model/SevenThings/SevenThingsModel.dart';
 
 class UserModel extends BaseModel {
   static String TABLE_NAME = "Users"; // Table name for Firebase DB usage
@@ -16,6 +17,8 @@ class UserModel extends BaseModel {
   String? subscriptionType;
   String? currentEnrolledCampaign;
   bool? isCoach;
+
+  List<SevenThingsModel>? sevenThings;
 
   // Storage file name
   File? profilePictureFile;

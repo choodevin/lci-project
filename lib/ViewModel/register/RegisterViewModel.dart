@@ -81,29 +81,15 @@ class RegisterViewModel extends BaseViewModel {
   }
 
   List<DropdownMenuItem<dynamic>> getGenderDropdownItems() {
-    List<String> genderList = [UserService.GENDER_MALE, UserService.GENDER_FEMALE, UserService.GENDER_OTHERS];
-
-    return genderList.map((value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(UserService.getGenderDescription(value)),
-      );
-    }).toList();
+    return super.getDropdownItems(UserService.GENDER_LIST);
   }
 
   List<DropdownMenuItem<dynamic>> getCountryDropdownItems() {
-    List<String> genderList = ['MY', 'SG'];
-
-    return genderList.map((value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(UserService.getCountryDescription(value)),
-      );
-    }).toList();
+    return super.getDropdownItems(UserService.COUNTRY_LIST);
   }
 
   Future<UserModel?> getUser(String id) async {
-    return await UserDAO.findUserById(id);
+    return await UserDAO.findUserById(id, false);
   }
 
   next(PageController pageController, GlobalKey<FormState> registerFormKey, BuildContext context) async {
@@ -118,7 +104,7 @@ class RegisterViewModel extends BaseViewModel {
         if (!isEmailExist) {
           pageController.nextPage(duration: Duration(milliseconds: 200), curve: Curves.ease).whenComplete(() => this.updateCurrentPage(pageController.page!));
         } else {
-          this.showStatusMessage(BaseViewModel.MESSAGE_STATUS_ERROR, "Email has been registered, please proceed to login", context);
+          this.showStatusMessage(MessageStatus.ERROR, "Email has been registered, please proceed to login", context);
         }
       }
     }
@@ -131,7 +117,7 @@ class RegisterViewModel extends BaseViewModel {
       if (registerSuccess) {
         Navigator.of(context).pushNamedAndRemoveUntil(Routes.HOME, (_) => false);
       } else {
-        this.showStatusMessage(BaseViewModel.MESSAGE_STATUS_ERROR, "Something wen\'t wrong", context);
+        this.showStatusMessage(MessageStatus.ERROR, "Something wen\'t wrong", context);
       }
     }
 

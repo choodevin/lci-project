@@ -18,6 +18,8 @@ class BaseTheme {
   static const Color META_TEXT_COLOR = Color(0xFF717171);
   static const Color PRIMARY_COLOR = Color(0xFF6246EA);
   static const Color SECONDARY_COLOR = Color(0xFFDBDBEA);
+  static const Color DISABLED_COLOR = Color(0xFFE5E5E5);
+  static const Color OVERLAY_BACKGROUND_COLOR = Color(0x3D000000);
 
   static const Color PREMIUM_COLOR = Color(0xFFFFD700);
 
@@ -28,6 +30,11 @@ class BaseTheme {
   static const EdgeInsets DEFAULT_CONTENT_MARGIN = EdgeInsets.symmetric(horizontal: 12, vertical: 16);
   static const EdgeInsets DEFAULT_BUTTON_MARGIN = EdgeInsets.only(top: 14);
   static const EdgeInsets DEFAULT_MODAL_MARGIN = EdgeInsets.symmetric(horizontal: 16, vertical: 24);
+  static const EdgeInsets DEFAULT_SCREEN_MARGIN = EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 12);
+
+  static const EdgeInsets DEFAULT_HOME_SCREEN_ITEM_MARGIN = EdgeInsets.all(8);
+  static const EdgeInsets CONTENT_MARGIN_NO_HORIZONTAL = EdgeInsets.symmetric(vertical: 16);
+  static const EdgeInsets CONTENT_MARGIN_NO_VERTICAL = EdgeInsets.symmetric(horizontal: 12);
 
   static const BorderRadius DEFAULT_BORDER_RADIUS = BorderRadius.all(Radius.circular(4));
   static const BorderRadius MODAL_BORDER_RADIUS = BorderRadius.all(Radius.circular(12));
@@ -35,10 +42,12 @@ class BaseTheme {
   static const String SAMPLE_PARAGRAPH =
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam tristique metus non purus luctus, ut suscipit lorem efficitur. Nunc aliquam, risus maximus vulputate lobortis, urna enim malesuada ante, non pharetra felis est sit amet enim. Nulla placerat eros nec turpis sodales ornare. Aliquam rhoncus nisi non pulvinar consectetur. Pellentesque dictum ante a diam rhoncus, id accumsan justo dignissim. Donec fringilla mi id urna eleifend, eu rhoncus dolor vulputate. ";
 
+  static const Duration DEFAULT_ANIMATION_DURATION = Duration(milliseconds: 300);
+
   static ThemeData get defaultTheme {
     return ThemeData(
       scaffoldBackgroundColor: BACKGROUND_COLOR,
-      textTheme: GoogleFonts.mavenProTextTheme(),
+      textTheme: GoogleFonts.workSansTextTheme(),
       primaryColor: PRIMARY_COLOR,
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: PRIMARY_COLOR,
@@ -47,7 +56,7 @@ class BaseTheme {
   }
 
   static TextStyle get defaultTextStyle {
-    return GoogleFonts.mavenPro(
+    return GoogleFonts.workSans(
       color: DEFAULT_DISPLAY_COLOR,
       fontSize: 14,
     );

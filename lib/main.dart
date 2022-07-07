@@ -10,6 +10,7 @@ import 'Route/Routes.dart';
 import 'Screen/Home.dart';
 import 'Screen/Landing.dart';
 import 'Screen/_Utility/BaseTheme.dart';
+import 'Screen/_Utility/HomeContainer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,7 @@ class BuildApp extends StatelessWidget {
                 child: child!,
               );
             },
-            home: isLoggedIn ? Home() : Landing(),
+            home: isLoggedIn ? HomeContainer() : Landing(),
           );
         }
 

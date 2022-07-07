@@ -6,28 +6,32 @@ class PrimaryCard extends StatelessWidget {
   final Color? color;
   final LinearGradient? gradient;
   final Color? borderColor;
+  final EdgeInsets? margin;
+  final EdgeInsets? contentMargin;
+  final bool? outlined;
 
-  const PrimaryCard({required this.child, this.color, this.gradient, this.borderColor});
+  const PrimaryCard({required this.child, this.color, this.gradient, this.borderColor, this.margin, this.contentMargin, this.outlined});
 
   Widget build(BuildContext context) {
     Color finalBorderColor = borderColor ?? Colors.transparent;
+    bool finalOutlined = outlined ?? true;
 
     if (color == null && gradient == null) finalBorderColor = BaseTheme.LIGHT_OUTLINE_COLOR;
     finalBorderColor = borderColor ?? finalBorderColor;
 
     return Container(
-      margin: BaseTheme.DEFAULT_CARD_MARGIN,
+      margin: margin ?? BaseTheme.DEFAULT_CARD_MARGIN,
       child: Container(
-        margin: BaseTheme.DEFAULT_CONTENT_MARGIN,
+        margin: contentMargin ?? BaseTheme.DEFAULT_CONTENT_MARGIN,
         child: child,
       ),
       decoration: BoxDecoration(
         gradient: gradient,
         color: color ?? BaseTheme.BACKGROUND_COLOR,
         borderRadius: BorderRadius.all(Radius.circular(8)),
-        border: Border.all(
+        border: finalOutlined ? Border.all(
           color: finalBorderColor,
-        ),
+        ) : null,
       ),
     );
   }

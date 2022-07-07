@@ -1,3 +1,4 @@
+import 'package:LCI/Screen/_Utility/CustomIcon.dart';
 import 'package:flutter/material.dart';
 
 import 'BaseTheme.dart';
@@ -11,7 +12,7 @@ class PageTitle extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return Container(
-      padding: margin ?? BaseTheme.DEFAULT_HEADINGS_MARGIN,
+      margin: margin,
       child: Row(
         children: [
           backButton
@@ -28,7 +29,7 @@ class PageTitle extends StatelessWidget {
               text.toUpperCase(),
               style: TextStyle(
                 color: BaseTheme.DEFAULT_HEADINGS_COLOR,
-                fontSize: 26,
+                fontSize: 28,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -136,6 +137,94 @@ class PriceLabel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HomeTitle extends StatelessWidget {
+  final String text;
+
+  const HomeTitle({required this.text});
+
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              text: 'Hi, ',
+              style: BaseTheme.defaultTextStyle.merge(
+                TextStyle(fontSize: 28),
+              ),
+              children: [
+                TextSpan(
+                  text: text,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 4),
+            child: Text(
+              'Welcome to 4ward LCI Life Compass',
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeLabel extends StatelessWidget {
+  final String text;
+  final EdgeInsets? margin;
+  final dynamic iconSource;
+
+  const HomeLabel({required this.text, this.margin, this.iconSource});
+
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      child: Row(
+        children: [
+          CustomIcon(iconSource: iconSource, padding: EdgeInsets.only(right: 12), size: 22,),
+          Text(
+            text,
+            style: TextStyle(
+              color: BaseTheme.DEFAULT_DISPLAY_COLOR,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ModalTitle extends StatelessWidget {
+  final EdgeInsets? margin;
+  final String text;
+
+  const ModalTitle({this.margin, required this.text});
+
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: BaseTheme.DEFAULT_DISPLAY_COLOR,
+          fontSize: 20,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }

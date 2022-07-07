@@ -32,7 +32,7 @@ class StatePrimaryButton extends State<PrimaryButton> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       margin: margin,
-      duration: Duration(milliseconds: 300),
+      duration: BaseTheme.DEFAULT_ANIMATION_DURATION,
       child: MaterialButton(
         height: 48,
         elevation: 0,

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../ViewModel/register/RegisterViewModel.dart';
-import '../_Utility/PrimaryIcon.dart';
+import '../_Utility/CustomIcon.dart';
 import '../_Utility/PageViewWithIndicator.dart';
 import '../_Utility/PrimaryCard.dart';
 import '../_Utility/PrimaryInput.dart';
@@ -196,7 +196,7 @@ class StateRegister extends State<_Register> {
                         PrimaryCard(
                           child: Column(
                             children: [
-                              PrimaryIcon(iconSource: CustomSvg.compass, color: BaseTheme.PRIMARY_COLOR, size: 32),
+                              CustomIcon(iconSource: CustomSvg.compass, color: BaseTheme.PRIMARY_COLOR, size: 32),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -216,7 +216,7 @@ class StateRegister extends State<_Register> {
                         PrimaryCard(
                           child: Column(
                             children: [
-                              PrimaryIcon(iconSource: CustomSvg.crown, color: BaseTheme.PREMIUM_COLOR, size: 32),
+                              CustomIcon(iconSource: CustomSvg.crown, color: BaseTheme.PREMIUM_COLOR, size: 32),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,

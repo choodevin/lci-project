@@ -2,13 +2,15 @@ import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class PrimaryIcon extends StatelessWidget {
+class CustomIcon extends StatelessWidget {
   final dynamic iconSource;
   final double? size;
   final Color? color;
   final bool? outlined;
+  final EdgeInsets? padding;
+  final Color? backgroundColor;
 
-  const PrimaryIcon({required this.iconSource, this.size, this.color, this.outlined});
+  const CustomIcon({required this.iconSource, this.size, this.color, this.outlined, this.padding, this.backgroundColor});
 
   Widget build(BuildContext context) {
     Widget? child = null;
@@ -23,9 +25,9 @@ class PrimaryIcon extends StatelessWidget {
     if (child != null) {
       return Container(
         child: child,
-        padding: EdgeInsets.all(finalSize / 2),
+        padding: padding ?? EdgeInsets.all(finalSize / 2),
         decoration: BoxDecoration(
-          color: BaseTheme.BACKGROUND_COLOR,
+          color: backgroundColor ?? BaseTheme.BACKGROUND_COLOR,
           border: finalOutlined
               ? Border.all(
                   color: BaseTheme.DEFAULT_DISPLAY_COLOR,

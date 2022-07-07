@@ -151,7 +151,7 @@ class _GoalsState extends State<Goals> {
     });
     totalSelected = i;
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedGoals')) {
           infoVideo();

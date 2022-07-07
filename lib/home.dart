@@ -57,7 +57,7 @@ class _HomeState extends State<Home> {
         var primaryCounter = 0;
         var secondaryCounter = 0;
 
-        if(sevenThings['content'] != null) {
+        if (sevenThings['content'] != null) {
           sevenThings['content'].forEach((k, v) {
             if (v['type'] == 'Primary') {
               contentOrder.add(k);
@@ -72,7 +72,7 @@ class _HomeState extends State<Home> {
           }
         }
 
-        if(sevenThings['content'] != null) {
+        if (sevenThings['content'] != null) {
           sevenThings['content'].forEach((k, v) {
             if (v['type'] == 'Secondary') {
               contentOrder.add(k);
@@ -140,7 +140,7 @@ class _HomeState extends State<Home> {
                                     child: Column(
                                       children: [
                                         TextWithIcon(
-                                          assetPath: 'assets/wheel_of_life.svg',
+                                          assetPath: 'assets/wheelOfLife.svg',
                                           text: 'Wheel of Life',
                                         ),
                                         Padding(padding: EdgeInsets.all(15)),
@@ -204,7 +204,7 @@ class _HomeState extends State<Home> {
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
                                     TextWithIcon(
-                                      assetPath: 'assets/wheel_of_life.svg',
+                                      assetPath: 'assets/wheelOfLife.svg',
                                       text: 'Wheel of Life',
                                     ),
                                     Padding(padding: EdgeInsets.all(30)),
@@ -363,7 +363,8 @@ class _GetUserDataState extends State<GetUserData> {
   @override
   Widget build(BuildContext context) {
     DocumentReference userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid);
-    DocumentReference sThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('SevenThings').doc(toSearch.toString());
+    DocumentReference sThingsRef =
+        FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('SevenThings').doc(toSearch.toString());
     Query wheelRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('LCIScore');
     CollectionReference goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).collection('Goals');
 
@@ -579,7 +580,7 @@ class _HomeBaseState extends State<HomeBase> {
                 icon: Padding(
                   padding: EdgeInsets.only(bottom: 6, top: 2),
                   child: SvgPicture.asset(
-                    'assets/users.svg',
+                    'assets/campaign.svg',
                     height: 24,
                     color: index == 2 ? Color(0xFF170E9A) : Colors.black,
                   ),

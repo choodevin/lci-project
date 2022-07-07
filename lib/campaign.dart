@@ -945,7 +945,7 @@ class _CampaignMainState extends State<CampaignMain> {
     userRef = FirebaseFirestore.instance.collection('CampaignData').doc(campaignId).collection('Rankings');
     nameRef = FirebaseFirestore.instance.collection('UserData').where('currentEnrolledCampaign', isEqualTo: campaign.invitationCode);
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       await FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser?.uid).get().then((value) async {
         if (!value.get('viewedCampaign')) {
           infoVideo();

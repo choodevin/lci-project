@@ -1,37 +1,37 @@
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'BaseTheme.dart';
 
 class ProfilePicture extends StatelessWidget {
-  final profilePicture;
+  final source;
   final double? size;
+  final EdgeInsets? margin;
 
-  const ProfilePicture({required this.profilePicture, this.size});
+  const ProfilePicture({required this.source, this.size, this.margin});
 
   Widget build(BuildContext context) {
     return Container(
-      margin: BaseTheme.DEFAULT_CONTENT_MARGIN,
+      margin: margin ?? BaseTheme.DEFAULT_CONTENT_MARGIN,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
           color: BaseTheme.LIGHT_OUTLINE_COLOR,
-          width: 1,
+          width: 0.5,
         ),
       ),
       height: size ?? 150,
       width: size ?? 150,
       child: ClipOval(
-        child: profilePicture != null
-            ? profilePicture is Uint8List
+        child: source != null
+            ? source is Uint8List
                 ? Image.memory(
-                    profilePicture,
+                    source,
                     fit: BoxFit.cover,
                   )
                 : Image.file(
-                    profilePicture,
+                    source,
                     fit: BoxFit.cover,
                   )
             : Icon(Icons.add, color: BaseTheme.DEFAULT_OUTLINE_COLOR, size: 28),

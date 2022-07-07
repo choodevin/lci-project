@@ -8,20 +8,20 @@ import '../Route/Routes.dart';
 class LandingViewModel extends BaseViewModel {
   UserModel user = UserModel();
 
-  Future<bool> login(String email, String password, GlobalKey<FormState> loginFormKey, BuildContext context) async {
+  Future login(GlobalKey<FormState> loginFormKey, BuildContext context) async {
     this.setStateLoading();
 
     if (loginFormKey.currentState!.validate()) {
       loginFormKey.currentState!.save();
-      bool validate = await UserService.login(email, password);
+      bool validate = await UserService.login(this.user.email!, this.user.password!);
 
       if (validate) {
         Navigator.of(context).pushNamedAndRemoveUntil(Routes.HOME, (_) => false);
       } else {
-        this.showStatusMessage(BaseViewModel.MESSAGE_STATUS_ERROR, "Email or password is incorrect", context);
+        this.showStatusMessage(MessageStatus.ERROR, "Email or password is incorrect", context);
       }
     }
 
-    return await UserService.login(email, password).whenComplete(() => this.setStateNormal());
+    this.setStateNormal();
   }
 }

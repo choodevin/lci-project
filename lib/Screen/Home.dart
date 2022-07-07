@@ -1,46 +1,64 @@
+import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:LCI/Screen/_Utility/CircleImage.dart';
-import 'package:LCI/Screen/_Utility/PrimaryButton.dart';
+import 'package:LCI/Screen/_Utility/CustomIcon.dart';
+import 'package:LCI/Screen/_Utility/Labels.dart';
+import 'package:LCI/Screen/_Utility/PageLoading.dart';
 import 'package:LCI/ViewModel/HomeViewModel.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:LCI/ViewModel/SevenThingsViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '_Utility/BaseScreen.dart';
 
-class Home extends StatelessWidget {
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => HomeViewModel()),
-      ],
-      child: _Home(),
-    );
-  }
-}
+import 'sevenThings/SimpleSevenThingsList.dart';
+import '_Utility/CustomSvg.dart';
+import '_Utility/PrimaryCard.dart';
 
-class _Home extends StatefulWidget {
+class Home extends StatefulWidget {
   StateHome createState() => StateHome();
 }
 
-class StateHome extends State<_Home> {
+class StateHome extends State<Home> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
-    HomeViewModel homeViewModel = Provider.of<HomeViewModel>(context);
+    super.build(context);
+
+    HomeViewModel homeViewModel = Provider.of<HomeViewModel>(context, listen: true);
 
     if (homeViewModel.user.id == null) homeViewModel.loadCurrentUser();
+    if (homeViewModel.user.id != null && homeViewModel.sevenThings == null) homeViewModel.loadSevenThings();
 
-    return homeViewModel.user.id != null ? BaseScreen(
-      scrollable: true,
-      child: Column(
+    if (homeViewModel.user.id != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PrimaryButton(
-            text: homeViewModel.user.name.toString(),
-            onPressed: () => FirebaseAuth.instance.signOut(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomIcon(iconSource: CustomSvg.settings, size: 24, padding: EdgeInsets.zero),
+              ProfilePicture(
+                margin: EdgeInsets.zero,
+                source: homeViewModel.user.profilePictureBits,
+                size: 52,
+              ),
+            ],
           ),
-          ProfilePicture(
-            profilePicture: homeViewModel.user.profilePictureBits,
-            size: 120,
+          Container(margin: EdgeInsets.only(top: 18), child: HomeTitle(text: homeViewModel.user.name!)),
+          PrimaryCard(
+            outlined: false,
+            margin: EdgeInsets.only(top: 24),
+            contentMargin: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HomeLabel(iconSource: CustomSvg.tasks, text: 'Today\'s 7 Things List'),
+                SimpleSevenThingsList(viewModel: homeViewModel),
+              ],
+            ),
           ),
         ],
-      ),
-    ) : Text("loading");
+      );
+    } else {
+      return PageLoading();
+    }
   }
+
+  bool get wantKeepAlive => false;
 }

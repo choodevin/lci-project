@@ -1,49 +1,43 @@
+import 'package:LCI/Service/UserService.dart';
 import 'package:flutter/material.dart';
 
 import '../Screen/_Utility/BaseTheme.dart';
 
 class BaseViewModel with ChangeNotifier {
-  static const int STATE_NORMAL = 0;
-  static const int STATE_LOADING = 1;
-
-  static const int MESSAGE_STATUS_ERROR = 2;
-  static const int MESSAGE_STATUS_INFO = 3;
-  static const int MESSAGE_STATUS_SUCCESS = 4;
-
-  int currentState = STATE_NORMAL;
+  ScreenState currentState = ScreenState.NORMAL;
   String errorMessage = "";
 
   setStateNormal() {
-    this.currentState = STATE_NORMAL;
+    this.currentState = ScreenState.NORMAL;
     notifyListeners();
   }
 
   setStateLoading() {
-    this.currentState = STATE_LOADING;
+    this.currentState = ScreenState.LOADING;
     notifyListeners();
   }
 
   bool isStateLoading() {
-    return this.currentState == STATE_LOADING;
+    return this.currentState == ScreenState.LOADING;
   }
 
   bool isStateNormal() {
-    return this.currentState == STATE_NORMAL;
+    return this.currentState == ScreenState.NORMAL;
   }
 
-  showStatusMessage(int statusCode, String statusMessage, BuildContext context) {
+  showStatusMessage(MessageStatus statusCode, String statusMessage, BuildContext context) {
     Color baseColor = BaseTheme.PRIMARY_COLOR;
     Widget icon = SizedBox();
 
-    if (statusCode == MESSAGE_STATUS_ERROR) {
+    if (statusCode == MessageStatus.ERROR) {
       baseColor = BaseTheme.DEFAULT_ERROR_COLOR;
       icon = Icon(Icons.warning, color: Colors.white);
     }
-    if (statusCode == MESSAGE_STATUS_INFO) {
+    if (statusCode == MessageStatus.INFO) {
       baseColor = BaseTheme.DEFAULT_INFO_COLOR;
       icon = Icon(Icons.error, color: Colors.white);
     }
-    if (statusCode == MESSAGE_STATUS_SUCCESS) {
+    if (statusCode == MessageStatus.SUCCESS) {
       baseColor = BaseTheme.DEFAULT_SUCCESS_COLOR;
       icon = Icon(Icons.done, color: Colors.white);
     }
@@ -80,6 +74,7 @@ class BaseViewModel with ChangeNotifier {
 
   Future showBottomModal(BuildContext context, Widget child) {
     return showModalBottomSheet(
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       context: context,
       builder: (context) {
@@ -88,10 +83,23 @@ class BaseViewModel with ChangeNotifier {
             color: BaseTheme.BACKGROUND_COLOR,
             borderRadius: BaseTheme.MODAL_BORDER_RADIUS,
           ),
-          margin: BaseTheme.DEFAULT_MODAL_MARGIN,
+          margin: EdgeInsets.fromLTRB(16,24,16, MediaQuery.of(context).viewInsets.bottom + 24),
           child: child,
         );
       },
     );
   }
+
+  List<DropdownMenuItem<dynamic>> getDropdownItems(List<String> items) {
+    return items.map((value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(UserService.getGenderDescription(value)),
+      );
+    }).toList();
+  }
 }
+
+enum ScreenState { NORMAL, LOADING }
+
+enum MessageStatus { ERROR, INFO, SUCCESS }
