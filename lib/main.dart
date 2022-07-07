@@ -13,7 +13,7 @@ import 'login.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(BuildApp());
+  runApp(BuildApp2());
 }
 
 class BuildApp extends StatelessWidget {
