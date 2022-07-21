@@ -1,8 +1,6 @@
 import 'package:LCI/custom-components.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -161,8 +159,7 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                     children: [
                       PageHeadings(
                         text: '7 Things',
-                        popAvailable: true,
-                        padding: EdgeInsets.fromLTRB(5, 20, 20, 0),
+                        padding: EdgeInsets.fromLTRB(20, 25, 20, 0),
                       ),
                       Container(
                         margin: EdgeInsets.only(top: 10),
@@ -179,11 +176,14 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                                   confirmText: 'Confirm',
                                 ).then((date) {
                                   if (date != null) {
-                                    Navigator.of(context).pushReplacement(PageRouteBuilder(
-                                      pageBuilder: (_, __, ___) => SevenThingsMain(date: date),
-                                      transitionDuration: Duration(seconds: 0),
-                                    ));
-                                    editingCallBack(false);
+                                    setState(() {
+                                      selectedDate = date;
+                                      initialDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day - 7);
+                                      endingDate = DateTime(selectedDate.year, selectedDate.month, selectedDate.day + 7);
+                                      daysBetween = endingDate.difference(initialDate).inDays;
+                                      _itemScrollController.jumpTo(index: (daysBetween / 2).ceil(), alignment: 0.44);
+                                    });
+                                    editingCallBack(false, null);
                                   }
                                 });
                               },
@@ -205,6 +205,8 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                               child: ScrollablePositionedList.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: daysBetween,
+                                itemScrollController: _itemScrollController,
+                                itemPositionsListener: _itemPositionsListener,
                                 itemBuilder: (c, i) {
                                   var toGet = DateTime(initialDate.year, initialDate.month, initialDate.day + i);
                                   var selected = false;
@@ -260,14 +262,13 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                                     ),
                                   );
                                 },
-                                itemScrollController: _itemScrollController,
-                                itemPositionsListener: _itemPositionsListener,
                               ),
                             ),
                             Container(
                               padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
                               child: Container(
-                                child: GetSevenThingList(date: selectedDate, key: Key(selectedDate.toString()), editingCallBack: editingCallBack, addCallBack: addCallBack),
+                                child: GetSevenThingList(
+                                    date: selectedDate, key: Key(selectedDate.toString()), editingCallBack: editingCallBack, addCallBack: addCallBack),
                               ),
                             ),
                           ],
@@ -365,6 +366,7 @@ class _SevenThingListState extends State<SevenThingList> {
 
   var contentOrder = [];
   var state = Status.NORMAL;
+  bool isPenalty = false, isLeave = false;
   var gRef;
 
   TextEditingController _newSevenThings = new TextEditingController();
@@ -414,6 +416,26 @@ class _SevenThingListState extends State<SevenThingList> {
           "status": {},
         };
       }
+
+      if (sevenThings['status']['lockEdit'] != null) {
+        if (sevenThings['status']['lockEdit']) {
+          state = Status.LOCK_EDIT;
+        }
+      }
+
+      if (sevenThings['status']['locked'] != null) {
+        if (sevenThings['status']['locked']) {
+          state = Status.LOCK;
+        }
+      }
+
+      if (sevenThings['status']['penalty'] != null) {
+        isPenalty = sevenThings['status']['penalty'];
+      }
+
+      if (sevenThings['status']['leave'] != null) {
+        isLeave = sevenThings['status']['leave'];
+      }
     } else {
       if (sevenThings['status']['lockEdit'] != null) {
         if (sevenThings['status']['lockEdit']) {
@@ -425,6 +447,14 @@ class _SevenThingListState extends State<SevenThingList> {
         if (sevenThings['status']['locked']) {
           state = Status.LOCK;
         }
+      }
+
+      if (sevenThings['status']['penalty'] != null) {
+        isPenalty = sevenThings['status']['penalty'];
+      }
+
+      if (sevenThings['status']['leave'] != null) {
+        isLeave = sevenThings['status']['leave'];
       }
 
       if (sevenThings['contentOrder'] != null) {
@@ -557,6 +587,30 @@ class _SevenThingListState extends State<SevenThingList> {
     });
   }
 
+  Future<String> getLeaveType() async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).get();
+    String invCode = userDoc.get("currentEnrolledCampaign");
+    QuerySnapshot campaignCol = await FirebaseFirestore.instance.collection("CampaignData").where("invitationCode", isEqualTo: invCode).get();
+    if (campaignCol.size > 0) {
+      String campaignId = campaignCol.docs.first.id;
+      String deadlineHour = campaignCol.docs.first.get("sevenThingDeadline");
+      DateTime toSearchDate = DateTime(date.year, date.month, date.day, int.tryParse(deadlineHour.split(":")[0]));
+      print(toSearchDate.toString());
+      QuerySnapshot leaveCol =
+          await FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication").where("leaveDate", isEqualTo: toSearchDate).get();
+      if (leaveCol.size > 0) {
+        String leaveType = leaveCol.docs.first.get("leaveType");
+        if (leaveType == "Normal") {
+          return "Full ";
+        } else if (leaveType == "Half") {
+          return "Half ";
+        }
+      }
+    }
+
+    return "";
+  }
+
   @override
   Widget build(BuildContext context) {
     var addCallBackFunction = () async {
@@ -627,7 +681,10 @@ class _SevenThingListState extends State<SevenThingList> {
                     break;
                   }
                 }
-                await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                await FirebaseFirestore.instance
+                    .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                    .set(sevenThings)
+                    .then((value) {
                   Navigator.of(context).pop();
                   _newSevenThings.text = "";
                   progressPercent = getProgress();
@@ -663,7 +720,10 @@ class _SevenThingListState extends State<SevenThingList> {
             }
           }
         }
-        await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+        await FirebaseFirestore.instance
+            .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+            .set(sevenThings)
+            .then((value) {
           Navigator.of(context).pop();
           progressPercent = getProgress();
         }).catchError((error) {
@@ -698,14 +758,18 @@ class _SevenThingListState extends State<SevenThingList> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(0);
+                  Navigator.of(c).pop(0);
                 },
                 child: Text('Delete', style: TextStyle(color: Color(0xFFFF0000))),
               ),
               TextButton(
                 onPressed: () {
-                  if (_newSevenThings.text.isNotEmpty) {
-                    Navigator.of(context).pop(_newSevenThings.text);
+                  if (contentOrder.contains(_newSevenThings.text) && _newSevenThings.text != key) {
+                    ScaffoldMessenger.of(c).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                  } else {
+                    if (_newSevenThings.text.isNotEmpty) {
+                      Navigator.of(c).pop(_newSevenThings.text);
+                    }
                   }
                 },
                 child: Text('Confirm'),
@@ -725,6 +789,91 @@ class _SevenThingListState extends State<SevenThingList> {
                     TextWithIcon(
                       assetPath: 'assets/tasks.svg',
                       text: 'Your 7 Things List',
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          state == Status.LOCK
+                              ? Container(
+                                  padding: EdgeInsets.all(8),
+                                  margin: EdgeInsets.only(right: 4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                                    color: Color(0xFF414141),
+                                  ),
+                                  child: Text(
+                                    "Locked",
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                  ),
+                                )
+                              : state == Status.LOCK_EDIT
+                                  ? Container(
+                                      padding: EdgeInsets.all(8),
+                                      margin: EdgeInsets.only(right: 4),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                                        color: Color(0xFFFF8543),
+                                      ),
+                                      child: Text(
+                                        "Edit Locked",
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                      ),
+                                    )
+                                  : Container(
+                                      padding: EdgeInsets.all(8),
+                                      margin: EdgeInsets.only(right: 4),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                                        color: Color(0xFF28A745),
+                                      ),
+                                      child: Text(
+                                        "Normal",
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                      ),
+                                    ),
+                          isLeave
+                              ? FutureBuilder(
+                                  future: getLeaveType(),
+                                  builder: (context, AsyncSnapshot<String> snapshot) {
+                                    return Container(
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                                        color: Color(0xFF265DFC),
+                                      ),
+                                      child: snapshot.connectionState != ConnectionState.done
+                                          ? SizedBox(
+                                              height: 14,
+                                              width: 14,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 1.5,
+                                              ),
+                                            )
+                                          : Text(
+                                              "${snapshot.data}Leave",
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                            ),
+                                    );
+                                  },
+                                )
+                              : isPenalty
+                                  ? Container(
+                                      margin: EdgeInsets.only(right: 4),
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(Radius.circular(4)),
+                                        color: Color(0xFFEF5350),
+                                      ),
+                                      child: Text(
+                                        "Penalty",
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                      ),
+                                    )
+                                  : SizedBox.shrink(),
+                        ],
+                      ),
                     ),
                     Padding(padding: EdgeInsets.all(5)),
                     Row(
@@ -750,78 +899,65 @@ class _SevenThingListState extends State<SevenThingList> {
                       scrollDirection: Axis.vertical,
                       shrinkWrap: true,
                       physics: PageScrollPhysics(),
+                      buildDefaultDragHandles: false,
                       children: [
                         for (int i = 0; i < contentOrder.length; i++)
-                          ReorderableDragStartListener(
+                          Container(
                             key: Key(i.toString()),
-                            index: i,
-                            child: Container(
-                              key: Key(i.toString()),
-                              child: contentOrder[i].isNotEmpty
-                                  ? Container(
-                                      decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
-                                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 8,
-                                            child: GestureDetector(
-                                              behavior: HitTestBehavior.translucent,
-                                              onTap: contentOrder[i].isNotEmpty
-                                                  ? () {
-                                                      if (state != Status.LOCK) {
-                                                        setState(() {
-                                                          sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
-                                                        });
-                                                        popEdit();
-                                                      } else {
-                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
-                                                      }
+                            child: contentOrder[i].isNotEmpty
+                                ? Container(
+                                    decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
+                                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 8,
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.translucent,
+                                            onTap: contentOrder[i].isNotEmpty
+                                                ? () {
+                                                    if (state != Status.LOCK) {
+                                                      setState(() {
+                                                        sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
+                                                      });
+                                                      popEdit();
+                                                    } else {
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
                                                     }
-                                                  : () {},
-                                              onLongPress: contentOrder[i].isNotEmpty && state == Status.NORMAL
-                                                  ? () async {
-                                                      await showEditDelete(contentOrder[i]).then((value) async {
-                                                        if (value != null && value != contentOrder[i]) {
-                                                          showLoading(context);
-                                                          if (value != 0) {
-                                                            var occurrence = 0;
-                                                            for (var s in contentOrder) {
-                                                              if (s == value) {
-                                                                occurrence++;
-                                                              }
+                                                  }
+                                                : () {},
+                                            onLongPress: contentOrder[i].isNotEmpty && state == Status.NORMAL
+                                                ? () async {
+                                                    await showEditDelete(contentOrder[i]).then((value) async {
+                                                      _newSevenThings.text = "";
+                                                      if (value != null && value != contentOrder[i]) {
+                                                        showLoading(context);
+                                                        if (value != 0) {
+                                                          var occurrence = 0;
+                                                          for (var s in contentOrder) {
+                                                            if (s == value) {
+                                                              occurrence++;
                                                             }
-                                                            if (occurrence > 1) {
-                                                              Navigator.of(context).pop();
-                                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
-                                                            } else {
-                                                              setState(() {
-                                                                var details = sevenThings['content'][contentOrder[i]];
-                                                                sevenThings['content'].remove(contentOrder[i]);
-                                                                sevenThings['content'][value] = details;
-                                                                contentOrder[i] = value;
-                                                                sevenThings['content'][value] = details;
-                                                              });
-                                                              await FirebaseFirestore.instance
-                                                                  .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
-                                                                  .set(sevenThings)
-                                                                  .then((value) {
-                                                                Navigator.of(context).pop();
-                                                                _newSevenThings.text = "";
-                                                              }).catchError((error) {
-                                                                print(error);
-                                                                Navigator.of(context).pop();
-                                                              });
-                                                            }
+                                                          }
+                                                          if (occurrence > 1) {
+                                                            Navigator.of(context).pop();
+                                                            ScaffoldMessenger.of(context)
+                                                                .showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                                           } else {
                                                             setState(() {
+                                                              var details = sevenThings['content'][contentOrder[i]];
                                                               sevenThings['content'].remove(contentOrder[i]);
-                                                              contentOrder[i] = "";
-                                                              sevenThings['contentOrder'] = contentOrder;
+                                                              sevenThings['content'][value] = details;
+                                                              contentOrder[i] = value;
+                                                              sevenThings['content'][value] = details;
                                                             });
-                                                            _newSevenThings.text = "";
                                                             await FirebaseFirestore.instance
-                                                                .doc("UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                                .doc("UserData/" +
+                                                                    FirebaseAuth.instance.currentUser.uid +
+                                                                    "/SevenThings/" +
+                                                                    date.toString() +
+                                                                    "/")
                                                                 .set(sevenThings)
                                                                 .then((value) {
                                                               Navigator.of(context).pop();
@@ -831,94 +967,114 @@ class _SevenThingListState extends State<SevenThingList> {
                                                               Navigator.of(context).pop();
                                                             });
                                                           }
-                                                        }
-                                                      });
-                                                    }
-                                                  : () {},
-                                              child: Row(
-                                                children: [
-                                                  SizedBox(
-                                                    height: 20,
-                                                    width: 20,
-                                                    child: Checkbox(
-                                                      activeColor: Color(0xFFF48A1D),
-                                                      checkColor: Colors.white,
-                                                      value: sevenThings['content'][contentOrder[i]]['status'],
-                                                      onChanged: (value) {
-                                                        if (state != Status.LOCK) {
-                                                          setState(() {
-                                                            sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
-                                                          });
-                                                          popEdit();
                                                         } else {
-                                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+                                                          setState(() {
+                                                            sevenThings['content'].remove(contentOrder[i]);
+                                                            contentOrder[i] = "";
+                                                            sevenThings['contentOrder'] = contentOrder;
+                                                          });
+                                                          _newSevenThings.text = "";
+                                                          await FirebaseFirestore.instance
+                                                              .doc(
+                                                                  "UserData/" + FirebaseAuth.instance.currentUser.uid + "/SevenThings/" + date.toString() + "/")
+                                                              .set(sevenThings)
+                                                              .then((value) {
+                                                            Navigator.of(context).pop();
+                                                            _newSevenThings.text = "";
+                                                          }).catchError((error) {
+                                                            print(error);
+                                                            Navigator.of(context).pop();
+                                                          });
                                                         }
-                                                      },
-                                                    ),
+                                                      }
+                                                    });
+                                                  }
+                                                : () {},
+                                            child: Row(
+                                              children: [
+                                                SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: Checkbox(
+                                                    activeColor: Color(0xFFF48A1D),
+                                                    checkColor: Colors.white,
+                                                    value: sevenThings['content'][contentOrder[i]]['status'],
+                                                    onChanged: (value) {
+                                                      if (state != Status.LOCK) {
+                                                        setState(() {
+                                                          sevenThings['content'][contentOrder[i]]['status'] =
+                                                              !sevenThings['content'][contentOrder[i]]['status'];
+                                                        });
+                                                        popEdit();
+                                                      } else {
+                                                        ScaffoldMessenger.of(context)
+                                                            .showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+                                                      }
+                                                    },
                                                   ),
-                                                  Padding(padding: EdgeInsets.all(7.5)),
-                                                  Flexible(
-                                                    child: Text(
-                                                      contentOrder[i],
-                                                      style: TextStyle(fontSize: 17),
-                                                    ),
+                                                ),
+                                                Padding(padding: EdgeInsets.all(7.5)),
+                                                Flexible(
+                                                  child: Text(
+                                                    contentOrder[i],
+                                                    style: TextStyle(fontSize: 17),
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          state == Status.NORMAL
-                                              ? Expanded(
-                                                  flex: 1,
-                                                  child: ReorderableDragStartListener(
-                                                    index: i,
-                                                    child: ClipOval(
-                                                      child: Material(
-                                                        color: Colors.transparent,
-                                                        child: InkWell(
-                                                          child: Padding(
-                                                            padding: EdgeInsets.all(7.5),
-                                                            child: SizedBox(
-                                                              width: 16,
-                                                              height: 16,
-                                                              child: SvgPicture.asset('assets/grip-lines.svg', color: Colors.black),
-                                                            ),
+                                        ),
+                                        state == Status.NORMAL
+                                            ? Expanded(
+                                                flex: 1,
+                                                child: ReorderableDelayedDragStartListener(
+                                                  index: i,
+                                                  child: ClipOval(
+                                                    child: Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        child: Padding(
+                                                          padding: EdgeInsets.all(7.5),
+                                                          child: SizedBox(
+                                                            width: 16,
+                                                            height: 16,
+                                                            child: SvgPicture.asset('assets/grip-lines.svg', color: Colors.black),
                                                           ),
                                                         ),
                                                       ),
                                                     ),
                                                   ),
-                                                )
-                                              : Container(
-                                                  height: 32,
                                                 ),
-                                        ],
-                                      ),
-                                    )
-                                  : Container(
-                                      decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
-                                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 8),
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: Checkbox(
-                                              value: null,
-                                              activeColor: Color(0xFFB6B6B6),
-                                              onChanged: (v) {},
-                                              tristate: true,
-                                            ),
-                                          ),
-                                          Padding(padding: EdgeInsets.all(7.5)),
-                                          Text(
-                                            "Empty",
-                                            style: TextStyle(fontSize: 16, color: Color(0xFF929292)),
-                                          ),
-                                        ],
-                                      ),
+                                              )
+                                            : Container(
+                                                height: 32,
+                                              ),
+                                      ],
                                     ),
-                            ),
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(color: i < 3 ? Color(0xFFF2F2F2) : Colors.transparent),
+                                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 8),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: Checkbox(
+                                            value: null,
+                                            activeColor: Color(0xFFB6B6B6),
+                                            onChanged: (v) {},
+                                            tristate: true,
+                                          ),
+                                        ),
+                                        Padding(padding: EdgeInsets.all(7.5)),
+                                        Text(
+                                          "Empty",
+                                          style: TextStyle(fontSize: 16, color: Color(0xFF929292)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                           ),
                       ],
                       onReorder: (oldIndex, newIndex) {
@@ -1030,7 +1186,8 @@ class _SevenThingListState extends State<SevenThingList> {
                                               var type;
                                               if (contentOrder.contains(value)) {
                                                 Navigator.of(context).pop();
-                                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                               } else {
                                                 for (var i = 0; i < contentOrder.length; i++) {
                                                   var k = contentOrder[i];

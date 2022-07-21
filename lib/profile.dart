@@ -152,7 +152,9 @@ class _ProfileState extends State<Profile> {
                           if (value) {
                             showLoading(context);
                             FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).update({"token": ""}).whenComplete(() {
-                              FirebaseAuth.instance.signOut().whenComplete(() => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => Login())));
+                              FirebaseAuth.instance.signOut().whenComplete(() {
+                                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Login()), (Route<dynamic> route) => false);
+                              });
                             });
                           }
                         });

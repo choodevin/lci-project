@@ -17,7 +17,7 @@ import 'entity/LCIScore.dart';
 import 'entity/UserData.dart';
 import 'entity/Video.dart';
 import 'goal.dart';
-import 'group-chat.dart';
+import 'leave-application.dart';
 
 class LoadCampaign extends StatelessWidget {
   final userdata;
@@ -958,13 +958,13 @@ class _CampaignMainState extends State<CampaignMain> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xFF5D88FF),
         child: SvgPicture.asset(
-          'assets/comment-dots.svg',
+          'assets/user-clock-solid.svg',
           height: 20,
           width: 20,
           color: Colors.white,
         ),
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => GroupChat(campaignId: campaignId)));
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LeaveApplicationMain(campaignId: campaignId)));
         },
       ),
       body: SafeArea(

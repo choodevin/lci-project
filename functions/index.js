@@ -220,23 +220,38 @@ async function sevenThingsSchedulerFunction() {
     return null;
 }
 
-function chatPushNotificationFunction() {
+function campaignLeaveNotificationFunction(leaveData, context) {
+    const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
     var campaignId = context.params.campaignId;
     var invitationCode;
     var senderName;
     admin.firestore().collection("CampaignData").doc(campaignId).get().then((campaignData) => {
         invitationCode = campaignData.data()['invitationCode'];
-        admin.firestore().collection("UserData").doc(messageData.data()['sender']).get().then((senderData) => {
+        admin.firestore().collection("UserData").doc(leaveData.data()['userId']).get().then((senderData) => {
             senderName = senderData.get('name');
             admin.firestore().collection("UserData").where("currentEnrolledCampaign", "==", invitationCode).get().then((snapshot) => {
                 snapshot.forEach((userData) => {
-                    if (userData.id !== messageData.data()['sender']) {
+                    if (userData.id !== leaveData.data()['userId']) {
+                        var leaveDate = leaveData.data()['leaveDate'].toDate();
                         var token = userData.data()['token'];
                         admin.messaging().send({
                             token: token,
                             data: {
-                                title: campaignData.data()['name'],
-                                content: senderName + ": " + messageData.data()['content'],
+                                title: "Leave Application",
+                                content: senderName + " is applying leave on " + leaveDate.getDate() + " " + months[leaveDate.getMonth()] + " " + leaveDate.getFullYear(),
                                 targetCampaign: campaignData.id,
                             },
                             android: {
@@ -348,6 +363,6 @@ exports.sevenThingsScheduler = functions.region('asia-southeast1').pubsub.schedu
     await sevenThingsSchedulerFunction();
 });
 
-exports.chatPushNotification = functions.region('asia-southeast1').firestore.document("ChatData/content/{campaignId}/{messsageId}").onCreate((messageData, context) => {
-    chatPushNotificationFunction();
+exports.campaignLeaveNotification = functions.region('asia-southeast1').firestore.document("CampaignData/{campaignId}/LeaveApplication/{leaveId}").onCreate((leaveData, context) => {
+    campaignLeaveNotificationFunction(leaveData, context);
 });
