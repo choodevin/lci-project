@@ -68,6 +68,8 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
         while (it.moveNext()) {
           DocumentSnapshot doc = it.current;
           String status;
+          String reason = "";
+          String leaveType = "";
 
           if (maxUserCount == doc['approvedUser'].length) {
             status = "approved";
@@ -78,20 +80,41 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
               status = "rejected";
             }
           }
+
           if (doc['rejectedUser'].length > 0) {
             status = "rejected";
           }
 
+          try {
+            reason = doc["reason"];
+          } catch (e) {
+            reason = "";
+          }
+
+          if (doc['leaveType'] == "Normal" || doc['leaveType'] == "Full") {
+            leaveType = "Full";
+          } else {
+            leaveType = "Half";
+          }
+
           if (doc['userId'] == FirebaseAuth.instance.currentUser.uid) {
             invalidDateList.add(DateTime(doc['leaveDate'].toDate().year, doc['leaveDate'].toDate().month, doc['leaveDate'].toDate().day));
+            bool allowAppeal = false;
+            if (status == "rejected" && doc['leaveDate'].toDate().isAfter(DateTime.now())) {
+              allowAppeal = true;
+            }
             finalList.add({
               "leaveDate": doc['leaveDate'].toDate(),
               "approvedCount": doc['approvedUser'].length,
               "rejectedCount": doc['rejectedUser'].length,
               "name": "You",
-              "type": doc['leaveType'],
+              "type": leaveType,
+              "reason": reason,
               "category": 1,
               "status": status,
+              "allowAppeal": allowAppeal,
+              "isPending": false,
+              "leaveId": doc.id,
             });
           } else if (!doc['approvedUser'].contains(FirebaseAuth.instance.currentUser.uid) &&
               !doc['rejectedUser'].contains(FirebaseAuth.instance.currentUser.uid) &&
@@ -101,11 +124,14 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
               "approvedCount": doc['approvedUser'].length,
               "rejectedCount": doc['rejectedUser'].length,
               "userId": doc['userId'],
-              "leaveId": doc.id,
               "name": nameList[doc['userId']],
-              "type": doc['leaveType'],
+              "type": leaveType,
+              "reason": reason,
               "category": 2,
               "status": status,
+              "allowAppeal": false,
+              "isPending": true,
+              "leaveId": doc.id,
             });
           } else if (doc['approvedUser'].contains(FirebaseAuth.instance.currentUser.uid) ||
               doc['rejectedUser'].contains(FirebaseAuth.instance.currentUser.uid) ||
@@ -115,9 +141,13 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
               "approvedCount": doc['approvedUser'].length,
               "rejectedCount": doc['rejectedUser'].length,
               "name": nameList[doc['userId']],
-              "type": doc['leaveType'],
+              "type": leaveType,
+              "reason": reason,
               "category": 3,
               "status": status,
+              "allowAppeal": false,
+              "isPending": false,
+              "leaveId": doc.id,
             });
           }
         }
@@ -160,39 +190,82 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
         );
       },
     ).then((value) async {
-      if (value) {
-        showLoading(context);
-        CollectionReference leaveRef = FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication");
-        await leaveRef.doc(leaveId).update({
-          (type == "approve" ? "approvedUser" : "rejectedUser"): FieldValue.arrayUnion([FirebaseAuth.instance.currentUser.uid]),
-        });
+      try {
+        if (value) {
+          showLoading(context);
+          CollectionReference leaveRef = FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication");
 
-        DocumentSnapshot latestLeaveData = await leaveRef.doc(leaveId).get();
-        DateTime toGetDate = latestLeaveData.get("leaveDate").toDate();
-        toGetDate = DateTime(toGetDate.year, toGetDate.month, toGetDate.day);
+          String toGetField = type == "approve" ? "approvedUser" : "rejectedUser";
+          List newList = (await leaveRef.doc(leaveId).get()).get(toGetField);
 
-        DocumentReference sevenThingsRef =
-            FirebaseFirestore.instance.collection("UserData/${latestLeaveData.get("userId")}/SevenThings").doc(toGetDate.toString());
+          newList.add(FirebaseAuth.instance.currentUser.uid);
 
-        if (latestLeaveData.get("approvedUser").length == maxUserCount) {
-          DocumentSnapshot sevenThingsDoc = await sevenThingsRef.get();
-          Map<String, dynamic> tempStatus;
-          if (sevenThingsDoc.exists) {
-            tempStatus = sevenThingsDoc.get("status");
-            if (tempStatus == null) {
-              tempStatus = {};
+          await leaveRef.doc(leaveId).update({
+            (type == "approve" ? "approvedUser" : "rejectedUser"): newList,
+          });
+
+          DocumentSnapshot latestLeaveData = await leaveRef.doc(leaveId).get();
+          DateTime toGetDate = latestLeaveData.get("leaveDate").toDate();
+          toGetDate = DateTime(toGetDate.year, toGetDate.month, toGetDate.day);
+
+          DocumentReference sevenThingsRef =
+              FirebaseFirestore.instance.collection("UserData/${latestLeaveData.get("userId")}/SevenThings").doc(toGetDate.toString());
+
+          if (latestLeaveData.get("approvedUser").length == maxUserCount) {
+            DocumentSnapshot sevenThingsDoc = await sevenThingsRef.get();
+            Map tempStatus;
+            String leaveType = latestLeaveData.get("leaveType");
+            if (sevenThingsDoc.exists) {
+              try {
+                tempStatus = sevenThingsDoc.get("status");
+              } catch (e) {
+                tempStatus = {};
+              }
+              tempStatus.putIfAbsent(leaveType == "Full" ? "leave" : "halfLeave", () => true);
+              await sevenThingsRef.update({"status": tempStatus});
+            } else {
+              await sevenThingsRef.set({
+                "content": {},
+                "status": leaveType == "Full" ? {"leave": true} : {"halfLeave": true},
+              });
             }
-            tempStatus.putIfAbsent("leave", () => true);
-            await sevenThingsRef.update(tempStatus);
-          } else {
-            await sevenThingsRef.set({
-              "content": {},
-              "status": {"leave": true},
-            });
           }
-        }
 
+          Navigator.of(context).pop();
+          setState(() {});
+        }
+      } catch (e, stackTrace) {
         Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error while confirming action: $stackTrace'),
+        ));
+      }
+    });
+  }
+
+  void toDetails(DateTime leaveDate, String leaveType, bool allowAppeal, String reason, bool isPending, String status, int approvedCount, int maxUserCount,
+      String name, String leaveId) async {
+    await Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (context) => LeaveDetails(
+          leaveDate: leaveDate,
+          leaveType: leaveType,
+          allowAppeal: allowAppeal,
+          reason: reason,
+          isPending: isPending,
+          status: status,
+          approvedCount: approvedCount,
+          maxUserCount: maxUserCount,
+          campaignId: campaignId,
+          name: name,
+          leaveId: leaveId,
+        ),
+      ),
+    )
+        .then((value) {
+      print(value);
+      if (value != null && value) {
         setState(() {});
       }
     });
@@ -247,58 +320,82 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                                       itemCount: leaveList.length,
                                       itemBuilder: (context, index) {
                                         if (leaveList[index]['category'] == 1) {
-                                          Widget toReturn = Container(
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                top: !cat1FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
-                                                bottom: BorderSide(width: 1, color: Colors.black12),
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "(${leaveList[index]['type']}) ${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
-                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                          Widget toReturn = GestureDetector(
+                                            onTap: () => toDetails(
+                                                leaveList[index]['leaveDate'],
+                                                leaveList[index]['type'],
+                                                leaveList[index]['allowAppeal'],
+                                                leaveList[index]['reason'],
+                                                leaveList[index]['isPending'],
+                                                leaveList[index]['status'],
+                                                leaveList[index]['approvedCount'],
+                                                maxUserCount,
+                                                leaveList[index]['name'],
+                                                leaveList[index]['leaveId']),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  top: !cat1FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
+                                                  bottom: BorderSide(width: 1, color: Colors.black12),
                                                 ),
-                                                leaveList[index]['status'] == "approved"
-                                                    ? Container(
-                                                        padding: EdgeInsets.all(8),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                          color: Color(0xFF28A745),
-                                                        ),
-                                                        child: Text(
-                                                          "Approved",
-                                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                        ),
-                                                      )
-                                                    : leaveList[index]['status'] == "rejected"
-                                                        ? Container(
-                                                            padding: EdgeInsets.all(8),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                              color: Color(0xFFEF5350),
-                                                            ),
-                                                            child: Text(
-                                                              "Rejected",
-                                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                            ),
-                                                          )
-                                                        : Container(
-                                                            padding: EdgeInsets.all(8),
-                                                            decoration: BoxDecoration(
-                                                              border: Border.all(color: Color(0xFF262626), width: 2),
-                                                              borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                              color: Color(0xFF414141),
-                                                            ),
-                                                            child: Text(
-                                                              "On-going",
-                                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                            ),
+                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
+                                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                  ),
+                                                  leaveList[index]['status'] == "approved"
+                                                      ? Container(
+                                                          padding: EdgeInsets.all(8),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                            color: Color(0xFF28A745),
                                                           ),
-                                              ],
+                                                          child: Text(
+                                                            "Approved",
+                                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                          ),
+                                                        )
+                                                      : leaveList[index]['status'] == "rejected"
+                                                          ? Container(
+                                                              padding: EdgeInsets.all(8),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                                color: Color(0xFFEF5350),
+                                                              ),
+                                                              child: Text(
+                                                                "Rejected",
+                                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                              ),
+                                                            )
+                                                          : Row(
+                                                              children: [
+                                                                Container(
+                                                                  margin: EdgeInsets.symmetric(horizontal: 8),
+                                                                  child: Text(
+                                                                    "${leaveList[index]['approvedCount']}/$maxUserCount",
+                                                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  padding: EdgeInsets.all(8),
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border.all(color: Color(0xFF262626), width: 2),
+                                                                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                                    color: Color(0xFF414141),
+                                                                  ),
+                                                                  child: Text(
+                                                                    "On-going",
+                                                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                ],
+                                              ),
                                             ),
                                           );
                                           cat1FirstShow = true;
@@ -322,62 +419,83 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                                       itemCount: leaveList.length,
                                       itemBuilder: (context, index) {
                                         if (leaveList[index]['category'] == 2) {
-                                          Widget toReturn = Container(
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                top: !cat2FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
-                                                bottom: BorderSide(width: 1, color: Colors.black12),
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "(${leaveList[index]['type']}) ${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
-                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                          Widget toReturn = GestureDetector(
+                                            onTap: () => toDetails(
+                                                leaveList[index]['leaveDate'],
+                                                leaveList[index]['type'],
+                                                leaveList[index]['allowAppeal'],
+                                                leaveList[index]['reason'],
+                                                leaveList[index]['isPending'],
+                                                leaveList[index]['status'],
+                                                leaveList[index]['approvedCount'],
+                                                maxUserCount,
+                                                leaveList[index]['name'],
+                                                leaveList[index]['leaveId']),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  top: !cat2FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
+                                                  bottom: BorderSide(width: 1, color: Colors.black12),
                                                 ),
-                                                Expanded(
-                                                  child: Container(
+                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
+                                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                  ),
+                                                  Expanded(
+                                                    child: Container(
+                                                      margin: EdgeInsets.symmetric(horizontal: 8),
+                                                      child: Text(
+                                                        leaveList[index]['name'],
+                                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
                                                     margin: EdgeInsets.symmetric(horizontal: 8),
                                                     child: Text(
-                                                      leaveList[index]['name'],
+                                                      "${leaveList[index]['approvedCount']}/$maxUserCount",
                                                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                                                     ),
                                                   ),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    GestureDetector(
-                                                      child: Container(
-                                                        margin: EdgeInsets.only(right: 4),
-                                                        padding: EdgeInsets.all(4),
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(color: Color(0xFF16722C), width: 2),
-                                                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                          color: Color(0xFF28A745),
+                                                  Row(
+                                                    children: [
+                                                      GestureDetector(
+                                                        child: Container(
+                                                          margin: EdgeInsets.only(right: 4),
+                                                          padding: EdgeInsets.all(4),
+                                                          decoration: BoxDecoration(
+                                                            border: Border.all(color: Color(0xFF16722C), width: 2),
+                                                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                            color: Color(0xFF28A745),
+                                                          ),
+                                                          child: Icon(Icons.done, color: Colors.white, size: 20),
                                                         ),
-                                                        child: Icon(Icons.done, color: Colors.white, size: 20),
+                                                        onTap: () => confirmAction("approve", leaveList[index]['name'], leaveList[index]['leaveId']),
                                                       ),
-                                                      onTap: () => confirmAction("approve", leaveList[index]['name'], leaveList[index]['leaveId']),
-                                                    ),
-                                                    GestureDetector(
-                                                      child: Container(
-                                                        padding: EdgeInsets.all(4),
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(color: Color(0xFFC12A2A), width: 2),
-                                                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                          color: Color(0xFFEF5350),
+                                                      GestureDetector(
+                                                        child: Container(
+                                                          padding: EdgeInsets.all(4),
+                                                          decoration: BoxDecoration(
+                                                            border: Border.all(color: Color(0xFFC12A2A), width: 2),
+                                                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                            color: Color(0xFFEF5350),
+                                                          ),
+                                                          child: Icon(Icons.close, color: Colors.white, size: 20),
                                                         ),
-                                                        child: Icon(Icons.close, color: Colors.white, size: 20),
+                                                        onTap: () => confirmAction("reject", leaveList[index]['name'], leaveList[index]['leaveId']),
                                                       ),
-                                                      onTap: () => confirmAction("reject", leaveList[index]['name'], leaveList[index]['leaveId']),
-                                                    ),
-                                                  ],
-                                                )
-                                              ],
+                                                    ],
+                                                  )
+                                                ],
+                                              ),
                                             ),
                                           );
+
                                           cat2FirstShow = true;
                                           return toReturn;
                                         }
@@ -400,67 +518,80 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                                       itemCount: leaveList.length,
                                       itemBuilder: (context, index) {
                                         if (leaveList[index]['category'] == 3) {
-                                          Widget toReturn = Container(
-                                            decoration: BoxDecoration(
-                                              border: Border(
-                                                top: !cat3FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
-                                                bottom: BorderSide(width: 1, color: Colors.black12),
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.symmetric(vertical: 8),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "(${leaveList[index]['type']}) ${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
-                                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                          Widget toReturn = GestureDetector(
+                                            onTap: () => toDetails(
+                                                leaveList[index]['leaveDate'],
+                                                leaveList[index]['type'],
+                                                leaveList[index]['allowAppeal'],
+                                                leaveList[index]['reason'],
+                                                leaveList[index]['isPending'],
+                                                leaveList[index]['status'],
+                                                leaveList[index]['approvedCount'],
+                                                maxUserCount,
+                                                leaveList[index]['name'],
+                                                leaveList[index]['leaveId']),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  top: !cat3FirstShow ? BorderSide(width: 1, color: Colors.black12) : BorderSide.none,
+                                                  bottom: BorderSide(width: 1, color: Colors.black12),
                                                 ),
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: EdgeInsets.symmetric(horizontal: 12),
-                                                    child: Text(
-                                                      leaveList[index]['name'],
-                                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 8),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "${DateFormat("dd MMMM yyyy").format(leaveList[index]['leaveDate'])}",
+                                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                  ),
+                                                  Expanded(
+                                                    child: Container(
+                                                      margin: EdgeInsets.symmetric(horizontal: 12),
+                                                      child: Text(
+                                                        leaveList[index]['name'],
+                                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                                leaveList[index]['status'] == "approved"
-                                                    ? Container(
-                                                        padding: EdgeInsets.all(8),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                          color: Color(0xFF28A745),
-                                                        ),
-                                                        child: Text(
-                                                          "Approved",
-                                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                        ),
-                                                      )
-                                                    : leaveList[index]['status'] == "rejected"
-                                                        ? Container(
-                                                            padding: EdgeInsets.all(8),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                              color: Color(0xFFEF5350),
-                                                            ),
-                                                            child: Text(
-                                                              "Rejected",
-                                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                            ),
-                                                          )
-                                                        : Container(
-                                                            padding: EdgeInsets.all(8),
-                                                            decoration: BoxDecoration(
-                                                              border: Border.all(color: Color(0xFF262626), width: 2),
-                                                              borderRadius: BorderRadius.all(Radius.circular(4)),
-                                                              color: Color(0xFF414141),
-                                                            ),
-                                                            child: Text(
-                                                              "On-going",
-                                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                                            ),
+                                                  leaveList[index]['status'] == "approved"
+                                                      ? Container(
+                                                          padding: EdgeInsets.all(8),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                            color: Color(0xFF28A745),
                                                           ),
-                                              ],
+                                                          child: Text(
+                                                            "Approved",
+                                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                          ),
+                                                        )
+                                                      : leaveList[index]['status'] == "rejected"
+                                                          ? Container(
+                                                              padding: EdgeInsets.all(8),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                                color: Color(0xFFEF5350),
+                                                              ),
+                                                              child: Text(
+                                                                "Rejected",
+                                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                              ),
+                                                            )
+                                                          : Container(
+                                                              padding: EdgeInsets.all(8),
+                                                              decoration: BoxDecoration(
+                                                                border: Border.all(color: Color(0xFF262626), width: 2),
+                                                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                                color: Color(0xFF414141),
+                                                              ),
+                                                              child: Text(
+                                                                "On-going",
+                                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                                              ),
+                                                            ),
+                                                ],
+                                              ),
                                             ),
                                           );
                                           cat3FirstShow = true;
@@ -509,13 +640,15 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                                       invalidDateList: invalidDateList,
                                       deadline: deadlineHour,
                                     )))
-                            .then((value) {
-                          if (value != null && value) {
-                            setState(() {
-                              getLeave();
-                            });
-                          }
-                        });
+                            .then(
+                          (value) {
+                            if (value != null && value) {
+                              setState(() {
+                                getLeave();
+                              });
+                            }
+                          },
+                        );
                       },
                     ),
                   ),
@@ -547,11 +680,23 @@ class _LeaveApplicationApplyState extends State<LeaveApplicationApply> {
 
   get deadline => widget.deadline;
 
-  String leaveType = "Normal";
+  final reasonTextController = new TextEditingController();
+  FocusNode reasonFocusNode;
+
+  String leaveType = "Full";
   DateTime initialDate = DateTime.now();
   DateTime leaveDate = DateTime.now();
 
-  List<String> leaveList = ["Normal", "Half"];
+  List<String> leaveList = ["Full", "Half"];
+
+  @override
+  void initState() {
+    super.initState();
+    reasonFocusNode = FocusNode();
+    reasonFocusNode.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -559,140 +704,512 @@ class _LeaveApplicationApplyState extends State<LeaveApplicationApply> {
       initialDate = initialDate.add(Duration(days: 1));
       leaveDate = initialDate;
     }
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            PageHeadings(
-              text: "Applying Leave",
-              textStyle: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
-              popAvailable: true,
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height - 113 - 20,
-              padding: EdgeInsets.symmetric(horizontal: 25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    child: Text(
-                      "Date",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
+    return GestureDetector(
+      onTap: () => reasonFocusNode.unfocus(),
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: "Applying Leave",
+                  textStyle: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  popAvailable: true,
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.height - 113 - 20,
+                  padding: EdgeInsets.symmetric(horizontal: 25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         child: Text(
-                          "${DateFormat.d().format(leaveDate)} ${DateFormat.MMMM().format(leaveDate)} ${leaveDate.year}",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
+                          "Date",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            child: Text(
+                              "${DateFormat.d().format(leaveDate)} ${DateFormat.MMMM().format(leaveDate)} ${leaveDate.year}",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.calendar_today_rounded),
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              showDatePicker(
+                                  context: context,
+                                  initialDate: initialDate,
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime(2999),
+                                  confirmText: 'Confirm',
+                                  selectableDayPredicate: (DateTime val) {
+                                    return !invalidDateList.contains(val);
+                                  }).then((date) {
+                                if (date != null) {
+                                  setState(() {
+                                    leaveDate = date;
+                                  });
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 15),
+                        child: Text(
+                          "Leave Type",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        height: 45,
+                        margin: EdgeInsets.only(top: 15),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(15)),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 5,
+                              spreadRadius: 2,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: ButtonTheme(
+                          alignedDropdown: true,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton(
+                              isExpanded: true,
+                              style: TextStyle(
+                                color: Color(0xFF6E6E6E),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                              value: leaveType,
+                              items: leaveList.map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Center(child: Text(value)),
+                                );
+                              }).toList(),
+                              onChanged: (String newValue) {
+                                setState(() {
+                                  leaveType = newValue;
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.calendar_today_rounded),
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          showDatePicker(
-                              context: context,
-                              initialDate: initialDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2999),
-                              confirmText: 'Confirm',
-                              selectableDayPredicate: (DateTime val) {
-                                return !invalidDateList.contains(val);
-                              }).then((date) {
-                            if (date != null) {
-                              setState(() {
-                                leaveDate = date;
-                              });
-                            }
+                      Container(
+                        margin: EdgeInsets.only(top: 25),
+                        child: Text(
+                          "Reason",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 8),
+                        child: InputBox(
+                          focusNode: reasonFocusNode,
+                          controller: reasonTextController,
+                          minLines: 8,
+                          maxLines: 8,
+                          color: Colors.black12,
+                        ),
+                      ),
+                      Spacer(),
+                      PrimaryButton(
+                        color: Color(0xFF170E9A),
+                        textColor: Colors.white,
+                        text: "Confirm",
+                        onClickFunction: () async {
+                          showLoading(context);
+                          CollectionReference leaveRef = FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication");
+
+                          DateTime finalDate = DateTime(leaveDate.year, leaveDate.month, leaveDate.day, int.tryParse(deadline));
+                          String reason = reasonTextController.text;
+
+                          if (reason.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Do not leave Reason blank'),
+                            ));
+                            Navigator.of(context).pop();
+                            return;
+                          }
+
+                          await leaveRef.add({
+                            "userId": FirebaseAuth.instance.currentUser.uid,
+                            "leaveType": leaveType,
+                            "leaveDate": finalDate,
+                            "approvedUser": [],
+                            "rejectedUser": [],
+                            "reason": reason,
                           });
+
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(true);
                         },
                       ),
                     ],
                   ),
-                  Container(
-                    margin: EdgeInsets.only(top: 15),
-                    child: Text(
-                      "Leave Type",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  Container(
-                    height: 45,
-                    margin: EdgeInsets.only(top: 15),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 5,
-                          spreadRadius: 2,
-                          offset: Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: ButtonTheme(
-                      alignedDropdown: true,
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton(
-                          isExpanded: true,
-                          style: TextStyle(
-                            color: Color(0xFF6E6E6E),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
-                          value: leaveType,
-                          items: leaveList.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Center(child: Text(value)),
-                            );
-                          }).toList(),
-                          onChanged: (String newValue) {
-                            setState(() {
-                              leaveType = newValue;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  Spacer(),
-                  PrimaryButton(
-                    color: Color(0xFF170E9A),
-                    textColor: Colors.white,
-                    text: "Confirm",
-                    onClickFunction: () async {
-                      showLoading(context);
-                      CollectionReference leaveRef = FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication");
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                      DateTime finalDate = DateTime(leaveDate.year, leaveDate.month, leaveDate.day, int.tryParse(deadline));
+class LeaveDetails extends StatefulWidget {
+  final DateTime leaveDate;
+  final bool allowAppeal;
+  final String reason;
+  final String leaveType;
+  final bool isPending;
+  final String status;
+  final int approvedCount;
+  final int maxUserCount;
+  final String campaignId;
+  final String name;
+  final String leaveId;
 
-                      await leaveRef.add({
-                        "userId": FirebaseAuth.instance.currentUser.uid,
-                        "leaveType": leaveType,
-                        "leaveDate": finalDate,
-                        "approvedUser": [],
-                        "rejectedUser": [],
-                      });
+  const LeaveDetails({
+    Key key,
+    this.leaveDate,
+    this.allowAppeal,
+    this.reason,
+    this.leaveType,
+    this.isPending,
+    this.status,
+    this.approvedCount,
+    this.maxUserCount,
+    this.campaignId,
+    this.name,
+    this.leaveId,
+  }) : super(key: key);
 
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
+  @override
+  State<LeaveDetails> createState() => _LeaveDetailsState();
+}
+
+class _LeaveDetailsState extends State<LeaveDetails> {
+  get leaveDate => widget.leaveDate;
+
+  get allowAppeal => widget.allowAppeal;
+
+  get reason => widget.reason;
+
+  get leaveType => widget.leaveType;
+
+  get isPending => widget.isPending;
+
+  get status => widget.status;
+
+  get approvedCount => widget.approvedCount;
+
+  get maxUserCount => widget.maxUserCount;
+
+  get campaignId => widget.campaignId;
+
+  get name => widget.name;
+
+  get leaveId => widget.leaveId;
+
+  String _status = "";
+  int _approvedCount = -1;
+  bool _isPending;
+  bool reload = false;
+
+  void confirmAction(String type, String name, String leaveId) {
+    showDialog<bool>(
+      context: context,
+      builder: (c) {
+        return PrimaryDialog(
+          title: Text("Confirm Action"),
+          content: Text(type == "appeal" ? "Are you sure you want to appeal?" : "Are you sure you want to $type this leave for $name?"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(
+                'Yes',
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                'No',
+                style: TextStyle(
+                  color: Color(0xFFFF0000),
+                ),
               ),
             ),
           ],
+        );
+      },
+    ).then((value) async {
+      try {
+        if (value) {
+          CollectionReference leaveRef = FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication");
+          showLoading(context);
+          if (type == "appeal") {
+            DocumentSnapshot leaveData = await leaveRef.doc(leaveId).get();
+            Map leaveMap = leaveData.data();
+            leaveMap['approvedUser'] = [];
+            leaveMap['rejectedUser'] = [];
+            await leaveRef.add(leaveMap);
+            await leaveRef.doc(leaveId).delete();
+            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
+          } else {
+            _isPending = false;
+            reload = true;
+
+            String toGetField = type == "approve" ? "approvedUser" : "rejectedUser";
+            List newList = (await leaveRef.doc(leaveId).get()).get(toGetField);
+
+            newList.add(FirebaseAuth.instance.currentUser.uid);
+
+            await leaveRef.doc(leaveId).update({
+              (type == "approve" ? "approvedUser" : "rejectedUser"): newList,
+            });
+
+            if (type != "approve") {
+              _status = "rejected";
+            } else {
+              _approvedCount++;
+            }
+
+            DocumentSnapshot latestLeaveData = await leaveRef.doc(leaveId).get();
+            DateTime toGetDate = latestLeaveData.get("leaveDate").toDate();
+            toGetDate = DateTime(toGetDate.year, toGetDate.month, toGetDate.day);
+
+            DocumentReference sevenThingsRef =
+                FirebaseFirestore.instance.collection("UserData/${latestLeaveData.get("userId")}/SevenThings").doc(toGetDate.toString());
+
+            if (latestLeaveData.get("approvedUser").length == maxUserCount) {
+              DocumentSnapshot sevenThingsDoc = await sevenThingsRef.get();
+              Map tempStatus;
+              if (sevenThingsDoc.exists) {
+                try {
+                  tempStatus = sevenThingsDoc.get("status");
+                } catch (e) {
+                  tempStatus = {};
+                }
+                tempStatus.putIfAbsent("leave", () => true);
+                await sevenThingsRef.update(tempStatus);
+              } else {
+                await sevenThingsRef.set({
+                  "content": {},
+                  "status": {"leave": true},
+                });
+              }
+              _status = "approved";
+            }
+
+            Navigator.of(context).pop();
+            setState(() {});
+          }
+        }
+      } catch (e) {
+        print('Error while confirming action: $e');
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  Widget build(BuildContext context) {
+    String viewStatus = "";
+
+    if (_isPending == null) {
+      _isPending = isPending;
+    }
+
+    if (_status.isEmpty) {
+      _status = status;
+    }
+    if (_approvedCount == -1) {
+      _approvedCount = approvedCount;
+    }
+
+    if (_status == "approved") viewStatus = "Approved";
+    if (_status == "ongoing") viewStatus = "On-going";
+    if (_status == "rejected") viewStatus = "Rejected";
+
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.of(context).pop(reload);
+        return Future.value(false);
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                PageHeadings(
+                  text: "Leave Details",
+                  textStyle: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  popAvailable: true,
+                ),
+                Container(
+                  height: MediaQuery.of(context).size.height - 113 - 20,
+                  padding: EdgeInsets.symmetric(horizontal: 25),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        child: Text(
+                          "Date",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 4),
+                        child: Text(
+                          "${DateFormat.d().format(widget.leaveDate)} ${DateFormat.MMMM().format(widget.leaveDate)} ${widget.leaveDate.year}",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 15),
+                        child: Text(
+                          "Leave Type",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 4),
+                        child: Text(
+                          widget.leaveType,
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 25),
+                        child: Text(
+                          "Reason",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 4),
+                        child: Text(
+                          widget.reason,
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.only(top: 25),
+                        child: Text(
+                          "Status",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      _status == "ongoing"
+                          ? Container(
+                              margin: EdgeInsets.only(top: 4),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    child: Text(
+                                      viewStatus,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.only(left: 4),
+                                    child: Text(
+                                      "${_approvedCount.toString()}/${maxUserCount.toString()} approved",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )
+                          : Container(
+                              margin: EdgeInsets.only(top: 4),
+                              child: Text(
+                                viewStatus,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                      allowAppeal || _isPending ? Spacer() : SizedBox.shrink(),
+                      allowAppeal
+                          ? PrimaryButton(
+                              color: Color(0xFF170E9A),
+                              textColor: Colors.white,
+                              text: "Appeal",
+                              onClickFunction: () => confirmAction("appeal", name, leaveId),
+                            )
+                          : SizedBox.shrink(),
+                      _isPending
+                          ? Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: 4),
+                                    child: PrimaryButton(
+                                      color: Color(0xFF170E9A),
+                                      textColor: Colors.white,
+                                      text: "Approve",
+                                      onClickFunction: () => confirmAction("approve", name, leaveId),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    margin: EdgeInsets.only(left: 4),
+                                    child: PrimaryButton(
+                                      color: Color(0xFF170E9A),
+                                      textColor: Colors.white,
+                                      text: "Reject",
+                                      onClickFunction: () => confirmAction("reject", name, leaveId),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : SizedBox.shrink(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

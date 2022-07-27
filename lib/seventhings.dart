@@ -366,7 +366,7 @@ class _SevenThingListState extends State<SevenThingList> {
 
   var contentOrder = [];
   var state = Status.NORMAL;
-  bool isPenalty = false, isLeave = false;
+  bool isPenalty = false, isLeave = false, isHalfLeave = false;
   var gRef;
 
   TextEditingController _newSevenThings = new TextEditingController();
@@ -436,6 +436,10 @@ class _SevenThingListState extends State<SevenThingList> {
       if (sevenThings['status']['leave'] != null) {
         isLeave = sevenThings['status']['leave'];
       }
+
+      if (sevenThings['status']['halfLeave'] != null) {
+        isHalfLeave = sevenThings['status']['halfLeave'];
+      }
     } else {
       if (sevenThings['status']['lockEdit'] != null) {
         if (sevenThings['status']['lockEdit']) {
@@ -455,6 +459,10 @@ class _SevenThingListState extends State<SevenThingList> {
 
       if (sevenThings['status']['leave'] != null) {
         isLeave = sevenThings['status']['leave'];
+      }
+
+      if (sevenThings['status']['halfLeave'] != null) {
+        isHalfLeave = sevenThings['status']['halfLeave'];
       }
 
       if (sevenThings['contentOrder'] != null) {
@@ -585,30 +593,6 @@ class _SevenThingListState extends State<SevenThingList> {
         }
       });
     });
-  }
-
-  Future<String> getLeaveType() async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection("UserData").doc(FirebaseAuth.instance.currentUser.uid).get();
-    String invCode = userDoc.get("currentEnrolledCampaign");
-    QuerySnapshot campaignCol = await FirebaseFirestore.instance.collection("CampaignData").where("invitationCode", isEqualTo: invCode).get();
-    if (campaignCol.size > 0) {
-      String campaignId = campaignCol.docs.first.id;
-      String deadlineHour = campaignCol.docs.first.get("sevenThingDeadline");
-      DateTime toSearchDate = DateTime(date.year, date.month, date.day, int.tryParse(deadlineHour.split(":")[0]));
-      print(toSearchDate.toString());
-      QuerySnapshot leaveCol =
-          await FirebaseFirestore.instance.collection("CampaignData/$campaignId/LeaveApplication").where("leaveDate", isEqualTo: toSearchDate).get();
-      if (leaveCol.size > 0) {
-        String leaveType = leaveCol.docs.first.get("leaveType");
-        if (leaveType == "Normal") {
-          return "Full ";
-        } else if (leaveType == "Half") {
-          return "Half ";
-        }
-      }
-    }
-
-    return "";
   }
 
   @override
@@ -832,46 +816,31 @@ class _SevenThingListState extends State<SevenThingList> {
                                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
                                       ),
                                     ),
-                          isLeave
-                              ? FutureBuilder(
-                                  future: getLeaveType(),
-                                  builder: (context, AsyncSnapshot<String> snapshot) {
-                                    return Container(
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                                        color: Color(0xFF265DFC),
-                                      ),
-                                      child: snapshot.connectionState != ConnectionState.done
-                                          ? SizedBox(
-                                              height: 14,
-                                              width: 14,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 1.5,
-                                              ),
-                                            )
-                                          : Text(
-                                              "${snapshot.data}Leave",
-                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                            ),
-                                    );
-                                  },
+                          isLeave || isHalfLeave
+                              ? Container(
+                                  padding: EdgeInsets.all(8),
+                                  margin: EdgeInsets.only(right: 4),
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(4)), color: Theme.of(context).primaryColor),
+                                  child: Text(
+                                    "${isLeave ? "Full " : isHalfLeave ? "Half " : ""}Leave",
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                  ),
                                 )
-                              : isPenalty
-                                  ? Container(
-                                      margin: EdgeInsets.only(right: 4),
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                                        color: Color(0xFFEF5350),
-                                      ),
-                                      child: Text(
-                                        "Penalty",
-                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-                                      ),
-                                    )
-                                  : SizedBox.shrink(),
+                              : SizedBox.shrink(),
+                          isPenalty
+                              ? Container(
+                                  margin: EdgeInsets.only(right: 4),
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                                    color: Color(0xFFEF5350),
+                                  ),
+                                  child: Text(
+                                    "Penalty",
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                  ),
+                                )
+                              : SizedBox.shrink(),
                         ],
                       ),
                     ),

@@ -3,6 +3,8 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
+monthlyRankingPatching();
+
 async function sevenThingsSchedulerFunction() {
     var debugLogPrefix = "DEBUG LOG: ";
     var now = new Date().toLocaleString('en-us', { timeZone: 'Asia/Kuala_Lumpur', hour12: false, hour: 'numeric' });
@@ -292,7 +294,8 @@ function monthlyRankingPatching() {
                     var sevenThingsMonth = sevenThingsDate.split(' ')[0].split('-')[1].padStart(2, '0');
                     var sevenThingsDay = parseInt(sevenThingsDate.split(' ')[0].split('-')[2]);
                     //var stopCount = sevenThingsMonth == '12' && sevenThingsDay > 15 ? true : false;
-                    var toCount = sevenThingsMonth == '12' && sevenThingsDay <= '15' ? true : false;
+                    var toCount = (sevenThingsMonth == '06' && sevenThingsYear == '2022') ? true : false;
+                    //console.log(toCount + " " + sevenThingsDate);
                     if (toCount) {
                         var toSetRanking = sevenThingsMonth + '-' + sevenThingsYear;
                         if (parentMap[toSetRanking] === undefined) {
@@ -320,11 +323,7 @@ function monthlyRankingPatching() {
                                     }
                                 }
                                 totalScore = primaryScore + secondaryScore;
-                            } else {
-                                isLeave = true;
                             }
-                        } else {
-                            isLeave = true;
                         }
 
                         if (parentMap[toSetRanking][userId] === undefined) {
@@ -344,6 +343,8 @@ function monthlyRankingPatching() {
                 });
 
                 let newList = new Map(Object.entries(parentMap));
+
+                console.log(newList);
 
                 newList.forEach((v, k) => {
                     var rankingsByMonthRef = admin.firestore().collection('CampaignData/PAvObgSFiHc6u4yGxTGE/MonthlyRanking').doc(k);

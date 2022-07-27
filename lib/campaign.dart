@@ -904,17 +904,35 @@ class SetupCampaignFinal extends StatelessWidget {
   }
 }
 
-class CampaignMain extends StatefulWidget {
+class CampaignMain extends StatelessWidget {
   final campaign;
   final campaignId;
   final isCoach;
 
   const CampaignMain({Key key, this.campaign, this.campaignId, this.isCoach}) : super(key: key);
 
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<Campaign>(
+      create: (c) => Campaign(),
+      builder: (context, child) {
+        return _CampaignMain(campaign: campaign, campaignId: campaignId, isCoach: isCoach);
+      },
+    );
+  }
+}
+
+class _CampaignMain extends StatefulWidget {
+  final campaign;
+  final campaignId;
+  final isCoach;
+
+  const _CampaignMain({Key key, this.campaign, this.campaignId, this.isCoach}) : super(key: key);
+
   _CampaignMainState createState() => _CampaignMainState(campaign, campaignId, isCoach);
 }
 
-class _CampaignMainState extends State<CampaignMain> {
+class _CampaignMainState extends State<_CampaignMain> {
   CampaignData campaign;
   final campaignId;
   final isCoach;
@@ -1381,14 +1399,14 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
   final goals;
   final score;
 
-  var today;
+  var selectedDate;
 
   _CampaignUserDetailsState(this.userdata, this.goalExists, this.goals, this.score);
 
   @override
   void initState() {
     super.initState();
-    today = getTime();
+    selectedDate = getTime();
   }
 
   @override
@@ -1528,7 +1546,7 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
   }
 
   Widget getTargetSevenThings() {
-    DocumentReference sevenThingsRef = userdata.reference.collection('SevenThings').doc(today.toString());
+    DocumentReference sevenThingsRef = userdata.reference.collection('SevenThings').doc(selectedDate.toString());
     return FutureBuilder(
       future: sevenThingsRef.get(),
       builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -1539,7 +1557,22 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
         if (snapshot.connectionState == ConnectionState.done) {
           Map<String, dynamic> data = snapshot.data.data();
           List<dynamic> contentOrder = [];
+          bool isLeave = false, isHalfLeave = false, isPenalty = false;
+
           if (data != null && data.isNotEmpty) {
+            Map statusMap = data['status'];
+            if (statusMap != null) {
+              if (statusMap.containsKey("leave")) {
+                isLeave = statusMap['leave'];
+              }
+              if (statusMap.containsKey("halfLeave")) {
+                isHalfLeave = statusMap['halfLeave'];
+              }
+              if (statusMap.containsKey("penalty")) {
+                isPenalty = statusMap['penalty'];
+              }
+            }
+
             if (data.containsKey('contentOrder')) {
               contentOrder = data['contentOrder'];
             } else {
@@ -1573,6 +1606,10 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                     secondaryCounter++;
                   }
                 }
+
+                if (data['content'].isEmpty) {
+                  contentOrder = [];
+                }
               }
             }
           } else {
@@ -1584,52 +1621,123 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                 PrimaryCard(
                   child: Column(
                     children: [
-                      TextWithIcon(
-                        text: 'Today\'s 7 Things',
-                        assetPath: 'assets/tasks.svg',
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextWithIcon(
+                            text: 'Today\'s 7 Things',
+                            assetPath: 'assets/tasks.svg',
+                          ),
+                          Row(
+                            children: [
+                              Text("${selectedDate.day}/${selectedDate.month}/${selectedDate.year}"),
+                              IconButton(
+                                icon: Icon(Icons.calendar_today_rounded),
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  showDatePicker(
+                                    context: context,
+                                    initialDate: selectedDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2999),
+                                    confirmText: 'Confirm',
+                                  ).then((date) {
+                                    if (date != null) {
+                                      setState(() {
+                                        selectedDate = date;
+                                      });
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       Padding(padding: EdgeInsets.all(5)),
-                      contentOrder.length == 0
-                          ? Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Text('He/She has not set any 7 things for today.', style: TextStyle(color: Color(0xFF6E6E6E))),
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (var i = 0; i < contentOrder.length; i++)
-                                  contentOrder[i].isNotEmpty
-                                      ? Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                margin: EdgeInsets.only(right: 15),
-                                                height: 16,
-                                                width: 16,
-                                                child: Checkbox(
-                                                  activeColor: Color(0xFFF48A1D),
-                                                  checkColor: Colors.white,
-                                                  value: data['content'][contentOrder[i]]['status'],
-                                                  onChanged: null,
-                                                ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          isPenalty || isLeave || isHalfLeave
+                              ? Container(
+                                  margin: EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      isLeave || isHalfLeave
+                                          ? Container(
+                                              padding: EdgeInsets.all(8),
+                                              margin: EdgeInsets.only(right: 4),
+                                              decoration:
+                                                  BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(4)), color: Theme.of(context).primaryColor),
+                                              child: Text(
+                                                "${isLeave ? "Full " : isHalfLeave ? "Half " : ""}Leave",
+                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
                                               ),
-                                              Flexible(
-                                                child: Text(
-                                                  contentOrder[i],
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
+                                            )
+                                          : SizedBox.shrink(),
+                                      isPenalty
+                                          ? Container(
+                                              margin: EdgeInsets.only(right: 4),
+                                              padding: EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(Radius.circular(4)),
+                                                color: Color(0xFFEF5350),
                                               ),
-                                            ],
+                                              child: Text(
+                                                "Penalty",
+                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                              ),
+                                            )
+                                          : SizedBox.shrink(),
+                                    ],
+                                  ),
+                                )
+                              : SizedBox.shrink(),
+                          contentOrder.length == 0
+                              ? Padding(
+                                  padding: EdgeInsets.all(14),
+                                  child: Text(
+                                    'No 7 Things found on selected date',
+                                    style: TextStyle(
+                                      color: Color(0xFF6E6E6E),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )
+                              : SizedBox.shrink(),
+                          for (var i = 0; i < contentOrder.length; i++)
+                            contentOrder[i].isNotEmpty
+                                ? Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          margin: EdgeInsets.only(right: 15),
+                                          height: 16,
+                                          width: 16,
+                                          child: Checkbox(
+                                            activeColor: Color(0xFFF48A1D),
+                                            checkColor: Colors.white,
+                                            value: data['content'][contentOrder[i]]['status'],
+                                            onChanged: null,
                                           ),
-                                        )
-                                      : SizedBox.shrink(),
-                              ],
-                            ),
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            contentOrder[i],
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : SizedBox.shrink(),
+                        ],
+                      ),
                     ],
                   ),
                 ),
