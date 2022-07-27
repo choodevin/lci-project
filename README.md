@@ -30,5 +30,5 @@ lci-project
 
 ## Git branching strategy
 - master - Live branch (currently not applicable)
-- version branch (v0.x.0) - Alpha version branches, all current development will be under latest branch here (latest v0.6.0)
+- version branch (v0.x.0) - Alpha version branches, all current development will be under latest branch here
 - TEMP_BRANCH - only for project migration and project structure changes usage
