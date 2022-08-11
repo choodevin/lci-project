@@ -1630,10 +1630,11 @@ class _CampaignUserDetailsState extends State<CampaignUserDetails> {
                           ),
                           Row(
                             children: [
-                              Text("${selectedDate.day}/${selectedDate.month}/${selectedDate.year}"),
+                              Text("${selectedDate.day}/${selectedDate.month}/${selectedDate.year}", style: TextStyle(fontSize: 13),),
                               IconButton(
+                                constraints: BoxConstraints(),
                                 icon: Icon(Icons.calendar_today_rounded),
-                                padding: EdgeInsets.zero,
+                                padding: EdgeInsets.symmetric(horizontal: 4),
                                 onPressed: () {
                                   showDatePicker(
                                     context: context,

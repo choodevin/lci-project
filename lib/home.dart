@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -460,10 +461,16 @@ class _HomeBaseState extends State<HomeBase> {
   @override
   void initState() {
     super.initState();
-    messaging = FirebaseMessaging.instance;
-    messaging.getToken().then((token) {
-      updateToken(token);
-    });
+
+    if(kIsWeb) {
+      FirebaseMessaging.instance.getToken(vapidKey: "BB1Z1ItGirpcYo3x3tfy3vqsuGznPARNIuhjnN2sUEFmgCoNtwOzH1B1BnNT92-EvJ4i5SKiVfxdqjbOKMl9MSc").then((token) {
+        updateToken(token);
+      });
+    } else {
+      FirebaseMessaging.instance.getToken().then((token) {
+        updateToken(token);
+      });
+    }
 
     campaignPage = userdata.currentEnrolledCampaign.isNotEmpty
         ? LoadCampaign(userdata: userdata)

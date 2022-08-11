@@ -1,9 +1,8 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const { user } = require('firebase-functions/lib/providers/auth');
 
 admin.initializeApp();
-
-monthlyRankingPatching();
 
 async function sevenThingsSchedulerFunction() {
     var debugLogPrefix = "DEBUG LOG: ";
@@ -222,7 +221,7 @@ async function sevenThingsSchedulerFunction() {
     return null;
 }
 
-function campaignLeaveNotificationFunction(leaveData, context) {
+function campaignLeaveNotificationFunction(data) {
     const months = [
         'January',
         'February',
@@ -237,37 +236,41 @@ function campaignLeaveNotificationFunction(leaveData, context) {
         'November',
         'December'
     ];
-    var campaignId = context.params.campaignId;
+    var campaignId = data.campaignId;
+    var userId = data.userId;
+    var leaveDay = data.leaveDay;
+    var leaveMonth = data.leaveMonth;
+    var leaveYear = data.leaveYear;
     var invitationCode;
     var senderName;
     admin.firestore().collection("CampaignData").doc(campaignId).get().then((campaignData) => {
         invitationCode = campaignData.data()['invitationCode'];
-        admin.firestore().collection("UserData").doc(leaveData.data()['userId']).get().then((senderData) => {
+        admin.firestore().collection("UserData").doc(userId).get().then((senderData) => {
             senderName = senderData.get('name');
             admin.firestore().collection("UserData").where("currentEnrolledCampaign", "==", invitationCode).get().then((snapshot) => {
                 snapshot.forEach((userData) => {
-                    if (userData.id !== leaveData.data()['userId']) {
-                        var leaveDate = leaveData.data()['leaveDate'].toDate();
+                    if (userData.id !== userId) {
                         var token = userData.data()['token'];
+                        console.log("Sending leave notification to " + userId);
                         admin.messaging().send({
                             token: token,
                             data: {
                                 title: "Leave Application",
-                                content: senderName + " is applying leave on " + leaveDate.getDate() + " " + months[leaveDate.getMonth()] + " " + leaveDate.getFullYear(),
-                                targetCampaign: campaignData.id,
+                                content: senderName + " is applying leave on " + leaveDay + " " + months[leaveMonth] + " " + leaveYear,
+                                notificationId: "0",
                             },
                             android: {
                                 priority: "high",
                             },
-                        }).catch(e => { console.log(e) });
+                        }).then((_) => {
+                            console.log("Completed sending notification to token " + token);
+                            return { status: _ };
+                        }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
                     }
                 });
-                return null;
-            }).catch(e => { console.log(e) });
-            return null;
-        }).catch(e => { console.log(e) });
-        return null;
-    }).catch(e => { console.log(e) });
+            }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+        }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+    }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
 }
 
 function exportData() {
@@ -359,11 +362,87 @@ function monthlyRankingPatching() {
     });
 }
 
+async function leaveActionNotificationFunction(data) {
+    const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
+    var campaignId = data.campaignId;
+    var leaveId = data.leaveId;
+    var type = data.type;
+    console.log("campaignId: " + campaignId + " leaveId: " + leaveId + " type: " + type);
+    await admin.firestore().collection("CampaignData").doc(campaignId).collection("LeaveApplication").doc(leaveId).get().then(async(leaveData) => {
+        var userId = leaveData.data()['userId'];
+        var leaveDate = leaveData.data()['leaveDate'].toDate();
+        await admin.firestore().collection("UserData").doc(userId).get().then(async(userData) => {
+            var token = userData.get('token');
+            if (type == "approve") {
+                console.log("Sending approve notification to " + userId);
+                await admin.messaging().send({
+                    token: token,
+                    data: {
+                        title: "Leave Approved",
+                        content: "Your leave on " + leaveDate.getDate() + " " + months[leaveDate.getMonth()] + " " + leaveDate.getFullYear() + " has been approved.",
+                        targetCampaign: campaignId,
+                        notificationId: "1",
+                    },
+                    android: {
+                        priority: "high",
+                    },
+                }).then((_) => {
+                    console.log("Completed sending notification to token " + token);
+                    return { status: _ };
+                }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+            }
+            if (type == "reject") {
+                console.log("Sending reject notification to " + userId);
+                await admin.messaging().send({
+                    token: token,
+                    data: {
+                        title: "Leave Reject",
+                        content: "Your leave on " + leaveDate.getDate() + " " + months[leaveDate.getMonth()] + " " + leaveDate.getFullYear() + " has been rejected.",
+                        notificationId: "1",
+                    },
+                    android: {
+                        priority: "high",
+                    },
+                }).then((_) => {
+                    console.log("Completed sending notification to token " + token);
+                    return { status: _ };
+                }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+            }
+        }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+    }).catch(e => { throw new functions.https.HttpsError('invalid-argument', e); });
+}
 
 exports.sevenThingsScheduler = functions.region('asia-southeast1').pubsub.schedule('0 * * * *').timeZone('Asia/Kuala_Lumpur').onRun(async(context) => {
     await sevenThingsSchedulerFunction();
 });
 
-exports.campaignLeaveNotification = functions.region('asia-southeast1').firestore.document("CampaignData/{campaignId}/LeaveApplication/{leaveId}").onCreate((leaveData, context) => {
-    campaignLeaveNotificationFunction(leaveData, context);
+exports.campaignLeaveNotification = functions.region('asia-southeast1').https.onCall(async(data, context) => {
+    console.log('campaignLeaveNotificationTriggered');
+    try {
+        return await campaignLeaveNotificationFunction(data);
+    } catch (error) {
+        throw new functions.https.HttpsError('invalid-argument', error);
+    }
+});
+
+exports.leaveActionNotification = functions.region('asia-southeast1').https.onCall(async(data, context) => {
+    console.log('leaveActionNotificationTriggered');
+    try {
+        return await leaveActionNotificationFunction(data);
+    } catch (error) {
+        throw new functions.https.HttpsError('invalid-argument', error);
+    }
 });

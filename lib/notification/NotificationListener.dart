@@ -25,13 +25,18 @@ Future<void> initNotifications() async {
 }
 
 Future<void> notificationReceiver(RemoteMessage message) async {
-  print("RECEIVED MESSAGE");
-  print(message.data['title']);
-  print(message.data['content']);
   var title = message.data['title'];
   var content = message.data['content'];
-  var targetCampaign = message.data['targetCampaign'];
-  const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails("0", "Leave Application", "Leave Application Notifications");
-  const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
-  await _flutterLocalNotificationsPlugin.show(0, title, content, notificationDetails, payload: "LEAVE|$targetCampaign");
+  var notificationId = message.data['notificationId'];
+  print("RECEIVED MESSAGE");
+  print("notificationId: $notificationId");
+  if(notificationId == "0") {
+    const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails("0", "Leave Application", "Leave Application Notifications");
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
+    await _flutterLocalNotificationsPlugin.show(0, title, content, notificationDetails, payload: "LEAVE|");
+  } else if (notificationId == "1") {
+    const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails("1", "Leave Action", "Leave Application Notifications");
+    const NotificationDetails notificationDetails = NotificationDetails(android: androidNotificationDetails);
+    await _flutterLocalNotificationsPlugin.show(0, title, content, notificationDetails, payload: "LEAVE|");
+  }
 }

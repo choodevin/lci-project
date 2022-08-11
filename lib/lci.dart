@@ -314,7 +314,14 @@ class _QuestionFormState extends State<QuestionForm> {
           .set(score)
           .then((value) {
         Navigator.of(context).pop();
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => LciResult(
+              score: score,
+              date: dateNow,
+            ),
+          ),
+        );
       });
     }
 
@@ -748,7 +755,7 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
           .set(score)
           .then((value) {
         Navigator.of(context).pop();
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score)));
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => LciResult(score: score, date: dateNow)));
       });
     }
 
@@ -945,8 +952,9 @@ class _AllQuestionFormState extends State<AllQuestionForm> {
 class LciResult extends StatelessWidget {
   final score;
   final view;
+  final date;
 
-  const LciResult({Key key, this.score, this.view}) : super(key: key);
+  const LciResult({Key key, this.score, this.view, this.date}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -974,7 +982,29 @@ class LciResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PageHeadings(text: 'Your LCI Result', padding: EdgeInsets.zero),
-                  Padding(padding: EdgeInsets.all(10)),
+                  Padding(
+                    padding: EdgeInsets.only(top: 12, bottom: 24),
+                    child: Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(right: 8),
+                          child: Text(
+                            "LCI Test Date:",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "${date.day}/${date.month}/${date.year}",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Stack(
                     children: [
                       Center(
@@ -1238,8 +1268,20 @@ class _LCIMainState extends State<LCIMain> {
                               }
 
                               if (snapshot.connectionState == ConnectionState.done) {
-                                Map<dynamic, dynamic> data = snapshot.data.docs.asMap();
-                                data.forEach((key, value) {});
+                                List data = snapshot.data.docs.toList();
+                                data.sort((a, b) {
+                                  var aId = a.id.split("-");
+                                  var aDay = int.parse(aId[0]);
+                                  var aMonth = int.parse(aId[1]);
+                                  var aYear = int.parse(aId[2]);
+                                  DateTime aDate = DateTime(aYear, aMonth, aDay);
+                                  var bId = b.id.split("-");
+                                  var bDay = int.parse(bId[0]);
+                                  var bMonth = int.parse(bId[1]);
+                                  var bYear = int.parse(bId[2]);
+                                  DateTime bDate = DateTime(bYear, bMonth, bDay);
+                                  return bDate.compareTo(aDate);
+                                });
                                 return ListView.builder(
                                   shrinkWrap: true,
                                   scrollDirection: Axis.vertical,
@@ -1254,7 +1296,12 @@ class _LCIMainState extends State<LCIMain> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: GestureDetector(
                                         onTap: () {
-                                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LciResult(score: data[index].data(), view: true)));
+                                          Navigator.of(context).push(MaterialPageRoute(
+                                              builder: (context) => LciResult(
+                                                    score: data[index].data(),
+                                                    view: true,
+                                                    date: DateTime(year, month, day),
+                                                  )));
                                         },
                                         child: PrimaryCard(
                                           padding: EdgeInsets.symmetric(vertical: 15),

@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 import 'custom-components.dart';
 
@@ -204,6 +206,11 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
             (type == "approve" ? "approvedUser" : "rejectedUser"): newList,
           });
 
+          if (type != "approve") {
+            Map leaveActionNotificationData = {"leaveId": leaveId, "campaignId": campaignId, "type": "reject"};
+            await FirebaseFunctions.instanceFor(region: "asia-southeast1").httpsCallable('leaveActionNotification').call(leaveActionNotificationData);
+          }
+
           DocumentSnapshot latestLeaveData = await leaveRef.doc(leaveId).get();
           DateTime toGetDate = latestLeaveData.get("leaveDate").toDate();
           toGetDate = DateTime(toGetDate.year, toGetDate.month, toGetDate.day);
@@ -229,6 +236,9 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                 "status": leaveType == "Full" ? {"leave": true} : {"halfLeave": true},
               });
             }
+
+            Map leaveActionNotificationData = {"leaveId": leaveId, "campaignId": campaignId, "type": "approve"};
+            await FirebaseFunctions.instanceFor(region: "asia-southeast1").httpsCallable('leaveActionNotification').call(leaveActionNotificationData);
           }
 
           Navigator.of(context).pop();
@@ -634,12 +644,15 @@ class _LeaveApplicationMainState extends State<LeaveApplicationMain> {
                       text: "Apply Leave",
                       onClickFunction: () {
                         Navigator.of(context)
-                            .push(MaterialPageRoute(
-                                builder: (context) => LeaveApplicationApply(
-                                      campaignId: campaignId,
-                                      invalidDateList: invalidDateList,
-                                      deadline: deadlineHour,
-                                    )))
+                            .push(
+                          MaterialPageRoute(
+                            builder: (context) => LeaveApplicationApply(
+                              campaignId: campaignId,
+                              invalidDateList: invalidDateList,
+                              deadline: deadlineHour,
+                            ),
+                          ),
+                        )
                             .then(
                           (value) {
                             if (value != null && value) {
@@ -860,6 +873,17 @@ class _LeaveApplicationApplyState extends State<LeaveApplicationApply> {
                             "reason": reason,
                           });
 
+                          Map leaveActionNotificationData = {
+                            "campaignId": campaignId,
+                            "userId": FirebaseAuth.instance.currentUser.uid,
+                            "leaveDay": finalDate.day,
+                            "leaveMonth": (finalDate.month - 1),
+                            "leaveYear": finalDate.year
+                          };
+                          await FirebaseFunctions.instanceFor(region: "asia-southeast1")
+                              .httpsCallable('campaignLeaveNotification')
+                              .call(leaveActionNotificationData);
+
                           Navigator.of(context).pop();
                           Navigator.of(context).pop(true);
                         },
@@ -995,6 +1019,9 @@ class _LeaveDetailsState extends State<LeaveDetails> {
 
             if (type != "approve") {
               _status = "rejected";
+
+              Map leaveActionNotificationData = {"leaveId": leaveId, "campaignId": campaignId, "type": "reject"};
+              await FirebaseFunctions.instanceFor(region: "asia-southeast1").httpsCallable('leaveActionNotification').call(leaveActionNotificationData);
             } else {
               _approvedCount++;
             }
@@ -1023,7 +1050,11 @@ class _LeaveDetailsState extends State<LeaveDetails> {
                   "status": {"leave": true},
                 });
               }
+
               _status = "approved";
+
+              Map leaveActionNotificationData = {"leaveId": leaveId, "campaignId": campaignId, "type": "approve"};
+              await FirebaseFunctions.instanceFor(region: "asia-southeast1").httpsCallable('leaveActionNotification').call(leaveActionNotificationData);
             }
 
             Navigator.of(context).pop();
