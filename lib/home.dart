@@ -60,7 +60,7 @@ class _HomeState extends State<Home> {
         var primaryCounter = 0;
         var secondaryCounter = 0;
 
-        if(sevenThings['content'] == null) {
+        if (sevenThings['content'] == null) {
           sevenThings['content'] = {};
         }
 
@@ -77,7 +77,7 @@ class _HomeState extends State<Home> {
           }
         }
 
-        if(sevenThings['content'] != null) {
+        if (sevenThings['content'] != null) {
           sevenThings['content'].forEach((k, v) {
             if (v['type'] == 'Secondary') {
               contentOrder.add(k);
@@ -369,7 +369,8 @@ class _GetUserDataState extends State<GetUserData> {
   @override
   Widget build(BuildContext context) {
     DocumentReference userRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid);
-    DocumentReference sThingsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(toSearch.toString());
+    DocumentReference sThingsRef =
+        FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('SevenThings').doc(toSearch.toString());
     Query wheelRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('LCIScore');
     CollectionReference goalsRef = FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).collection('Goals');
 
@@ -454,6 +455,8 @@ class _HomeBaseState extends State<HomeBase> {
 
   _HomeBaseState(this.userdata, this.wheelData, this.sevenThings, this.goals, this.point, this.isViewed);
 
+  GlobalKey<ScaffoldState> drawerKey;
+
   Future<void> updateToken(String token) async {
     FirebaseFirestore.instance.collection('UserData').doc(FirebaseAuth.instance.currentUser.uid).update({"token": token});
   }
@@ -462,7 +465,10 @@ class _HomeBaseState extends State<HomeBase> {
   void initState() {
     super.initState();
 
-    if(kIsWeb) {
+    drawerKey = new GlobalKey();
+
+    if (kIsWeb) {
+      print('Web detected, updating token ...');
       FirebaseMessaging.instance.getToken(vapidKey: "BB1Z1ItGirpcYo3x3tfy3vqsuGznPARNIuhjnN2sUEFmgCoNtwOzH1B1BnNT92-EvJ4i5SKiVfxdqjbOKMl9MSc").then((token) {
         updateToken(token);
       });
@@ -484,10 +490,12 @@ class _HomeBaseState extends State<HomeBase> {
     }
   }
 
-  void onTap(int i) {
+  void onTap(int i, bool fromFAB) {
     setState(() {
       index = i;
     });
+
+    if (fromFAB) drawerKey.currentState.closeDrawer();
   }
 
   Future<bool> showConfirmExit() {
@@ -543,6 +551,7 @@ class _HomeBaseState extends State<HomeBase> {
         }
       },
       child: Scaffold(
+        key: drawerKey,
         body: screen.elementAt(index),
         bottomNavigationBar: Theme(
           data: ThemeData(
@@ -563,7 +572,7 @@ class _HomeBaseState extends State<HomeBase> {
             showUnselectedLabels: true,
             showSelectedLabels: true,
             currentIndex: index,
-            onTap: onTap,
+            onTap: (i) => onTap(i, false),
             items: [
               BottomNavigationBarItem(
                 icon: Padding(
@@ -612,6 +621,61 @@ class _HomeBaseState extends State<HomeBase> {
             ],
           ),
         ),
+        drawerEnableOpenDragGesture: false,
+        drawer: kIsWeb
+            ? Drawer(
+                child: Center(
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        title: Text(
+                          "Home",
+                          style: TextStyle(color: index == 0 ? Color(0xFF170E9A) : Colors.black, fontWeight: index == 0 ? FontWeight.bold : null),
+                        ),
+                        onTap: () => onTap(0, true),
+                      ),
+                      ListTile(
+                        title: Text(
+                          "Seven Things",
+                          style: TextStyle(color: index == 1 ? Color(0xFF170E9A) : Colors.black, fontWeight: index == 1 ? FontWeight.bold : null),
+                        ),
+                        onTap: () => onTap(1, true),
+                      ),
+                      ListTile(
+                        title: Text(
+                          "Campaign",
+                          style: TextStyle(color: index == 2 ? Color(0xFF170E9A) : Colors.black, fontWeight: index == 2 ? FontWeight.bold : null),
+                        ),
+                        onTap: () => onTap(2, true),
+                      ),
+                      ListTile(
+                        title: Text(
+                          "Profile",
+                          style: TextStyle(color: index == 3 ? Color(0xFF170E9A) : Colors.black, fontWeight: index == 3 ? FontWeight.bold : null),
+                        ),
+                        onTap: () => onTap(3, true),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
+        floatingActionButton: kIsWeb
+            ? SizedBox(
+                height: 36,
+                width: 36,
+                child: FloatingActionButton(
+                  onPressed: () => drawerKey.currentState.openDrawer(),
+                  child: Icon(
+                    Icons.menu,
+                    size: 16,
+                  ),
+                ),
+              )
+            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       ),
     );
   }
