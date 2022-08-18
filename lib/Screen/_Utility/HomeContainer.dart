@@ -34,6 +34,7 @@ class StateHomeContainer extends State<_HomeContainer> {
 
     return BaseScreen(
       bottomNavigationBar: true,
+      homeScreens: true,
       homeContainerViewModel: homeContainerViewModel,
       pageController: pageController,
       scrollable: true,

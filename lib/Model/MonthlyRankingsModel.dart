@@ -10,6 +10,8 @@ class MonthlyRankingsModel {
   String? name;
   double? averageScore;
 
+  UserService userService = UserService();
+
   MonthlyRankingsModel({this.id = "", this.days = 0, this.totalLeave = 0, this.totalScore = 0, this.name = "", this.averageScore = 0});
 
   MonthlyRankingsModel.fromMap(Map snapshot, String id)
@@ -23,11 +25,11 @@ class MonthlyRankingsModel {
     if (snapshot.exists) {
       Map? resultMap = snapshot.data() as Map?;
 
-      for(var entry in resultMap!.entries) {
+      for (var entry in resultMap!.entries) {
         String key = entry.key;
         var value = entry.value;
         double averageScore = value['totalScore'] / value['days'] * 10;
-        String name = await UserService.getName(key);
+        String name = await userService.getName(key);
         result.add(MonthlyRankingsModel(
           id: key,
           name: name,

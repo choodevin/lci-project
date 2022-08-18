@@ -30,6 +30,13 @@
             {
               "client_id": "427811452112-t1agpdm7luofc4e3osl6iih13n1ef91t.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "427811452112-noq4v29ok6rk6t16lgbcft8jrbroqpqm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.lci.lciProject"
+              }
             }
           ]
         }

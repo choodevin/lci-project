@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:LCI/Model/BaseModel.dart';
 import 'package:LCI/Model/UserModel.dart';
-import 'package:LCI/Screen/sevenThings/SevenThings.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'SevenThingsContent.dart';
 import 'SevenThingsStatus.dart';
@@ -16,7 +14,7 @@ class SevenThingsModel extends BaseModel {
   SevenThingsStatus status = SevenThingsStatus();
   DateTime? sevenThingsDate;
 
-  SevenThingsModel() : super(tableName: TABLE_NAME, parentTable: UserModel()) {
+  SevenThingsModel() : super(tableName: TABLE_NAME, containsParent: true, parentModel: UserModel()) {
     for (int i = 0; i < 7; i++) {
       SevenThingsContent sevenThingsContent = SevenThingsContent();
       sevenThingsContent.order = i;
@@ -52,7 +50,7 @@ class SevenThingsModel extends BaseModel {
 
         content.toObject(map);
 
-        this.contentList[content.order!] = content;
+        this.contentList[content.order] = content;
       }
     }
 

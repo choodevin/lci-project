@@ -265,7 +265,8 @@ class _SevenThingsMainState extends State<SevenThingsMain> {
                             Container(
                               padding: EdgeInsets.fromLTRB(20, 10, 20, 25),
                               child: Container(
-                                child: GetSevenThingList(date: selectedDate, key: Key(selectedDate.toString()), editingCallBack: editingCallBack, addCallBack: addCallBack),
+                                child: GetSevenThingList(
+                                    date: selectedDate, key: Key(selectedDate.toString()), editingCallBack: editingCallBack, addCallBack: addCallBack),
                               ),
                             ),
                           ],
@@ -625,7 +626,10 @@ class _SevenThingListState extends State<SevenThingList> {
                     break;
                   }
                 }
-                await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+                await FirebaseFirestore.instance
+                    .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
+                    .set(sevenThings)
+                    .then((value) {
                   Navigator.of(context).pop();
                   _newSevenThings.text = "";
                   progressPercent = getProgress();
@@ -661,7 +665,10 @@ class _SevenThingListState extends State<SevenThingList> {
             }
           }
         }
-        await FirebaseFirestore.instance.doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/").set(sevenThings).then((value) {
+        await FirebaseFirestore.instance
+            .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
+            .set(sevenThings)
+            .then((value) {
           Navigator.of(context).pop();
           progressPercent = getProgress();
         }).catchError((error) {
@@ -771,7 +778,8 @@ class _SevenThingListState extends State<SevenThingList> {
                                                       });
                                                       popEdit();
                                                     } else {
-                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
                                                     }
                                                   }
                                                 : () {},
@@ -789,7 +797,8 @@ class _SevenThingListState extends State<SevenThingList> {
                                                           }
                                                           if (occurrence > 1) {
                                                             Navigator.of(context).pop();
-                                                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                                                            ScaffoldMessenger.of(context)
+                                                                .showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                                           } else {
                                                             setState(() {
                                                               var details = sevenThings['content'][contentOrder[i]];
@@ -799,7 +808,11 @@ class _SevenThingListState extends State<SevenThingList> {
                                                               sevenThings['content'][value] = details;
                                                             });
                                                             await FirebaseFirestore.instance
-                                                                .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
+                                                                .doc("UserData/" +
+                                                                    FirebaseAuth.instance.currentUser!.uid +
+                                                                    "/SevenThings/" +
+                                                                    date.toString() +
+                                                                    "/")
                                                                 .set(sevenThings)
                                                                 .then((value) {
                                                               Navigator.of(context).pop();
@@ -817,7 +830,11 @@ class _SevenThingListState extends State<SevenThingList> {
                                                           });
                                                           _newSevenThings.text = "";
                                                           await FirebaseFirestore.instance
-                                                              .doc("UserData/" + FirebaseAuth.instance.currentUser!.uid + "/SevenThings/" + date.toString() + "/")
+                                                              .doc("UserData/" +
+                                                                  FirebaseAuth.instance.currentUser!.uid +
+                                                                  "/SevenThings/" +
+                                                                  date.toString() +
+                                                                  "/")
                                                               .set(sevenThings)
                                                               .then((value) {
                                                             Navigator.of(context).pop();
@@ -843,11 +860,13 @@ class _SevenThingListState extends State<SevenThingList> {
                                                     onChanged: (value) {
                                                       if (state != Status.LOCK) {
                                                         setState(() {
-                                                          sevenThings['content'][contentOrder[i]]['status'] = !sevenThings['content'][contentOrder[i]]['status'];
+                                                          sevenThings['content'][contentOrder[i]]['status'] =
+                                                              !sevenThings['content'][contentOrder[i]]['status'];
                                                         });
                                                         popEdit();
                                                       } else {
-                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
+                                                        ScaffoldMessenger.of(context)
+                                                            .showSnackBar(SnackBar(content: Text("Your seven things list is now locked")));
                                                       }
                                                     },
                                                   ),
@@ -1025,7 +1044,8 @@ class _SevenThingListState extends State<SevenThingList> {
                                               var type;
                                               if (contentOrder.contains(value)) {
                                                 Navigator.of(context).pop();
-                                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(content: Text("Your seven things consist of the same item")));
                                               } else {
                                                 for (var i = 0; i < contentOrder.length; i++) {
                                                   var k = contentOrder[i];
@@ -1109,8 +1129,4 @@ class _SevenThingListState extends State<SevenThingList> {
   }
 }
 
-enum Status {
-  LOCK_EDIT,
-  LOCK,
-  NORMAL,
-}
+enum Status { NORMAL, LOCK_EDIT, LOCK }

@@ -18,13 +18,13 @@ class UserModel extends BaseModel {
   String? currentEnrolledCampaign;
   bool? isCoach;
 
-  List<SevenThingsModel>? sevenThings;
+  List<SevenThingsModel> sevenThings = [];
 
   // Storage file name
   File? profilePictureFile;
   Uint8List? profilePictureBits;
 
-  UserModel() : super(tableName: TABLE_NAME); // Must initialize BaseModel's table name
+  UserModel() : super(tableName: TABLE_NAME, containsParent: false); // Must initialize BaseModel's table name
 
   void toObject(String id, Object? obj) {
     super.toObject(id, obj);
@@ -60,7 +60,6 @@ class UserModel extends BaseModel {
 
   Map<String, File> getFileList() {
     this.fileList["profilePicture"] = this.profilePictureFile!;
-
     return fileList;
   }
 }

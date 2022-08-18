@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:LCI/DAO/UserDAO.dart';
 import 'package:LCI/Route/Routes.dart';
 import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:LCI/ViewModel/BaseViewModel.dart';
@@ -18,6 +17,8 @@ class RegisterViewModel extends BaseViewModel {
   int selectedSubscriptionPage = 0;
 
   double currentPage = 0;
+
+  UserService userService = UserService();
 
   setUser(UserModel user) {
     this.user = user;
@@ -77,19 +78,15 @@ class RegisterViewModel extends BaseViewModel {
   Future<bool> checkRegisteredEmail(String email) async {
     this.setStateLoading();
 
-    return await UserService.checkRegisteredEmail(email).whenComplete(() => this.setStateNormal());
+    return await userService.checkRegisteredEmail(email).whenComplete(() => this.setStateNormal());
   }
 
   List<DropdownMenuItem<dynamic>> getGenderDropdownItems() {
-    return super.getDropdownItems(UserService.GENDER_LIST);
+    return super.getDropdownItems(UserService.GENDER_LIST, userService.getGenderDescription);
   }
 
   List<DropdownMenuItem<dynamic>> getCountryDropdownItems() {
-    return super.getDropdownItems(UserService.COUNTRY_LIST);
-  }
-
-  Future<UserModel?> getUser(String id) async {
-    return await UserDAO.findUserById(id, false);
+    return super.getDropdownItems(UserService.COUNTRY_LIST, userService.getCountryDescription);
   }
 
   next(PageController pageController, GlobalKey<FormState> registerFormKey, BuildContext context) async {
@@ -112,7 +109,7 @@ class RegisterViewModel extends BaseViewModel {
     if (pageController.page == 1) {
       this.user.subscriptionType = selectedSubscriptionPage == 0 ? UserService.SUBSCRIPTION_TYPE_STANDARD : UserService.SUBSCRIPTION_TYPE_PREMIUM;
 
-      bool registerSuccess = await UserService.createUser(this.user);
+      bool registerSuccess = await userService.createUser(this.user);
 
       if (registerSuccess) {
         Navigator.of(context).pushNamedAndRemoveUntil(Routes.HOME, (_) => false);
@@ -124,7 +121,7 @@ class RegisterViewModel extends BaseViewModel {
     this.setStateNormal();
   }
 
-  void showDatePicker(BuildContext context, DateTime tempDateTime) {
+  showDatePicker(BuildContext context, DateTime tempDateTime) {
     Widget child = DatePicker(
       onDateTimeChanged: (value) {
         tempDateTime = value;
@@ -135,7 +132,7 @@ class RegisterViewModel extends BaseViewModel {
     this.showBottomModal(context, child).whenComplete(() => this.updateDob(tempDateTime));
   }
 
-  void selectPhoto(BuildContext context) {
+  selectPhoto(BuildContext context) {
     XFile? file = null;
     Widget child = Wrap(
       children: [

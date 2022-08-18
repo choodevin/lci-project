@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.6.0
+version: 0.7.2
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -23,13 +23,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: 1.4.0
-  firebase_auth: 1.1.4
-  firebase_database: ^6.0.0
+  firebase_core: ^1.20.0
+  firebase_auth: 3.5.0
   firebase_messaging: ^10.0.4
   google_sign_in: 5.0.3
   flutter_svg: ^0.22.0
-  cloud_firestore: ^2.4.0
+  cloud_firestore: ^3.1.17
   intl: 0.17.0
   ntp: 2.0.0
   syncfusion_flutter_sliders: ^19.1.69-beta
@@ -40,17 +39,16 @@ dependencies:
   radar_chart: ^2.0.1
   flutter_launcher_icons: ^0.9.0
   http: ^0.13.3
-  flutter_facebook_login_web: ^0.2.1+1
-  expandable_page_view: ^1.0.13
+  expandable_page_view: ^1.0.5
   flutter_local_notifications: ^6.0.0
+  package_info_plus: ^1.0.4
   flutter_datetime_picker: ^1.5.1
   provider: ^6.0.1
-  google_fonts: ^2.3.1
-  camera: ^0.9.7+1
-  path_provider: ^2.0.10
-  path: ^1.8.1
+  cloud_functions: ^3.3.3
   image_picker: ^0.8.5+3
   firebase_storage: ^10.0.1
+  google_fonts: ^2.3.1
+  camera: ^0.9.7+1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -103,8 +101,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-analyzer:
-  strong-mode: true
-  language:
-    enableSuperMixins: true

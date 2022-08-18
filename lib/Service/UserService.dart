@@ -1,6 +1,6 @@
+import 'package:LCI/Repository/UserRepository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../DAO/UserDAO.dart';
 import '../Model/UserModel.dart';
 
 class UserService {
@@ -17,26 +17,40 @@ class UserService {
   static const List<String> GENDER_LIST = [GENDER_MALE, GENDER_FEMALE, GENDER_OTHERS];
   static const List<String> COUNTRY_LIST = [COUNTRY_MALAYSIA, COUNTRY_SINGAPORE];
 
-  static Future<String> getName(String id) async {
-    String result = "";
-    UserModel? user = await UserDAO.findUserById(id, false);
+  UserRepository userRepository = UserRepository();
 
-    result = user.name!;
+  Future<String> getName(String id) async {
+    String result = "";
+    UserModel? user = await userRepository.getDocumentById(id);
+
+    if(user != null) {
+      result = user.name!;
+    }
 
     return result;
   }
 
-  static Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password) async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
       return true;
     } catch (e) {
       print("Error occurred while logging in : $e");
-      return false;
     }
+    return false;
   }
 
-  static Future<bool> checkRegisteredEmail(String email) async {
+  Future<bool> logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      return true;
+    } catch (e) {
+      print("Error occurred while logging out : $e");
+    }
+    return false;
+  }
+
+  Future<bool> checkRegisteredEmail(String email) async {
     bool result = false;
 
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -48,24 +62,24 @@ class UserService {
     return result;
   }
 
-  static String getGenderDescription(String value) {
+  String getGenderDescription(String value) {
     if (value == GENDER_MALE) return 'Male';
     if (value == GENDER_FEMALE) return 'Female';
     if (value == GENDER_OTHERS) return 'Others';
     return '-- Gender --';
   }
 
-  static String getCountryDescription(String value) {
+  String getCountryDescription(String value) {
     if (value == COUNTRY_MALAYSIA) return 'Malaysia';
     if (value == COUNTRY_SINGAPORE) return 'Singapore';
     return '-- Country --';
   }
 
-  static Future<bool> createUser(UserModel user) async {
+  Future<bool> createUser(UserModel user) async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(email: user.email!, password: user.password!); // Create firebase auth
 
-      if (await UserDAO.createUser(user)) return true; // Create profile pic storage data and user data
+      if (await userRepository.create(user)) return true; // Create profile pic storage data and user data
 
       return false;
     } catch (e) {
@@ -74,11 +88,13 @@ class UserService {
     }
   }
 
-  static Future<UserModel> getUserById(String id, bool loadProfilePicture) async {
-    return await UserDAO.findUserById(id, loadProfilePicture);
+  Future<UserModel> getUserById(String id, bool loadProfilePicture) async {
+    UserModel? user = await userRepository.getDocumentById(id);
+    if (loadProfilePicture && user != null) await this.loadProfilePicture(user);
+    return user!;
   }
 
-  static loadProfilePicture(UserModel user) async {
-    return await UserDAO.loadProfilePicture(user);
+  loadProfilePicture(UserModel user) async {
+    user.profilePictureBits = await userRepository.downloadFile(filePath: "${user.id}/profilePicture");
   }
 }

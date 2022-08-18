@@ -1,5 +1,6 @@
 import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:LCI/Screen/_Utility/CustomSvg.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -14,6 +15,7 @@ class BaseScreen extends StatefulWidget {
   final bool? bottomNavigationBar;
   final HomeContainerViewModel? homeContainerViewModel;
   final PageController? pageController;
+  final bool? homeScreens;
 
   const BaseScreen({
     required this.child,
@@ -24,6 +26,7 @@ class BaseScreen extends StatefulWidget {
     this.bottomNavigationBar,
     this.homeContainerViewModel,
     this.pageController,
+    this.homeScreens,
   });
 
   StateBaseScreen createState() => StateBaseScreen();
@@ -46,10 +49,14 @@ class StateBaseScreen extends State<BaseScreen> {
 
   get pageController => widget.pageController;
 
+  get homeScreens => widget.homeScreens ?? false;
+
   Widget build(BuildContext context) {
     Widget body = SafeArea(
       child: Container(
-        height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - kBottomNavigationBarHeight,
+        height: homeScreens
+            ? MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom - kBottomNavigationBarHeight
+            : MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
         child: Padding(
           padding: padding,
           child: child,

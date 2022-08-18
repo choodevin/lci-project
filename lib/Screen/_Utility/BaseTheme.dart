@@ -16,7 +16,7 @@ class BaseTheme {
 
   static const Color FOCUSED_ERROR_COLOR = Color(0xFFA63232);
   static const Color META_TEXT_COLOR = Color(0xFF717171);
-  static const Color PRIMARY_COLOR = Color(0xFF6246EA);
+  static const Color PRIMARY_COLOR = Color(0xFF170E9A);
   static const Color SECONDARY_COLOR = Color(0xFFDBDBEA);
   static const Color DISABLED_COLOR = Color(0xFFE5E5E5);
   static const Color OVERLAY_BACKGROUND_COLOR = Color(0x3D000000);
@@ -30,7 +30,7 @@ class BaseTheme {
   static const EdgeInsets DEFAULT_CONTENT_MARGIN = EdgeInsets.symmetric(horizontal: 12, vertical: 16);
   static const EdgeInsets DEFAULT_BUTTON_MARGIN = EdgeInsets.only(top: 14);
   static const EdgeInsets DEFAULT_MODAL_MARGIN = EdgeInsets.symmetric(horizontal: 16, vertical: 24);
-  static const EdgeInsets DEFAULT_SCREEN_MARGIN = EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 12);
+  static const EdgeInsets DEFAULT_SCREEN_MARGIN = EdgeInsets.all(24);
 
   static const EdgeInsets DEFAULT_HOME_SCREEN_ITEM_MARGIN = EdgeInsets.all(8);
   static const EdgeInsets CONTENT_MARGIN_NO_HORIZONTAL = EdgeInsets.symmetric(vertical: 16);

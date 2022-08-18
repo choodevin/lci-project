@@ -1,10 +1,8 @@
-import 'package:LCI/Model/SevenThings/SevenThingsModel.dart';
 import 'package:LCI/Screen/_Utility/BaseTheme.dart';
 import 'package:LCI/Screen/_Utility/CustomIcon.dart';
 import 'package:LCI/Screen/_Utility/Labels.dart';
 import 'package:LCI/Screen/_Utility/PrimaryButton.dart';
 import 'package:LCI/Screen/_Utility/PrimaryCheckbox.dart';
-import 'package:LCI/ViewModel/HomeViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,19 +18,7 @@ class StateSevenThings extends State<SevenThings> with AutomaticKeepAliveClientM
     super.build(context);
 
     SevenThingsViewModel sevenThingsViewModel = Provider.of<SevenThingsViewModel>(context, listen: true);
-    HomeViewModel homeViewModel = Provider.of<HomeViewModel>(context);
-
-    sevenThingsViewModel.homeViewModel = homeViewModel;
-
-    if (sevenThingsViewModel.user.id == null) sevenThingsViewModel.user = homeViewModel.user;
-
-    if (sevenThingsViewModel.currentSevenThings == null) {
-      if (homeViewModel.sevenThings != null) {
-        sevenThingsViewModel.currentSevenThings = homeViewModel.sevenThings;
-      } else {
-        sevenThingsViewModel.currentSevenThings = SevenThingsModel();
-      }
-    }
+    sevenThingsViewModel.onWidgetBuilt(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,13 +64,17 @@ class StateSevenThings extends State<SevenThings> with AutomaticKeepAliveClientM
             physics: NeverScrollableScrollPhysics(),
             itemCount: sevenThingsViewModel.currentSevenThings!.contentList.length,
             onReorder: sevenThingsViewModel.reorderSevenThings,
+            buildDefaultDragHandles:
+                sevenThingsViewModel.currentSevenThings!.contentList.where((element) => element.content.isNotEmpty).isEmpty || sevenThingsViewModel.isSaving()
+                    ? false
+                    : true,
             itemBuilder: (context, index) {
               bool contentIsEmpty = sevenThingsViewModel.currentSevenThings!.contentList.elementAt(index).content.isEmpty ? true : false;
 
               return GestureDetector(
                 key: Key(index.toString()),
-                onTap: contentIsEmpty ? null : () => sevenThingsViewModel.updateTempSevenThingsContent(index),
-                onLongPress: contentIsEmpty ? null : () => sevenThingsViewModel.showSevenThingsContentMenu(context),
+                onTap: contentIsEmpty || sevenThingsViewModel.isSaving() ? null : () => sevenThingsViewModel.updateSevenThingsContent(index),
+                onLongPress: contentIsEmpty || sevenThingsViewModel.isSaving() ? null : () => sevenThingsViewModel.showSevenThingsContentMenu(context, index),
                 child: Container(
                   padding: EdgeInsets.all(12),
                   child: Row(
@@ -97,7 +87,7 @@ class StateSevenThings extends State<SevenThings> with AutomaticKeepAliveClientM
                           margin: EdgeInsets.only(right: 8),
                           child: PrimaryCheckbox(
                             value: sevenThingsViewModel.currentSevenThings!.contentList.elementAt(index).status,
-                            onChanged: contentIsEmpty ? null : (_) => sevenThingsViewModel.updateTempSevenThingsContent(index),
+                            onChanged: contentIsEmpty ? null : (_) => sevenThingsViewModel.updateSevenThingsContent(index),
                           ),
                         ),
                       ),
@@ -113,12 +103,34 @@ class StateSevenThings extends State<SevenThings> with AutomaticKeepAliveClientM
           ),
         ),
         Spacer(),
-        sevenThingsViewModel.currentSevenThings!.contentList.every((element) => element.content.isNotEmpty)
-            ? SizedBox.shrink()
-            : PrimaryButton(
-                text: "Add Seven Things",
-                onPressed: () => sevenThingsViewModel.addSevenThingsContent(context),
-              ),
+        sevenThingsViewModel.isEdited()
+            ? Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: "Save",
+                      color: BaseTheme.DEFAULT_SUCCESS_COLOR,
+                      onPressed: () => sevenThingsViewModel.saveSevenThings(context),
+                      isLoading: sevenThingsViewModel.isSaving(),
+                      margin: EdgeInsets.only(right: 12),
+                    ),
+                  ),
+                  Expanded(
+                    child: PrimaryButton(
+                      text: "Reset",
+                      color: BaseTheme.DEFAULT_ERROR_COLOR,
+                      onPressed: sevenThingsViewModel.resetSevenThings,
+                      margin: EdgeInsets.only(left: 6),
+                    ),
+                  ),
+                ],
+              )
+            : sevenThingsViewModel.currentSevenThings!.contentList.every((element) => element.content.isNotEmpty)
+                ? SizedBox.shrink()
+                : PrimaryButton(
+                    text: "Add Seven Things",
+                    onPressed: () => sevenThingsViewModel.addSevenThingsContent(context),
+                  ),
       ],
     );
   }

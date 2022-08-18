@@ -9,12 +9,13 @@ abstract class BaseModel {
   DateTime? updateTime;
   String? id;
 
-  BaseModel? parentTable;
+  BaseModel? parentModel;
+  bool containsParent;
 
   Map<String, dynamic> objectMap = {};
   Map<String, File> fileList = {};
 
-  BaseModel({required this.tableName, this.parentTable});
+  BaseModel({required this.tableName, required this.containsParent, this.parentModel});
 
   @mustCallSuper
   void toObject(String id, Object? obj) {

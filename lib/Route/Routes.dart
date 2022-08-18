@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../Screen/Home.dart';
 import '../Screen/Landing.dart';
+import '../Screen/_Utility/HomeContainer.dart';
 import '../Screen/register/Register.dart';
 
 class Routes {
@@ -16,7 +16,7 @@ class Routes {
       case REGISTER:
         return MaterialPageRoute(builder: (_) => Register());
       case HOME:
-        return MaterialPageRoute(builder: (_) => Home());
+        return MaterialPageRoute(builder: (_) => HomeContainer());
     }
 
     return null;

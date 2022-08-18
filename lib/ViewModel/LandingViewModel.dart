@@ -8,12 +8,15 @@ import '../Route/Routes.dart';
 class LandingViewModel extends BaseViewModel {
   UserModel user = UserModel();
 
+  UserService userService = UserService();
+
   Future login(GlobalKey<FormState> loginFormKey, BuildContext context) async {
     this.setStateLoading();
 
+    loginFormKey.currentState!.save();
+
     if (loginFormKey.currentState!.validate()) {
-      loginFormKey.currentState!.save();
-      bool validate = await UserService.login(this.user.email!, this.user.password!);
+      bool validate = await userService.login(this.user.email!, this.user.password!);
 
       if (validate) {
         Navigator.of(context).pushNamedAndRemoveUntil(Routes.HOME, (_) => false);

@@ -45,7 +45,7 @@ class StateSimpleSevenThingsList extends State<SimpleSevenThingsList> {
             itemCount: viewModel.sevenThings!.contentList.length,
             itemBuilder: (context, index) {
               return GestureDetector(
-                onTap: () => viewModel.updateTempSevenThingsContent(index),
+                onTap: () => viewModel.updateSevenThingsContent(index),
                 child: Container(
                   padding: EdgeInsets.all(12),
                   child: Row(
@@ -58,7 +58,7 @@ class StateSimpleSevenThingsList extends State<SimpleSevenThingsList> {
                           margin: EdgeInsets.only(right: 8),
                           child: PrimaryCheckbox(
                             value: viewModel.sevenThings!.contentList.elementAt(index).status,
-                            onChanged: (_) => viewModel.updateTempSevenThingsContent(index),
+                            onChanged: (_) => viewModel.updateSevenThingsContent(index),
                           ),
                         ),
                       ),

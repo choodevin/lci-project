@@ -81,7 +81,7 @@ class StatePrimaryInput extends State<PrimaryInput> {
         decoration: InputDecoration(
           floatingLabelStyle: MaterialStateTextStyle.resolveWith(BaseTheme.inputValidationLabelStyle),
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: EdgeInsets.all(16),
           labelText: labelText,
           focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1.5, color: Theme.of(context).primaryColor)),
           enabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: BaseTheme.DEFAULT_DISPLAY_COLOR)),
@@ -154,7 +154,7 @@ class StatePasswordInput extends State<PasswordInput> {
         decoration: InputDecoration(
           floatingLabelStyle: MaterialStateTextStyle.resolveWith(BaseTheme.inputValidationLabelStyle),
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: EdgeInsets.all(16),
           labelText: labelText,
           focusedBorder: OutlineInputBorder(borderSide: BorderSide(width: 1.5, color: Theme.of(context).primaryColor)),
           enabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 1, color: BaseTheme.DEFAULT_DISPLAY_COLOR)),

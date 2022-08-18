@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,233 +5,173 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import '../Model/BaseModel.dart';
 
-class FirebaseService {
-  CollectionReference? ref;
-  Reference? storageRef;
+class FirebaseService<T extends BaseModel> {
+  late BaseModel model;
 
-  BaseModel objectModel;
+  FirebaseFirestore firestoreInstance = FirebaseFirestore.instance;
+  FirebaseStorage storageInstance = FirebaseStorage.instance;
 
-  BaseModel? subObject;
+  Future<T?> getDocumentById(String id) async {
+    CollectionReference ref = firestoreInstance.collection(model.tableName);
+    try {
+      DocumentSnapshot<Object?> doc = await ref.doc(id).get();
+      BaseModel resultObj = model;
 
-  FirebaseService.firestore(this.objectModel) {
-    this.ref = FirebaseFirestore.instance.collection(objectModel.tableName);
-  }
-
-  FirebaseService.storage(this.objectModel) {
-    this.storageRef = FirebaseStorage.instance.ref("/${objectModel.tableName}");
-  }
-
-  FirebaseService subCollection(BaseModel subObject, {String? parentId}) {
-    if (ref != null) {
-      if (parentId != null) {
-        this.ref = this.ref!.doc(parentId).collection(subObject.tableName);
+      if (doc.exists) {
+        resultObj.toObject(doc.id, doc.data());
       } else {
-        if (this.subObject == null) {
-          this.ref = this.ref!.doc(objectModel.id).collection(subObject.tableName);
-        } else {
-          this.ref = this.ref!.doc(this.subObject!.id).collection(subObject.tableName);
-        }
+        return null;
       }
-      this.subObject = subObject;
-    } else {
-      throw Exception("Firestore reference is null");
+
+      return resultObj as T;
+    } catch (e) {
+      print("Error occurred while retrieving document : $e");
     }
-
-    return this;
-  }
-
-  // firestore method
-  Future<dynamic>? getDocumentById(String id) async {
-    if (ref != null) {
-      try {
-        DocumentSnapshot<Object?> doc = await ref!.doc(id).get();
-        var resultObj = this.objectModel;
-
-        if (doc.exists) {
-          resultObj.toObject(doc.id, doc.data());
-        } else {
-          return null;
-        }
-
-        return resultObj;
-      } catch (e) {
-        print("Error occurred while retrieving document : $e");
-      }
-    } else {
-      throw Exception("Collection reference is null, please verify if you are using firestore or storage");
-    }
-
     return null;
   }
 
-  // firestore method
-  Future<List<dynamic>?> getCollection() async {
-    if (ref != null) {
-      try {
-        QuerySnapshot<Object?> col = await ref!.get();
+  Future<List<T>> getCollection({Map<String, dynamic>? paramMap, Map<String, String>? idMap}) async {
+    CollectionReference? ref;
+    Query? query;
+    try {
+      List<String> idList = [];
+      List<String> tableList = [];
 
-        List<dynamic> resultList = [];
+      List<T> resultList = [];
 
-        if (col.size > 0) {
-          Iterator it = col.docs.iterator;
+      if (model.containsParent && idMap == null) throw Exception("Model contains parent but parentId supplied is null");
 
-          while (it.moveNext()) {
-            BaseModel resultObj = this.objectModel;
+      this._findParent(baseModel: model.parentModel, idList: idList, tableList: tableList);
 
-            DocumentSnapshot<Object?> doc = it.current;
-
-            resultObj.toObject(doc.id, doc.data());
-
-            resultList.add(resultObj);
-          }
-        }
-
-        return resultList;
-      } catch (e) {
-        print("Error occurred while retrieving collection : $e");
-      }
-    } else {
-      throw Exception("Collection reference is null, please verify if you are using firestore or storage");
-    }
-
-    return null;
-  }
-
-  // firestore method
-  Future<bool> createDocument({String? id}) async {
-    if (ref != null) {
-      try {
-        BaseModel toSaveObject;
-
-        if (this.subObject != null)
-          toSaveObject = this.subObject!;
-        else
-          toSaveObject = this.objectModel;
-
-        toSaveObject.creationTime = DateTime.now();
-        toSaveObject.updateTime = DateTime.now();
-
-        Map<String, dynamic> doc = toSaveObject.toMap();
-
-        if (id != null) {
-          await ref!.doc(id).set(doc);
-          toSaveObject.id = id;
-        } else if (toSaveObject.id != null) {
-          await ref!.doc(toSaveObject.id).set(doc);
+      for (int i = tableList.length - 1; -1 < i; i--) {
+        if (ref == null) {
+          ref = firestoreInstance.collection(tableList[i]);
         } else {
-          await ref!.add(doc).then((doc) => toSaveObject.id = doc.id);
+          String tableName = tableList[i + 1];
+          ref = ref.doc(idMap![tableName]).collection(tableList[i]);
         }
-
-        return true;
-      } catch (e) {
-        print("Error occurred while creating document : $e");
-        return false;
       }
-    } else {
-      throw Exception("Collection reference is null, please verify if you are using firestore or storage");
-    }
-  }
 
-  Future<List<dynamic>?> getDocumentByFieldValue(Map<String, dynamic> paramMap) async {
-    if (ref != null) {
-      try {
+      if (ref == null) {
+        ref = firestoreInstance.collection(model.tableName);
+      } else {
+        ref = ref.doc(idMap![tableList[0]]).collection(model.tableName);
+      }
+
+      if (paramMap != null) {
         Iterator it = paramMap.entries.iterator;
-        List<dynamic> resultList = [];
-
-        Query<Object?>? query = null;
 
         while (it.moveNext()) {
           MapEntry entry = it.current;
-          query = ref!.where(entry.key, isEqualTo: entry.value);
+          query = ref.where(entry.key, isEqualTo: entry.value);
         }
-
-        if (query != null) {
-          QuerySnapshot<Object?> col = await query.get();
-
-          if (col.size > 0) {
-            Iterator it = col.docs.iterator;
-
-            BaseModel resultModel = this.objectModel;
-
-            if (this.subObject != null) resultModel = this.subObject!;
-
-            while (it.moveNext()) {
-              BaseModel resultObj = resultModel;
-
-              DocumentSnapshot<Object?> doc = it.current;
-
-              resultObj.toObject(doc.id, doc.data());
-
-              resultList.add(resultObj);
-            }
-          }
-        }
-
-        return resultList;
-      } catch (e) {
-        print("Error occurred while retrieving data : $e");
-        return null;
       }
-    } else {
-      throw Exception("Firestore reference is null, please verify if you are using firestore or storage");
+
+      QuerySnapshot<Object?> col = await (query != null ? query.get() : ref.get());
+
+      if (col.size > 0) {
+        Iterator it = col.docs.iterator;
+
+        BaseModel resultModel = this.model;
+
+        while (it.moveNext()) {
+          BaseModel resultObj = resultModel;
+
+          DocumentSnapshot<Object?> doc = it.current;
+
+          resultObj.toObject(doc.id, doc.data());
+
+          resultList.add(resultObj as T);
+        }
+      }
+
+      return resultList;
+    } catch (e, sT) {
+      print("Error occurred while retrieving document : $e");
+      print(sT);
     }
+    return [];
   }
 
-  Future<bool> save() async {
-    if (ref != null) {
-      BaseModel toSaveObject = this.subObject ?? this.objectModel;
-      try {
-        await ref!.doc(toSaveObject.id).update(toSaveObject.toMap());
+  Future create(T model) async {
+    DocumentReference? ref;
+    try {
+      List<String> idList = [];
+      List<String> tableList = [];
 
-        return true;
-      } catch (e) {
-        print("Error occurred while saving ${toSaveObject.runtimeType} : $e");
-        return false;
-      }
-    } else {
-      throw Exception("Firestore reference is null, please verify if you are using firestore or storage");
-    }
-  }
+      if (model.containsParent) this._findParent(baseModel: model.parentModel, idList: idList, tableList: tableList);
 
-  // storage method
-  Future<bool> uploadFile() async {
-    if (storageRef != null) {
-      try {
-        Map<String, File> fileList = objectModel.getFileList();
-        if (fileList.length > 0) {
-          Iterator it = fileList.entries.iterator;
+      model.creationTime = DateTime.now();
+      model.updateTime = DateTime.now();
 
-          while (it.moveNext()) {
-            MapEntry map = it.current;
-            String fileName = map.key;
-            File file = map.value;
-
-            await storageRef!.child("${objectModel.id}/$fileName").putFile(file);
-          }
-
-          return true;
+      for (int i = tableList.length - 1; -1 < i; i--) {
+        if (ref == null) {
+          ref = firestoreInstance.collection(tableList[i]).doc(idList[i]);
         } else {
-          throw Exception("File list is empty");
+          ref = ref.collection(tableList[i]).doc(idList[i]);
         }
-      } catch (e) {
-        print("Error occurred while uploading file : $e");
-        return false;
       }
-    } else {
-      throw Exception("Storage reference is null, please verify if you are using firestore or storage");
+
+      if (ref == null) {
+        ref = firestoreInstance.collection(model.tableName).doc(model.id);
+      } else {
+        ref = ref.collection(model.tableName).doc(model.id);
+      }
+
+      await ref.set(model.toMap());
+    } catch (e) {
+      print("Error occurred while creating document : $e");
     }
   }
 
-  Future<Uint8List?> downloadFile(String fileName) async {
-    if (storageRef != null) {
-      try {
-        return await storageRef!.child("${objectModel.id}/$fileName").getData();
-      } catch (e) {
-        print("Error occurred while downloading file : $e");
-        return null;
+  Future save(T model) async {
+    DocumentReference? ref;
+    try {
+      List<String> idList = [];
+      List<String> tableList = [];
+
+      if (model.containsParent) this._findParent(baseModel: model.parentModel, idList: idList, tableList: tableList);
+
+      model.updateTime = DateTime.now();
+
+      for (int i = tableList.length - 1; -1 < i; i--) {
+        if (ref == null) {
+          ref = firestoreInstance.collection(tableList[i]).doc(idList[i]);
+        } else {
+          ref = ref.collection(tableList[i]).doc(idList[i]);
+        }
       }
+
+      if (ref == null) {
+        ref = firestoreInstance.collection(model.tableName).doc(model.id);
+      } else {
+        ref = ref.collection(model.tableName).doc(model.id);
+      }
+
+      await ref.update(model.toMap());
+    } catch (e) {
+      print("Error occurred while creating document : $e");
+    }
+  }
+
+  Future<Uint8List?> downloadFile({required String filePath}) async {
+    Reference storageRef = storageInstance.ref("/${model.tableName}");
+    try {
+      return await storageRef.child(filePath).getData();
+    } catch (e) {
+      print("Error occurred while downloading file : $e");
+    }
+    return null;
+  }
+
+  _findParent({BaseModel? baseModel, required List<String> idList, required List<String> tableList}) {
+    if (baseModel != null) {
+      idList.add(baseModel.id ?? "");
+      tableList.add(baseModel.tableName);
+
+      if (baseModel.containsParent && baseModel.parentModel != null) _findParent(baseModel: baseModel.parentModel, idList: idList, tableList: tableList);
     } else {
-      throw Exception("Storage reference is null, please verify if you are using firestore or storage");
+      throw NullThrownError();
     }
   }
 }

@@ -6,6 +6,9 @@ import '../Screen/_Utility/BaseTheme.dart';
 class BaseViewModel with ChangeNotifier {
   ScreenState currentState = ScreenState.NORMAL;
   String errorMessage = "";
+  List<BaseViewModel> viewModelList = [];
+
+  onWidgetBuilt(BuildContext context) {}
 
   setStateNormal() {
     this.currentState = ScreenState.NORMAL;
@@ -45,18 +48,21 @@ class BaseViewModel with ChangeNotifier {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(4)),
             border: Border.all(color: BaseTheme.LIGHT_OUTLINE_COLOR),
-            gradient: LinearGradient(stops: [0.14, 0.02], colors: [baseColor, Colors.white]),
+            color: Colors.white,
           ),
           child: Row(
             children: [
-              icon,
+              Container(
+                color: baseColor,
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                child: icon,
+              ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(left: 20),
+                  padding: EdgeInsets.only(left: 14),
                   child: Text(statusMessage, style: BaseTheme.defaultTextStyle),
                 ),
               ),
@@ -66,7 +72,7 @@ class BaseViewModel with ChangeNotifier {
         elevation: 0,
         backgroundColor: Colors.transparent,
         padding: EdgeInsets.zero,
-        margin: EdgeInsets.symmetric(horizontal: 42, vertical: 90),
+        margin: EdgeInsets.symmetric(horizontal: 42, vertical: 46),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -83,20 +89,31 @@ class BaseViewModel with ChangeNotifier {
             color: BaseTheme.BACKGROUND_COLOR,
             borderRadius: BaseTheme.MODAL_BORDER_RADIUS,
           ),
-          margin: EdgeInsets.fromLTRB(16,24,16, MediaQuery.of(context).viewInsets.bottom + 24),
+          margin: EdgeInsets.fromLTRB(16, 24, 16, MediaQuery.of(context).viewInsets.bottom + 24),
           child: child,
         );
       },
     );
   }
 
-  List<DropdownMenuItem<dynamic>> getDropdownItems(List<String> items) {
+  List<DropdownMenuItem<dynamic>> getDropdownItems(List<String> items, Function(String) itemDescription) {
     return items.map((value) {
       return DropdownMenuItem<String>(
         value: value,
-        child: Text(UserService.getGenderDescription(value)),
+        child: Text(itemDescription(value)),
       );
     }).toList();
+  }
+
+  callNotifyChanges() {
+    viewModelList.forEach((element) {
+      element.notifyChanges();
+    });
+    notifyListeners();
+  }
+
+  notifyChanges() {
+    throw UnimplementedError("Notify changes is not implement in your viewModel");
   }
 }
 

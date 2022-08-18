@@ -8,7 +8,7 @@ class PageLoading extends StatelessWidget {
     return Container(
       height: MediaQuery.of(context).size.height,
       child: Center(
-        child: PrimaryLoading(size: 24),
+        child: PrimaryLoading(),
       ),
     );
   }

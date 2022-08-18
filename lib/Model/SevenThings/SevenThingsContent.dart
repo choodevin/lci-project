@@ -1,7 +1,8 @@
 class SevenThingsContent {
   String content = "";
   bool status = false;
-  int? order;
+
+  late int order;
 
   void toObject(MapEntry entry) {
     this.content = entry.key;
